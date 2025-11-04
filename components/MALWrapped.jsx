@@ -67,7 +67,7 @@ export default function MALWrapped() {
   };
 
   const startOAuth = () => {
-    const clientId = 'YOUR_MAL_CLIENT_ID'; // Replace with your Client ID
+    const clientId = process.env.NEXT_PUBLIC_MAL_CLIENT_ID;
     const redirectUri = window.location.origin + window.location.pathname;
     const codeChallenge = generateCodeChallenge();
     
