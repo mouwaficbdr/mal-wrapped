@@ -82,16 +82,25 @@ export default function MALWrapped() {
 
   const slides = stats ? [
     { id: 'welcome' },
-    { id: 'anime_log' },
-    { id: 'total_watch_time' },
-    { id: 'top_genres' },
+    { id: 'anime_count' },
+    { id: 'anime_time' },
+    { id: 'top_genre' },
+    { id: 'drumroll_anime' },
     { id: 'favorite_anime' },
-    { id: 'top_studios' },
-    { id: 'seasonal_highlight' },
-    { id: 'hidden_gems' },
-    { id: 'manga_log' },
+    { id: 'top_studio' },
+    { id: 'seasonal_highlights' },
+    { id: 'hidden_gems_anime' },
+    { id: 'planned_anime' },
+    { id: 'didnt_land_anime' },
+    { id: 'manga_count' },
+    { id: 'manga_time' },
+    { id: 'top_manga_genre' },
+    { id: 'drumroll_manga' },
     { id: 'favorite_manga' },
-    { id: 'top_authors' },
+    { id: 'top_author' },
+    { id: 'hidden_gems_manga' },
+    { id: 'planned_manga' },
+    { id: 'didnt_land_manga' },
     { id: 'finale' },
   ] : [];
 
@@ -287,7 +296,14 @@ export default function MALWrapped() {
 
     const thisYearAnime = filteredAnime;
 
-    // Get completed anime with ratings (from filtered list)
+    // Get anime with ratings (completed or watching) from filtered list
+    const ratedAnime = thisYearAnime.filter(item => {
+      const status = item.list_status?.status;
+      const score = item.list_status?.score;
+      return (status === 'completed' || status === 'watching') && score && score > 0;
+    });
+
+    // Get completed anime for specific stats
     const completedAnime = thisYearAnime.filter(item => {
       const status = item.list_status?.status;
       const score = item.list_status?.score;
@@ -323,9 +339,20 @@ export default function MALWrapped() {
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5);
 
-    // Top rated shows
-    const topRated = completedAnime
+    // Top rated shows (from rated anime, not just completed)
+    const topRated = ratedAnime
       .sort((a, b) => b.list_status.score - a.list_status.score)
+      .slice(0, 5);
+    
+    // Lowest rated shows (completed only, with ratings)
+    const lowestRated = completedAnime
+      .filter(item => item.list_status.score > 0)
+      .sort((a, b) => a.list_status.score - b.list_status.score)
+      .slice(0, 5);
+    
+    // Planned to watch (status: plan_to_watch)
+    const plannedAnime = thisYearAnime
+      .filter(item => item.list_status?.status === 'plan_to_watch')
       .slice(0, 5);
 
     // Hidden gems (high rating, low popularity)
@@ -351,51 +378,53 @@ export default function MALWrapped() {
     const totalMinutes = totalEpisodes * avgEpisodeLength;
     const totalHours = Math.floor(totalMinutes / 60);
 
-    // Seasonal highlight - find most active season
-    const seasonalCounts = {};
+    // Seasonal highlights - group by all 4 seasons
+    const getSeason = (date) => {
+      const month = date.getMonth();
+      if (month >= 0 && month <= 1) return 'Winter';
+      if (month >= 2 && month <= 4) return 'Spring';
+      if (month >= 5 && month <= 7) return 'Summer';
+      if (month >= 8 && month <= 10) return 'Fall';
+      return 'Winter';
+    };
+
+    const seasonalData = {
+      Winter: { anime: [], episodes: 0, hours: 0 },
+      Spring: { anime: [], episodes: 0, hours: 0 },
+      Summer: { anime: [], episodes: 0, hours: 0 },
+      Fall: { anime: [], episodes: 0, hours: 0 }
+    };
+
     thisYearAnime.forEach(item => {
-      const finishDate = item.list_status?.finish_date;
+      const finishDate = item.list_status?.finish_date || item.list_status?.start_date || item.list_status?.updated_at;
       if (finishDate) {
-        const date = new Date(finishDate);
-        const month = date.getMonth();
-        let season = 'Winter';
-        if (month >= 2 && month <= 4) season = 'Spring';
-        else if (month >= 5 && month <= 7) season = 'Summer';
-        else if (month >= 8 && month <= 10) season = 'Fall';
-        const key = `${season} ${date.getFullYear()}`;
-        seasonalCounts[key] = (seasonalCounts[key] || 0) + 1;
+        try {
+          const date = new Date(finishDate);
+          const season = getSeason(date);
+          seasonalData[season].anime.push(item);
+          const episodes = item.list_status?.num_episodes_watched || 0;
+          seasonalData[season].episodes += episodes;
+          seasonalData[season].hours += Math.floor((episodes * 24) / 60);
+        } catch (e) {
+          // Skip invalid dates
+        }
       }
     });
-    const topSeasonal = Object.entries(seasonalCounts)
-      .sort((a, b) => b[1] - a[1])[0];
 
-    // Get seasonal highlight anime
-    let seasonalAnime = null;
-    if (topSeasonal) {
-      const [seasonYear, count] = topSeasonal;
-      const [season] = seasonYear.split(' ');
-      const seasonAnime = thisYearAnime
-        .filter(item => {
-          const finishDate = item.list_status?.finish_date;
-          if (!finishDate) return false;
-          const date = new Date(finishDate);
-          const month = date.getMonth();
-          let itemSeason = 'Winter';
-          if (month >= 2 && month <= 4) itemSeason = 'Spring';
-          else if (month >= 5 && month <= 7) itemSeason = 'Summer';
-          else if (month >= 8 && month <= 10) itemSeason = 'Fall';
-          return itemSeason === season;
-        })
-        .sort((a, b) => (b.node?.mean || 0) - (a.node?.mean || 0))[0];
-      
-      if (seasonAnime) {
-        seasonalAnime = {
-          ...seasonAnime,
-          season: seasonYear,
-          count: count
+    // Get top anime for each season
+    const seasonalHighlights = {};
+    ['Winter', 'Spring', 'Summer', 'Fall'].forEach(season => {
+      if (seasonalData[season].anime.length > 0) {
+        const topAnime = seasonalData[season].anime
+          .sort((a, b) => (b.list_status?.score || 0) - (a.list_status?.score || 0))[0];
+        seasonalHighlights[season] = {
+          highlight: topAnime,
+          totalAnime: seasonalData[season].anime.length,
+          totalEpisodes: seasonalData[season].episodes,
+          totalHours: seasonalData[season].hours
         };
       }
-    }
+    });
 
     // Manga stats - filter by year
     const filteredManga = currentYear === 'all' ? manga : manga.filter(item => {
@@ -414,13 +443,43 @@ export default function MALWrapped() {
       }
     });
 
+    // Get manga with ratings (completed or reading)
+    const ratedManga = filteredManga.filter(item => {
+      const status = item.list_status?.status;
+      const score = item.list_status?.score;
+      return (status === 'completed' || status === 'reading') && score && score > 0;
+    });
+
     const completedManga = filteredManga.filter(item => 
       item.list_status?.status === 'completed' && item.list_status?.score > 0
     );
 
-    const topManga = completedManga
+    const topManga = ratedManga
       .sort((a, b) => b.list_status.score - a.list_status.score)
       .slice(0, 5);
+    
+    // Lowest rated manga
+    const lowestRatedManga = completedManga
+      .filter(item => item.list_status.score > 0)
+      .sort((a, b) => a.list_status.score - b.list_status.score)
+      .slice(0, 5);
+    
+    // Planned to read
+    const plannedManga = filteredManga
+      .filter(item => item.list_status?.status === 'plan_to_read')
+      .slice(0, 5);
+    
+    // Calculate manga chapters/volumes and time
+    const totalChapters = filteredManga.reduce((sum, item) => 
+      sum + (item.list_status?.num_chapters_read || 0), 0
+    );
+    const totalVolumes = filteredManga.reduce((sum, item) => 
+      sum + (item.list_status?.num_volumes_read || 0), 0
+    );
+    // Estimate: 5 minutes per chapter, 20 minutes per volume
+    const mangaMinutes = (totalChapters * 5) + (totalVolumes * 20);
+    const mangaHours = Math.floor(mangaMinutes / 60);
+    const mangaDays = Math.floor(mangaHours / 24);
 
     // Manga authors (from filtered manga)
     const authorCounts = {};
@@ -446,11 +505,20 @@ export default function MALWrapped() {
       topRated: topRated.length > 0 ? topRated : [],
       hiddenGems: hiddenGems.length > 0 ? hiddenGems : [],
       watchTime: totalHours,
+      watchDays: Math.floor(totalHours / 24),
       completedCount: completedAnime.length,
       topManga: topManga.length > 0 ? topManga : [],
       topAuthors: topAuthors.length > 0 ? topAuthors : [],
-      seasonalAnime: seasonalAnime || null,
+      seasonalHighlights: seasonalHighlights,
       selectedYear: currentYear,
+      lowestRatedAnime: lowestRated.length > 0 ? lowestRated : [],
+      plannedAnime: plannedAnime.length > 0 ? plannedAnime : [],
+      lowestRatedManga: lowestRatedManga.length > 0 ? lowestRatedManga : [],
+      plannedManga: plannedManga.length > 0 ? plannedManga : [],
+      totalChapters: totalChapters,
+      totalVolumes: totalVolumes,
+      mangaHours: mangaHours,
+      mangaDays: mangaDays,
     };
     
     console.log('Calculated stats:', {
@@ -479,32 +547,30 @@ export default function MALWrapped() {
     
     setIsCapturing(true);
     try {
-      // Wait a bit for animations to settle
-      await new Promise(resolve => setTimeout(resolve, 200));
+      // Wait for animations to settle
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Dynamically import html2canvas
       const html2canvas = (await import('html2canvas')).default;
       
-      // Get the actual dimensions
-      const rect = slideRef.current.getBoundingClientRect();
-      const scrollWidth = slideRef.current.scrollWidth;
-      const scrollHeight = slideRef.current.scrollHeight;
+      // Get the card element (the actual slide content)
+      const cardElement = slideRef.current.querySelector('.slide-card') || slideRef.current;
+      const rect = cardElement.getBoundingClientRect();
       
-      const canvas = await html2canvas(slideRef.current, {
+      const canvas = await html2canvas(cardElement, {
         backgroundColor: '#101010',
         scale: 2,
         logging: false,
         useCORS: true,
         allowTaint: true,
-        width: scrollWidth,
-        height: scrollHeight,
-        windowWidth: scrollWidth,
-        windowHeight: scrollHeight,
+        width: rect.width,
+        height: rect.height,
         x: 0,
         y: 0,
-        scrollX: 0,
-        scrollY: 0,
-        removeContainer: false,
+        scrollX: -window.scrollX,
+        scrollY: -window.scrollY,
+        windowWidth: rect.width,
+        windowHeight: rect.height,
       });
       
       const link = document.createElement('a');
@@ -563,11 +629,11 @@ export default function MALWrapped() {
     }
   }
 
-  function SlideContent({ slide }) {
+  function SlideContent({ slide, mangaListData }) {
     if (!slide || !stats) return null;
 
     const SlideLayout = ({ children, verticalText }) => (
-      <div className="w-full h-full relative px-4 py-2 md:p-8 flex flex-col items-center justify-center">
+      <div className="w-full h-full relative px-4 py-2 md:p-8 flex flex-col items-center justify-center slide-card">
         {verticalText && (
           <p className="absolute top-1/2 -left-2 md:-left-2 -translate-y-1/2 text-[#9EFF00]/50 font-bold uppercase tracking-[.3em] [writing-mode:vertical-lr] text-base">
             {verticalText}
@@ -578,6 +644,50 @@ export default function MALWrapped() {
         </div>
       </div>
     );
+
+    // Image Carousel Component
+    const ImageCarousel = ({ items, maxItems = 20 }) => {
+      const [currentIndex, setCurrentIndex] = useState(0);
+      const visibleItems = items.slice(0, maxItems);
+      const itemsPerView = 5;
+      
+      useEffect(() => {
+        if (visibleItems.length <= itemsPerView) return;
+        const interval = setInterval(() => {
+          setCurrentIndex((prev) => {
+            const maxIndex = Math.max(0, visibleItems.length - itemsPerView);
+            return (prev + 1) % (maxIndex + 1);
+          });
+        }, 2000);
+        return () => clearInterval(interval);
+      }, [visibleItems.length, itemsPerView]);
+
+      if (visibleItems.length === 0) return null;
+
+      return (
+        <div className="mt-6 overflow-hidden">
+          <div 
+            className="flex transition-transform duration-500 ease-in-out"
+            style={{ transform: `translateX(-${currentIndex * (100 / itemsPerView)}%)` }}
+          >
+            {visibleItems.map((item, idx) => (
+              <div key={idx} className="flex-shrink-0" style={{ width: `${100 / itemsPerView}%` }}>
+                <div className="mx-1 aspect-[2/3] bg-black/50 border border-white/10 rounded-lg overflow-hidden">
+                  {item.coverImage && (
+                    <img 
+                      src={item.coverImage} 
+                      alt={item.title || ''} 
+                      crossOrigin="anonymous" 
+                      className="w-full h-full object-cover" 
+                    />
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    };
 
     const RankedListItem = ({ item, rank }) => {
       const isTop = rank === 1;
@@ -623,66 +733,94 @@ export default function MALWrapped() {
           <SlideLayout verticalText="INITIALIZE">
             <div className="text-center">
               <h2 className="text-3xl md:text-4xl font-medium uppercase text-white/80 animate-pop-in animation-delay-100">MyAnimeList Wrapped</h2>
-              <h1 className="text-7xl md:text-9xl font-bold uppercase text-[#9EFF00] my-4 animate-pop-in animation-delay-200 animate-neon-pulse">{stats.selectedYear === 'all' ? 'ALL TIME' : stats.selectedYear}</h1>
+              <h1 className="text-7xl md:text-9xl font-bold uppercase text-[#9EFF00] my-4 animate-pop-in animation-delay-200">{stats.selectedYear === 'all' ? 'ALL TIME' : stats.selectedYear}</h1>
               <p className="text-2xl md:text-3xl text-white animate-pop-in animation-delay-300">A look back at your {stats.selectedYear === 'all' ? 'anime journey' : 'year'}, <span className="text-[#9EFF00]">{username || 'a'}</span>.</p>
             </div>
           </SlideLayout>
         );
 
-      case 'anime_log':
+      case 'anime_count':
+        const animeCarouselItems = stats.thisYearAnime.map(item => ({
+          title: item.node?.title || '',
+          coverImage: item.node?.main_picture?.large || item.node?.main_picture?.medium || ''
+        }));
         return (
           <SlideLayout verticalText="ANIME-LOG">
             <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block animate-pop-in animation-delay-100">
-              {stats.selectedYear === 'all' ? 'All Time' : stats.selectedYear} Anime Log
+              {stats.selectedYear === 'all' ? 'All Time' : stats.selectedYear} Anime Watched
             </h1>
-            <h2 className="text-xl md:text-2xl font-semibold uppercase tracking-wider text-white/80 mt-3 animate-pop-in animation-delay-200">
-              A look at the series you completed {stats.selectedYear === 'all' ? 'over time' : 'this year'}.
-            </h2>
-            <div className="mt-8 text-center animate-pop-in animation-delay-400 retro-scan">
-              <p className="text-9xl md:text-[10rem] font-bold text-white animate-neon-pulse">
+            <div className="mt-8 text-center animate-pop-in animation-delay-400">
+              <p className="text-9xl md:text-[10rem] font-bold text-white">
                 <AnimatedNumber value={stats.thisYearAnime.length} />
               </p>
-              <p className="text-3xl font-medium uppercase text-[#9EFF00] mt-2 animate-flicker">Anime Series Watched</p>
+              <p className="text-3xl font-medium uppercase text-[#9EFF00] mt-2">Anime Series</p>
             </div>
+            {animeCarouselItems.length > 0 && <ImageCarousel items={animeCarouselItems} maxItems={50} />}
           </SlideLayout>
         );
 
-      case 'total_watch_time':
+      case 'anime_time':
         return (
           <SlideLayout verticalText="TIME-ANALYSIS">
             <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block animate-pop-in animation-delay-100">
-              Total Watch Time
+              Time Invested
             </h1>
-            <h2 className="text-xl md:text-2xl font-semibold uppercase tracking-wider text-white/80 mt-3 animate-pop-in animation-delay-200">
-              How much time you spent in other worlds.
-            </h2>
-            <div className="mt-8 text-center animate-pop-in animation-delay-400 retro-scan">
-              <p className="text-9xl md:text-[10rem] font-bold text-white animate-neon-pulse">
-                <AnimatedNumber value={stats.watchTime} />
-              </p>
-              <p className="text-3xl font-medium uppercase text-[#9EFF00] mt-2 animate-flicker">Hours of Anime Watched</p>
+            <div className="mt-8 text-center animate-pop-in animation-delay-400">
+              {stats.watchDays > 0 ? (
+                <>
+                  <p className="text-9xl md:text-[10rem] font-bold text-white">
+                    <AnimatedNumber value={stats.watchDays} />
+                  </p>
+                  <p className="text-3xl font-medium uppercase text-[#9EFF00] mt-2">Days</p>
+                  <p className="text-2xl text-white/70 mt-4">or <AnimatedNumber value={stats.watchTime} /> hours</p>
+                </>
+              ) : (
+                <>
+                  <p className="text-9xl md:text-[10rem] font-bold text-white">
+                    <AnimatedNumber value={stats.watchTime} />
+                  </p>
+                  <p className="text-3xl font-medium uppercase text-[#9EFF00] mt-2">Hours</p>
+                </>
+              )}
             </div>
           </SlideLayout>
         );
 
-      case 'top_genres':
+      case 'top_genre':
+        const topGenre = stats.topGenres && stats.topGenres.length > 0 ? stats.topGenres[0][0] : null;
+        const genreAnime = topGenre ? stats.thisYearAnime.filter(item => 
+          item.node?.genres?.some(g => g.name === topGenre)
+        ).map(item => ({
+          title: item.node?.title || '',
+          coverImage: item.node?.main_picture?.large || item.node?.main_picture?.medium || ''
+        })) : [];
         return (
           <SlideLayout verticalText="GENRE-MATRIX">
-            <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block animate-pop-in animation-delay-100 animate-retro-flicker">
-              Your Top Genres
+            <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block animate-pop-in animation-delay-100">
+              Most Watched Genre
             </h1>
-            <h2 className="text-xl md:text-2xl font-semibold uppercase tracking-wider text-white/80 mt-3 animate-pop-in animation-delay-200">
-              The genres you explored the most.
-            </h2>
-            {stats.topGenres && stats.topGenres.length > 0 ? (
-              <div className="mt-8 space-y-1 stagger-children">
-                {stats.topGenres.map(([genre, count], idx) => (
-                  <RankedListItem key={genre} item={{ name: genre, count }} rank={idx + 1} />
-                ))}
-              </div>
+            {topGenre ? (
+              <>
+                <div className="mt-8 text-center animate-pop-in animation-delay-400">
+                  <p className="text-6xl md:text-8xl font-bold text-[#9EFF00] uppercase">{topGenre}</p>
+                  <p className="text-2xl text-white/70 mt-4">{stats.topGenres[0][1]} anime</p>
+                </div>
+                {genreAnime.length > 0 && <ImageCarousel items={genreAnime} maxItems={30} />}
+              </>
             ) : (
               <div className="mt-8 text-center text-white/50">No genre data available</div>
             )}
+          </SlideLayout>
+        );
+
+      case 'drumroll_anime':
+        return (
+          <SlideLayout verticalText="DRUMROLL">
+            <div className="text-center">
+              <h1 className="text-6xl md:text-8xl font-bold uppercase text-[#9EFF00] animate-pop-in animation-delay-100">🎬</h1>
+              <h2 className="text-4xl md:text-6xl font-bold uppercase text-white mt-8 animate-pop-in animation-delay-200">Your Favorite</h2>
+              <h2 className="text-4xl md:text-6xl font-bold uppercase text-[#9EFF00] mt-4 animate-pop-in animation-delay-300">Anime Awaits...</h2>
+            </div>
           </SlideLayout>
         );
 
@@ -697,7 +835,7 @@ export default function MALWrapped() {
         }));
         return (
           <SlideLayout verticalText="TOP-SELECTION">
-            <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block animate-pop-in animation-delay-100 animate-retro-flicker">
+            <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block animate-pop-in animation-delay-100">
               Your Favorite Anime
             </h1>
             <h2 className="text-xl md:text-2xl font-semibold uppercase tracking-wider text-white/80 mt-3 animate-pop-in animation-delay-200">
@@ -764,71 +902,81 @@ export default function MALWrapped() {
           </SlideLayout>
         );
 
-      case 'top_studios':
+      case 'top_studio':
+        const topStudio = stats.topStudios && stats.topStudios.length > 0 ? stats.topStudios[0][0] : null;
+        const studioAnime = topStudio ? stats.thisYearAnime.filter(item => 
+          item.node?.studios?.some(s => s.name === topStudio)
+        ).map(item => ({
+          title: item.node?.title || '',
+          coverImage: item.node?.main_picture?.large || item.node?.main_picture?.medium || ''
+        })) : [];
         return (
           <SlideLayout verticalText="PRODUCTION">
-            <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block animate-pop-in animation-delay-100 animate-retro-flicker">
-              Top Animation Studios
+            <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block animate-pop-in animation-delay-100">
+              Favorite Studio
             </h1>
-            <h2 className="text-xl md:text-2xl font-semibold uppercase tracking-wider text-white/80 mt-3 animate-pop-in animation-delay-200">
-              The studios that brought your favorites to life.
-            </h2>
-            {stats.topStudios && stats.topStudios.length > 0 ? (
-              <div className="mt-8 space-y-1 stagger-children">
-                {stats.topStudios.map(([studio, count], idx) => (
-                  <RankedListItem key={studio} item={{ name: studio, count }} rank={idx + 1} />
-                ))}
-              </div>
+            {topStudio ? (
+              <>
+                <div className="mt-8 text-center animate-pop-in animation-delay-400">
+                  <p className="text-5xl md:text-7xl font-bold text-[#9EFF00]">{topStudio}</p>
+                  <p className="text-2xl text-white/70 mt-4">{stats.topStudios[0][1]} anime</p>
+                </div>
+                {studioAnime.length > 0 && <ImageCarousel items={studioAnime} maxItems={30} />}
+              </>
             ) : (
               <div className="mt-8 text-center text-white/50">No studio data available</div>
             )}
           </SlideLayout>
         );
 
-      case 'seasonal_highlight':
-        const seasonalItem = stats.seasonalAnime ? {
-          id: stats.seasonalAnime.node.id,
-          title: stats.seasonalAnime.node.title,
-          coverImage: stats.seasonalAnime.node.main_picture?.large || stats.seasonalAnime.node.main_picture?.medium || '',
-          userRating: stats.seasonalAnime.node.mean || 0,
-          studio: stats.seasonalAnime.node.studios?.[0]?.name || '',
-          season: stats.seasonalAnime.season || ''
-        } : null;
+      case 'seasonal_highlights':
+        const seasons = ['Winter', 'Spring', 'Summer', 'Fall'];
         return (
-          <SlideLayout verticalText="HIGHLIGHT">
+          <SlideLayout verticalText="SEASONAL">
             <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block animate-pop-in animation-delay-100">
-              Seasonal Highlight
+              Seasonal Highlights
             </h1>
-            <h2 className="text-xl md:text-2xl font-semibold uppercase tracking-wider text-white/80 mt-3 animate-pop-in animation-delay-200">
-              The top-rated show from a single season.
-            </h2>
-            {seasonalItem ? (
-              <div className="mt-8 flex flex-col md:flex-row items-center gap-4 md:gap-8 stagger-children">
-                <div className="w-36 md:w-52 shrink-0">
-                  <MediaCard item={seasonalItem} />
-                </div>
-                <div className="text-center md:text-left">
-                  <h3 className="text-3xl md:text-4xl font-bold text-white">{seasonalItem.title}</h3>
-                  {seasonalItem.studio && <p className="text-xl md:text-2xl text-[#9EFF00] mt-1">{seasonalItem.studio}</p>}
-                  {seasonalItem.season && <p className="text-lg md:text-xl text-white/70 mt-4">{seasonalItem.season}</p>}
-                  <div className="flex items-center justify-center md:justify-start text-2xl md:text-3xl text-yellow-300 mt-2">
-                    <span className="mr-2">★</span>
-                    <span>{seasonalItem.userRating.toFixed(1)} / 10</span>
+            <div className="mt-8 grid grid-cols-2 gap-4">
+              {seasons.map(season => {
+                const seasonData = stats.seasonalHighlights?.[season];
+                if (!seasonData) return null;
+                const highlight = seasonData.highlight;
+                return (
+                  <div key={season} className="bg-white/5 border border-white/10 rounded-lg p-4">
+                    <h3 className="text-2xl font-bold text-[#9EFF00] mb-3">{season}</h3>
+                    {highlight && (
+                      <>
+                        <div className="flex gap-3 mb-3">
+                          <div className="w-16 aspect-[2/3] bg-black/50 rounded overflow-hidden flex-shrink-0">
+                            {highlight.node?.main_picture?.large && (
+                              <img src={highlight.node.main_picture.large} alt={highlight.node.title} crossOrigin="anonymous" className="w-full h-full object-cover" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-bold text-white text-sm truncate">{highlight.node?.title}</p>
+                            <p className="text-xs text-[#9EFF00] truncate">{highlight.node?.studios?.[0]?.name || ''}</p>
+                            <p className="text-xs text-yellow-300 mt-1">★ {highlight.list_status?.score || 'N/A'}</p>
+                          </div>
+                        </div>
+                        <div className="text-xs text-white/70 space-y-1">
+                          <p>{seasonData.totalAnime} anime</p>
+                          <p>{seasonData.totalEpisodes} episodes</p>
+                          <p>{seasonData.totalHours} hours</p>
+                        </div>
+                      </>
+                    )}
                   </div>
-                </div>
-              </div>
-            ) : (
-              <div className="mt-8 text-center text-white/50">No seasonal data available</div>
-            )}
+                );
+              })}
+            </div>
           </SlideLayout>
         );
 
-      case 'hidden_gems':
-        const gems = stats.hiddenGems.slice(0, 3).map(item => ({
-          id: item.node.id,
-          title: item.node.title,
-          coverImage: item.node.main_picture?.large || item.node.main_picture?.medium || '',
-          userRating: item.list_status.score
+      case 'hidden_gems_anime':
+        const gems = stats.hiddenGems.slice(0, 5).map(item => ({
+          title: item.node?.title || '',
+          coverImage: item.node?.main_picture?.large || item.node?.main_picture?.medium || '',
+          userRating: item.list_status?.score
         }));
         return (
           <SlideLayout verticalText="DEEP-CUTS">
@@ -836,32 +984,207 @@ export default function MALWrapped() {
               Hidden Gems
             </h1>
             <h2 className="text-xl md:text-2xl font-semibold uppercase tracking-wider text-white/80 mt-3 animate-pop-in animation-delay-200">
-              Popularity-wise, these were deep cuts.
+              High ratings, low popularity.
             </h2>
             {gems.length > 0 ? (
-              <div className="mt-8 grid grid-cols-3 gap-3 md:gap-4 stagger-children">
-                {gems.map((anime) => <MediaCard key={anime.id} item={anime} />)}
-              </div>
+              <ImageCarousel items={gems} maxItems={20} />
             ) : (
               <div className="mt-8 text-center text-white/50">No hidden gems found</div>
             )}
           </SlideLayout>
         );
 
-      case 'manga_log':
+      case 'planned_anime':
+        const plannedAnimeItems = stats.plannedAnime.slice(0, 5).map(item => ({
+          title: item.node?.title || '',
+          coverImage: item.node?.main_picture?.large || item.node?.main_picture?.medium || ''
+        }));
+        return (
+          <SlideLayout verticalText="PLANNED">
+            <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block animate-pop-in animation-delay-100">
+              Planned to Watch
+            </h1>
+            <h2 className="text-xl md:text-2xl font-semibold uppercase tracking-wider text-white/80 mt-3 animate-pop-in animation-delay-200">
+              5 shows you plan to watch {stats.selectedYear === 'all' ? '' : 'this year'}.
+            </h2>
+            {plannedAnimeItems.length > 0 ? (
+              <ImageCarousel items={plannedAnimeItems} maxItems={10} />
+            ) : (
+              <div className="mt-8 text-center text-white/50">No planned anime found</div>
+            )}
+          </SlideLayout>
+        );
+
+      case 'didnt_land_anime':
+        const didntLandAnime = stats.lowestRatedAnime.slice(0, 5).map(item => ({
+          title: item.node?.title || '',
+          coverImage: item.node?.main_picture?.large || item.node?.main_picture?.medium || '',
+          userRating: item.list_status?.score
+        }));
+        return (
+          <SlideLayout verticalText="MISSED">
+            <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block animate-pop-in animation-delay-100">
+              Didn't Land
+            </h1>
+            <h2 className="text-xl md:text-2xl font-semibold uppercase tracking-wider text-white/80 mt-3 animate-pop-in animation-delay-200">
+              5 shows that didn't land with you.
+            </h2>
+            {didntLandAnime.length > 0 ? (
+              <ImageCarousel items={didntLandAnime} maxItems={10} />
+            ) : (
+              <div className="mt-8 text-center text-white/50">No data available</div>
+            )}
+          </SlideLayout>
+        );
+
+      case 'manga_count':
+        const mangaCarouselItems = stats.thisYearAnime.filter(item => {
+          // Get manga from filtered list - need to check if we have manga data
+          return false; // This will be fixed when we have manga data structure
+        }).map(item => ({
+          title: item.node?.title || '',
+          coverImage: item.node?.main_picture?.large || item.node?.main_picture?.medium || ''
+        }));
+        // Get manga from stats - we need to access filtered manga
+        const allMangaItems = (mangaListData || []).filter(item => {
+          if (stats.selectedYear === 'all') return true;
+          const finishDate = item.list_status?.finish_date;
+          const startDate = item.list_status?.start_date;
+          const updatedAt = item.list_status?.updated_at;
+          let dateToCheck = finishDate || startDate || updatedAt;
+          if (!dateToCheck) return false;
+          try {
+            const year = new Date(dateToCheck).getFullYear();
+            return year === stats.selectedYear;
+          } catch (e) {
+            return false;
+          }
+        }).map(item => ({
+          title: item.node?.title || '',
+          coverImage: item.node?.main_picture?.large || item.node?.main_picture?.medium || ''
+        }));
         return (
           <SlideLayout verticalText="MANGA-LOG">
             <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block animate-pop-in animation-delay-100">
-              {stats.selectedYear === 'all' ? 'All Time' : stats.selectedYear} Manga Log
+              {stats.selectedYear === 'all' ? 'All Time' : stats.selectedYear} Manga Read
             </h1>
-            <h2 className="text-xl md:text-2xl font-semibold uppercase tracking-wider text-white/80 mt-3 animate-pop-in animation-delay-200">
-              You didn't just watch, you read.
-            </h2>
-            <div className="mt-8 text-center animate-pop-in animation-delay-400 retro-scan">
-              <p className="text-9xl md:text-[10rem] font-bold text-white animate-neon-pulse">
+            <div className="mt-8 text-center animate-pop-in animation-delay-400">
+              <p className="text-9xl md:text-[10rem] font-bold text-white">
                 <AnimatedNumber value={stats.totalManga} />
               </p>
-              <p className="text-3xl font-medium uppercase text-[#9EFF00] mt-2 animate-flicker">Manga Read</p>
+              <p className="text-3xl font-medium uppercase text-[#9EFF00] mt-2">Manga Series</p>
+            </div>
+            {allMangaItems.length > 0 && <ImageCarousel items={allMangaItems} maxItems={50} />}
+          </SlideLayout>
+        );
+
+      case 'manga_time':
+        return (
+          <SlideLayout verticalText="READING-TIME">
+            <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block animate-pop-in animation-delay-100">
+              Reading Stats
+            </h1>
+            <div className="mt-8 text-center animate-pop-in animation-delay-400">
+              <div className="space-y-6">
+                <div>
+                  <p className="text-6xl md:text-8xl font-bold text-white">
+                    <AnimatedNumber value={stats.totalChapters || 0} />
+                  </p>
+                  <p className="text-2xl font-medium uppercase text-[#9EFF00] mt-2">Chapters</p>
+                </div>
+                <div>
+                  <p className="text-6xl md:text-8xl font-bold text-white">
+                    <AnimatedNumber value={stats.totalVolumes || 0} />
+                  </p>
+                  <p className="text-2xl font-medium uppercase text-[#9EFF00] mt-2">Volumes</p>
+                </div>
+                {stats.mangaDays > 0 ? (
+                  <div>
+                    <p className="text-5xl md:text-7xl font-bold text-white">
+                      <AnimatedNumber value={stats.mangaDays} />
+                    </p>
+                    <p className="text-xl font-medium uppercase text-[#9EFF00] mt-2">Days</p>
+                    <p className="text-lg text-white/70 mt-2">or <AnimatedNumber value={stats.mangaHours || 0} /> hours</p>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="text-5xl md:text-7xl font-bold text-white">
+                      <AnimatedNumber value={stats.mangaHours || 0} />
+                    </p>
+                    <p className="text-xl font-medium uppercase text-[#9EFF00] mt-2">Hours</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </SlideLayout>
+        );
+
+      case 'top_manga_genre':
+        const mangaGenres = {};
+        (mangaListData || []).forEach(item => {
+          if (stats.selectedYear !== 'all') {
+            const finishDate = item.list_status?.finish_date;
+            const startDate = item.list_status?.start_date;
+            const updatedAt = item.list_status?.updated_at;
+            let dateToCheck = finishDate || startDate || updatedAt;
+            if (!dateToCheck) return;
+            try {
+              const year = new Date(dateToCheck).getFullYear();
+              if (year !== stats.selectedYear) return;
+            } catch (e) {
+              return;
+            }
+          }
+          item.node?.genres?.forEach(genre => {
+            mangaGenres[genre.name] = (mangaGenres[genre.name] || 0) + 1;
+          });
+        });
+        const topMangaGenre = Object.entries(mangaGenres).sort((a, b) => b[1] - a[1])[0];
+        const mangaGenreItems = topMangaGenre ? (mangaListData || []).filter(item => {
+          if (stats.selectedYear !== 'all') {
+            const finishDate = item.list_status?.finish_date;
+            const startDate = item.list_status?.start_date;
+            const updatedAt = item.list_status?.updated_at;
+            let dateToCheck = finishDate || startDate || updatedAt;
+            if (!dateToCheck) return false;
+            try {
+              const year = new Date(dateToCheck).getFullYear();
+              if (year !== stats.selectedYear) return false;
+            } catch (e) {
+              return false;
+            }
+          }
+          return item.node?.genres?.some(g => g.name === topMangaGenre[0]);
+        }).map(item => ({
+          title: item.node?.title || '',
+          coverImage: item.node?.main_picture?.large || item.node?.main_picture?.medium || ''
+        })) : [];
+        return (
+          <SlideLayout verticalText="GENRE-MATRIX">
+            <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block animate-pop-in animation-delay-100">
+              Most Read Genre
+            </h1>
+            {topMangaGenre ? (
+              <>
+                <div className="mt-8 text-center animate-pop-in animation-delay-400">
+                  <p className="text-6xl md:text-8xl font-bold text-[#9EFF00] uppercase">{topMangaGenre[0]}</p>
+                  <p className="text-2xl text-white/70 mt-4">{topMangaGenre[1]} manga</p>
+                </div>
+                {mangaGenreItems.length > 0 && <ImageCarousel items={mangaGenreItems} maxItems={30} />}
+              </>
+            ) : (
+              <div className="mt-8 text-center text-white/50">No genre data available</div>
+            )}
+          </SlideLayout>
+        );
+
+      case 'drumroll_manga':
+        return (
+          <SlideLayout verticalText="DRUMROLL">
+            <div className="text-center">
+              <h1 className="text-6xl md:text-8xl font-bold uppercase text-[#9EFF00] animate-pop-in animation-delay-100">📚</h1>
+              <h2 className="text-4xl md:text-6xl font-bold uppercase text-white mt-8 animate-pop-in animation-delay-200">Your Favorite</h2>
+              <h2 className="text-4xl md:text-6xl font-bold uppercase text-[#9EFF00] mt-4 animate-pop-in animation-delay-300">Manga Awaits...</h2>
             </div>
           </SlideLayout>
         );
@@ -944,23 +1267,139 @@ export default function MALWrapped() {
           </SlideLayout>
         );
 
-      case 'top_authors':
+      case 'top_author':
+        const topAuthor = stats.topAuthors && stats.topAuthors.length > 0 ? stats.topAuthors[0][0] : null;
+        const authorManga = topAuthor ? (mangaListData || []).filter(item => {
+          if (stats.selectedYear !== 'all') {
+            const finishDate = item.list_status?.finish_date;
+            const startDate = item.list_status?.start_date;
+            const updatedAt = item.list_status?.updated_at;
+            let dateToCheck = finishDate || startDate || updatedAt;
+            if (!dateToCheck) return false;
+            try {
+              const year = new Date(dateToCheck).getFullYear();
+              if (year !== stats.selectedYear) return false;
+            } catch (e) {
+              return false;
+            }
+          }
+          return item.node?.authors?.some(a => {
+            const name = `${a.node?.first_name || ''} ${a.node?.last_name || ''}`.trim();
+            return name === topAuthor;
+          });
+        }).map(item => ({
+          title: item.node?.title || '',
+          coverImage: item.node?.main_picture?.large || item.node?.main_picture?.medium || ''
+        })) : [];
         return (
           <SlideLayout verticalText="CREATORS">
             <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block animate-pop-in animation-delay-100">
-              Top Manga Authors
+              Favorite Author
             </h1>
-            <h2 className="text-xl md:text-2xl font-semibold uppercase tracking-wider text-white/80 mt-3 animate-pop-in animation-delay-200">
-              The authors whose work you read most.
-            </h2>
-            {stats.topAuthors && stats.topAuthors.length > 0 ? (
-              <div className="mt-8 space-y-1 stagger-children">
-                {stats.topAuthors.map(([author, count], idx) => (
-                  <RankedListItem key={author} item={{ name: author, count }} rank={idx + 1} />
-                ))}
-              </div>
+            {topAuthor ? (
+              <>
+                <div className="mt-8 text-center animate-pop-in animation-delay-400">
+                  <p className="text-5xl md:text-7xl font-bold text-[#9EFF00]">{topAuthor}</p>
+                  <p className="text-2xl text-white/70 mt-4">{stats.topAuthors[0][1]} manga</p>
+                </div>
+                {authorManga.length > 0 && <ImageCarousel items={authorManga} maxItems={30} />}
+              </>
             ) : (
               <div className="mt-8 text-center text-white/50">No author data available</div>
+            )}
+          </SlideLayout>
+        );
+
+      case 'hidden_gems_manga':
+        const mangaGems = stats.hiddenGems?.slice(0, 5).map(item => ({
+          title: item.node?.title || '',
+          coverImage: item.node?.main_picture?.large || item.node?.main_picture?.medium || '',
+          userRating: item.list_status?.score
+        })) || [];
+        // Calculate hidden gems for manga (high rating, low popularity)
+        const mangaHiddenGems = (mangaListData || []).filter(item => {
+          if (stats.selectedYear !== 'all') {
+            const finishDate = item.list_status?.finish_date;
+            const startDate = item.list_status?.start_date;
+            const updatedAt = item.list_status?.updated_at;
+            let dateToCheck = finishDate || startDate || updatedAt;
+            if (!dateToCheck) return false;
+            try {
+              const year = new Date(dateToCheck).getFullYear();
+              if (year !== stats.selectedYear) return false;
+            } catch (e) {
+              return false;
+            }
+          }
+          const status = item.list_status?.status;
+          const score = item.list_status?.score;
+          const popularity = item.node?.num_list_users || 0;
+          return (status === 'completed' || status === 'reading') && score && score >= 8 && popularity < 100000;
+        }).sort((a, b) => {
+          if (b.list_status.score !== a.list_status.score) {
+            return b.list_status.score - a.list_status.score;
+          }
+          return (a.node?.num_list_users || 0) - (b.node?.num_list_users || 0);
+        }).slice(0, 5).map(item => ({
+          title: item.node?.title || '',
+          coverImage: item.node?.main_picture?.large || item.node?.main_picture?.medium || '',
+          userRating: item.list_status?.score
+        }));
+        return (
+          <SlideLayout verticalText="DEEP-CUTS">
+            <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block animate-pop-in animation-delay-100">
+              Hidden Gems
+            </h1>
+            <h2 className="text-xl md:text-2xl font-semibold uppercase tracking-wider text-white/80 mt-3 animate-pop-in animation-delay-200">
+              High ratings, low popularity.
+            </h2>
+            {mangaHiddenGems.length > 0 ? (
+              <ImageCarousel items={mangaHiddenGems} maxItems={20} />
+            ) : (
+              <div className="mt-8 text-center text-white/50">No hidden gems found</div>
+            )}
+          </SlideLayout>
+        );
+
+      case 'planned_manga':
+        const plannedMangaItems = stats.plannedManga.slice(0, 5).map(item => ({
+          title: item.node?.title || '',
+          coverImage: item.node?.main_picture?.large || item.node?.main_picture?.medium || ''
+        }));
+        return (
+          <SlideLayout verticalText="PLANNED">
+            <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block animate-pop-in animation-delay-100">
+              Planned to Read
+            </h1>
+            <h2 className="text-xl md:text-2xl font-semibold uppercase tracking-wider text-white/80 mt-3 animate-pop-in animation-delay-200">
+              5 manga you plan to read {stats.selectedYear === 'all' ? '' : 'this year'}.
+            </h2>
+            {plannedMangaItems.length > 0 ? (
+              <ImageCarousel items={plannedMangaItems} maxItems={10} />
+            ) : (
+              <div className="mt-8 text-center text-white/50">No planned manga found</div>
+            )}
+          </SlideLayout>
+        );
+
+      case 'didnt_land_manga':
+        const didntLandManga = stats.lowestRatedManga.slice(0, 5).map(item => ({
+          title: item.node?.title || '',
+          coverImage: item.node?.main_picture?.large || item.node?.main_picture?.medium || '',
+          userRating: item.list_status?.score
+        }));
+        return (
+          <SlideLayout verticalText="MISSED">
+            <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block animate-pop-in animation-delay-100">
+              Didn't Land
+            </h1>
+            <h2 className="text-xl md:text-2xl font-semibold uppercase tracking-wider text-white/80 mt-3 animate-pop-in animation-delay-200">
+              5 manga that didn't land with you.
+            </h2>
+            {didntLandManga.length > 0 ? (
+              <ImageCarousel items={didntLandManga} maxItems={10} />
+            ) : (
+              <div className="mt-8 text-center text-white/50">No data available</div>
             )}
           </SlideLayout>
         );
@@ -969,45 +1408,48 @@ export default function MALWrapped() {
         return (
           <SlideLayout verticalText="FINAL-REPORT">
             <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block animate-pop-in animation-delay-100">
-              Year In Review
+              {stats.selectedYear === 'all' ? 'All Time' : stats.selectedYear} In Review
             </h1>
-            <h2 className="text-xl md:text-2xl font-semibold uppercase tracking-wider text-white/80 mt-3 animate-pop-in animation-delay-200">
-              Your complete {stats.selectedYear === 'all' ? 'All Time' : stats.selectedYear} stats.
-            </h2>
-            <div className="mt-6 grid grid-cols-2 gap-2 md:gap-3 text-white stagger-children">
-              <div className="border border-white/20 p-2 rounded-lg col-span-1 flex flex-col">
-                <h3 className="text-base font-bold uppercase text-[#9EFF00] mb-2 shrink-0">Top Anime</h3>
-                <div className="space-y-1.5 min-h-0">
-                  {stats.topRated.slice(0, 4).map((a, i) => (
-                    <p key={a.node.id} className="bg-white/5 py-1 px-2 rounded truncate text-base">
-                      <span className="font-bold text-white/50 w-6 inline-block">{i+1}.</span>{a.node.title}
+            <div className="mt-6 grid grid-cols-2 gap-3 md:gap-4 text-white">
+              <div className="border border-white/20 p-3 rounded-lg col-span-1 flex flex-col">
+                <h3 className="text-lg font-bold uppercase text-[#9EFF00] mb-3 shrink-0">Top 5 Anime</h3>
+                <div className="space-y-2 min-h-0">
+                  {stats.topRated.slice(0, 5).map((a, i) => (
+                    <p key={a.node.id} className="bg-white/5 py-2 px-3 rounded truncate text-sm">
+                      <span className="font-bold text-[#9EFF00] w-6 inline-block">{i+1}.</span>{a.node.title}
                     </p>
                   ))}
                 </div>
               </div>
-              <div className="border border-white/20 p-2 rounded-lg col-span-1 flex flex-col">
-                <h3 className="text-base font-bold uppercase text-[#9EFF00] mb-2 shrink-0">Top Manga</h3>
-                <div className="space-y-1.5 min-h-0">
-                  {stats.topManga.slice(0, 4).map((m, i) => (
-                    <p key={m.node.id} className="bg-white/5 py-1 px-2 rounded truncate text-base">
-                      <span className="font-bold text-white/50 w-6 inline-block">{i+1}.</span>{m.node.title}
+              <div className="border border-white/20 p-3 rounded-lg col-span-1 flex flex-col">
+                <h3 className="text-lg font-bold uppercase text-[#9EFF00] mb-3 shrink-0">Top 5 Manga</h3>
+                <div className="space-y-2 min-h-0">
+                  {stats.topManga.slice(0, 5).map((m, i) => (
+                    <p key={m.node.id} className="bg-white/5 py-2 px-3 rounded truncate text-sm">
+                      <span className="font-bold text-[#9EFF00] w-6 inline-block">{i+1}.</span>{m.node.title}
                     </p>
                   ))}
                 </div>
               </div>
               <div className="border border-white/20 p-3 rounded-lg col-span-1">
-                <p className="text-base uppercase text-white/70">Time Spent</p>
-                <p className="text-lg md:text-xl font-bold text-white">
-                  <AnimatedNumber value={stats.watchTime} duration={1000} /> Hours
+                <p className="text-sm uppercase text-white/70 mb-2">Hours Watched</p>
+                <p className="text-2xl md:text-3xl font-bold text-white">
+                  <AnimatedNumber value={stats.watchTime} duration={1000} />
                 </p>
               </div>
               <div className="border border-white/20 p-3 rounded-lg col-span-1">
-                <p className="text-base uppercase text-white/70">Favorite Studio</p>
-                <p className="text-lg md:text-xl font-bold text-white truncate">{stats.topStudios?.[0]?.[0] || 'N/A'}</p>
+                <p className="text-sm uppercase text-white/70 mb-2">Chapters Read</p>
+                <p className="text-2xl md:text-3xl font-bold text-white">
+                  <AnimatedNumber value={stats.totalChapters || 0} duration={1000} />
+                </p>
               </div>
-              <div className="border border-white/20 p-3 rounded-lg col-span-2">
-                <p className="text-base uppercase text-white/70">Favorite Author</p>
-                <p className="text-lg md:text-xl font-bold text-white truncate">{stats.topAuthors?.[0]?.[0] || 'N/A'}</p>
+              <div className="border border-white/20 p-3 rounded-lg col-span-1">
+                <p className="text-sm uppercase text-white/70 mb-2">Top Studio</p>
+                <p className="text-xl md:text-2xl font-bold text-white truncate">{stats.topStudios?.[0]?.[0] || 'N/A'}</p>
+              </div>
+              <div className="border border-white/20 p-3 rounded-lg col-span-1">
+                <p className="text-sm uppercase text-white/70 mb-2">Top Author</p>
+                <p className="text-xl md:text-2xl font-bold text-white truncate">{stats.topAuthors?.[0]?.[0] || 'N/A'}</p>
               </div>
             </div>
           </SlideLayout>
@@ -1047,8 +1489,8 @@ export default function MALWrapped() {
                   className="bg-[#9EFF00] text-black font-bold uppercase text-lg px-8 py-3 rounded-md hover:bg-white transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={!CLIENT_ID || CLIENT_ID === '<your_client_id_here>'}
                 >
-                  Connect with MAL
-                </button>
+              Connect with MAL
+            </button>
               </div>
             </div>
           )}
@@ -1092,42 +1534,42 @@ export default function MALWrapped() {
               {/* Slide Content */}
               <div key={currentSlide} className={`w-full flex-grow flex items-center justify-center overflow-hidden py-2 ${!isCapturing && 'animate-pop-in'}`}>
                 <div className="w-full h-full">
-                  <SlideContent slide={slides[currentSlide]} />
+            <SlideContent slide={slides[currentSlide]} mangaListData={mangaList} />
                 </div>
               </div>
               
               {/* Bottom Controls */}
               <div className="flex-shrink-0 w-full px-4 md:px-6 pb-4 flex items-center justify-between">
-                <button 
-                  onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))} 
-                  disabled={currentSlide === 0} 
+              <button
+                onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))}
+                disabled={currentSlide === 0}
                   className="p-2 md:p-3 text-white rounded-full bg-black/30 backdrop-blur-sm hover:bg-black/50 hover:scale-110 disabled:opacity-30 transition-all duration-200"
                 >
                   <ChevronLeft className="w-6 h-6"/>
                 </button>
                 
-                <p className="text-white/50 text-base font-mono py-2 px-4 rounded-full bg-black/30 backdrop-blur-sm animate-flicker">{String(currentSlide + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}</p>
+                <p className="text-white/50 text-base font-mono py-2 px-4 rounded-full bg-black/30 backdrop-blur-sm">{String(currentSlide + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}</p>
 
                 {currentSlide === slides.length - 1 ? (
                   <button 
                     onClick={() => { setCurrentSlide(0); setIsAuthenticated(false); setStats(null); }} 
-                    className="bg-[#9EFF00] text-black font-bold uppercase px-4 md:px-6 py-2 md:py-3 rounded-full hover:bg-white hover:scale-105 transition-all duration-300 text-base animate-pop-in animate-neon-pulse"
+                    className="bg-[#9EFF00] text-black font-bold uppercase px-4 md:px-6 py-2 md:py-3 rounded-full hover:bg-white hover:scale-105 transition-all duration-300 text-base animate-pop-in"
                   >
                     Restart
-                  </button>
+              </button>
                 ) : (
-                  <button 
-                    onClick={() => setCurrentSlide(Math.min(slides.length - 1, currentSlide + 1))} 
+              <button
+                onClick={() => setCurrentSlide(Math.min(slides.length - 1, currentSlide + 1))}
                     className="p-2 md:p-3 text-white rounded-full bg-black/30 backdrop-blur-sm hover:bg-black/50 hover:scale-110 transition-all duration-200"
-                  >
+              >
                     <ChevronRight className="w-6 h-6"/>
-                  </button>
+              </button>
                 )}
-              </div>
             </div>
-          )}
-        </div>
+            </div>
+        )}
       </div>
+    </div>
     </main>
   );
 }
