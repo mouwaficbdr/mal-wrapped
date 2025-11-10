@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "dom-to-image": "^2.6.0",
+    "dom-to-image-more": "^3.7.2",
     "html2canvas": "^1.4.1",
     "lucide-react": "^0.294.0",
     "next": "14.0.4",
