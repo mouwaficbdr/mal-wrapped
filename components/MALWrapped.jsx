@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronRight, Sparkles } from 'lucide-react';
 
-// Helper for PKCE plain code challenge
+// Helper for PKCE plain code challenge (same as verifier)
 function generateCodeVerifier(length = 128) {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
   let result = '';
@@ -11,35 +11,10 @@ function generateCodeVerifier(length = 128) {
   return result;
 }
 
-function sha256(plain) {
-  // returns promise ArrayBuffer
-  // Guard for SSR - only execute in browser
-  if (typeof window === 'undefined') {
-    return Promise.reject(new Error('sha256 requires browser environment'));
-  }
-  const encoder = new TextEncoder();
-  const data = encoder.encode(plain);
-  return window.crypto.subtle.digest('SHA-256', data);
-}
-
-function base64urlencode(a) {
-  // Convert ArrayBuffer to base64url
-  let str = '';
-  const bytes = new Uint8Array(a);
-  const len = bytes.byteLength;
-  for (let i = 0; i < len; i++) {
-    str += String.fromCharCode(bytes[i]);
-  }
-  return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-}
-
-async function pkceChallenge(verifier) {
-  const hashed = await sha256(verifier);
-  return base64urlencode(hashed);
-}
-
 const CLIENT_ID = process.env.NEXT_PUBLIC_MAL_CLIENT_ID;
+const CLIENT_SECRET = process.env.NEXT_PUBLIC_MAL_CLIENT_SECRET;
 const AUTH_URL = 'https://myanimelist.net/v1/oauth2/authorize';
+const TOKEN_URL = 'https://myanimelist.net/v1/oauth2/token';
 
 export default function MALWrapped() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -48,7 +23,6 @@ export default function MALWrapped() {
   const [userData, setUserData] = useState(null);
   const [error, setError] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [pkceVerifier, setPkceVerifier] = useState(null);
 
   const slides = userData ? [
     { id: 'welcome' },
@@ -65,141 +39,90 @@ export default function MALWrapped() {
   ] : [];
 
   useEffect(() => {
-    // Only run in browser
     if (typeof window === 'undefined') return;
 
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
     const errorParam = urlParams.get('error');
     const errorDescription = urlParams.get('error_description');
-    const storedVerifier = window.localStorage.getItem('pkce_verifier');
-    const storedToken = window.localStorage.getItem('mal_access_token');
+    const storedVerifier = localStorage.getItem('pkce_verifier');
+    const storedToken = localStorage.getItem('mal_access_token');
 
-    // Check for OAuth errors in URL
     if (errorParam) {
       setError(`Authorization failed: ${errorDescription || errorParam}. Please try again.`);
       window.history.replaceState({}, document.title, window.location.pathname);
-      window.localStorage.removeItem('pkce_verifier');
+      localStorage.removeItem('pkce_verifier');
       return;
     }
 
     if (code && storedVerifier) {
       exchangeCodeForToken(code, storedVerifier);
     } else if (code && !storedVerifier) {
-      // Code returned but no verifier - likely page was refreshed
       setError('Authorization session expired. Please try connecting again.');
       window.history.replaceState({}, document.title, window.location.pathname);
     } else if (storedToken) {
-      // Try to use stored token
       fetchUserData(storedToken);
     }
   }, []);
-
-  // Helper to normalize redirect URI
-  function getRedirectUri() {
-    if (typeof window === 'undefined') return '';
-    const origin = window.location.origin;
-    const pathname = window.location.pathname;
-    // Remove trailing slash from pathname if present (except for root)
-    const normalizedPath = pathname === '/' ? '/' : pathname.replace(/\/$/, '');
-    return origin + normalizedPath;
-  }
 
   async function exchangeCodeForToken(code, verifier) {
     if (typeof window === 'undefined') return;
 
     setIsLoading(true);
     setError('');
-    const redirectUri = getRedirectUri();
     
-    // Validate CLIENT_ID (client-side check)
-    if (!CLIENT_ID || CLIENT_ID.trim() === '') {
-      setError('CLIENT_ID is not configured. Please set NEXT_PUBLIC_MAL_CLIENT_ID environment variable in Vercel settings.');
+    if (!CLIENT_ID || !CLIENT_SECRET) {
+      setError('CLIENT_ID or CLIENT_SECRET is not configured. Please set environment variables in Vercel.');
       setIsLoading(false);
-      console.error('CLIENT_ID is not set on client side');
       return;
     }
     
     try {
       console.log('Exchanging code for token...');
-      console.log('Redirect URI:', redirectUri);
-      console.log('Client ID:', CLIENT_ID ? 'Set' : 'Missing');
+      console.log('Using PKCE plain method (code_challenge = code_verifier)');
       
-      // Use our API route instead of calling MAL API directly (avoids CORS)
-      const response = await fetch('/api/auth/token', {
+      // Call MAL token endpoint directly with CLIENT_SECRET
+      const formData = new URLSearchParams({
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET,
+        code: code,
+        code_verifier: verifier,
+        grant_type: 'authorization_code'
+      });
+
+      const response = await fetch(TOKEN_URL, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: JSON.stringify({
-          code,
-          code_verifier: verifier,
-          redirect_uri: redirectUri,
-        }),
+        body: formData.toString(),
       });
 
       console.log('Token exchange response status:', response.status);
 
-      // Try to parse error response even if not ok
       if (!response.ok) {
-        let errorData = null;
-        
-        // Read response once
         const responseText = await response.text();
-        console.error('Error response status:', response.status);
-        console.error('Error response text:', responseText);
+        console.error('Error response:', responseText);
         
-        if (responseText) {
-          try {
-            errorData = JSON.parse(responseText);
-          } catch (e) {
-            // Not JSON, use as text
-            errorData = { error: 'Unknown error', message: responseText };
-          }
-        } else {
-          errorData = { error: 'Empty response', message: `Server returned ${response.status} with no response body` };
+        let errorData;
+        try {
+          errorData = JSON.parse(responseText);
+        } catch (e) {
+          errorData = { error: 'Unknown error', message: responseText };
         }
         
         let errorMessage = 'Failed to exchange authorization code for token.';
         
-        if (errorData) {
-          if (errorData.error) {
-            errorMessage = `Authentication error: ${errorData.error}`;
-            if (errorData.error_description) {
-              errorMessage += ` - ${errorData.error_description}`;
-            } else if (errorData.message) {
-              errorMessage += ` - ${errorData.message}`;
-            }
-          }
-        }
-        
-        // Common errors
         if (response.status === 400) {
           if (errorData?.error === 'invalid_grant') {
-            errorMessage += '\n\nThe authorization code may have expired. Please try connecting again.';
-          } else if (errorData?.error === 'redirect_uri_mismatch') {
-            errorMessage += `\n\nRedirect URI mismatch! Make sure your MAL app redirect URI is set to:\n${redirectUri}`;
+            errorMessage = 'Authorization code expired or already used. Please try connecting again.';
+          } else if (errorData?.error === 'invalid_client') {
+            errorMessage = 'Invalid CLIENT_ID or CLIENT_SECRET. Please check your MAL app credentials.';
           } else {
-            errorMessage += `\n\nStatus: ${response.status}. Please check your CLIENT_ID and redirect URI settings.`;
-            errorMessage += `\n\nExpected redirect URI: ${redirectUri}`;
+            errorMessage = `Authentication error: ${errorData?.error || 'Unknown'}\n${errorData?.error_description || ''}`;
           }
-        } else if (response.status === 401 || errorData?.error === 'invalid_client') {
-          errorMessage = 'Invalid CLIENT_ID.\n\n';
-          errorMessage += 'Please verify:\n';
-          errorMessage += '1. NEXT_PUBLIC_MAL_CLIENT_ID is set in Vercel environment variables\n';
-          errorMessage += '2. The value matches your MAL app Client ID exactly\n';
-          errorMessage += '3. You have redeployed after setting the environment variable\n';
-          errorMessage += '4. The Client ID is correct in your MAL app settings at https://myanimelist.net/apiconfig';
-        } else if (response.status === 500) {
-          if (errorData?.message?.includes('CLIENT_ID') || errorData?.error_description?.includes('CLIENT_ID')) {
-            errorMessage = 'Server configuration error: CLIENT_ID is not set.\n\n';
-            errorMessage += 'Please:\n';
-            errorMessage += '1. Go to Vercel project settings → Environment Variables\n';
-            errorMessage += '2. Add NEXT_PUBLIC_MAL_CLIENT_ID with your MAL Client ID\n';
-            errorMessage += '3. Redeploy your application';
-          } else {
-            errorMessage += '\n\nServer error. Please try again later.';
-          }
+        } else if (response.status === 401) {
+          errorMessage = 'Invalid CLIENT_ID or CLIENT_SECRET.\n\nPlease verify your credentials at https://myanimelist.net/apiconfig';
         }
         
         throw new Error(errorMessage);
@@ -209,55 +132,37 @@ export default function MALWrapped() {
       
       if (!data.access_token) {
         console.error('No access_token in response:', data);
-        throw new Error('No access token received from MAL API. Response: ' + JSON.stringify(data));
+        throw new Error('No access token received from MAL API.');
       }
       
       console.log('Token exchange successful');
-      console.log('Token received, length:', data.access_token.length);
       console.log('Token type:', data.token_type);
-      console.log('Expires in:', data.expires_in);
+      console.log('Expires in:', data.expires_in, 'seconds');
       
-      // Store the token
-      window.localStorage.setItem('mal_access_token', data.access_token);
+      // Store tokens
+      localStorage.setItem('mal_access_token', data.access_token);
       if (data.refresh_token) {
-        window.localStorage.setItem('mal_refresh_token', data.refresh_token);
+        localStorage.setItem('mal_refresh_token', data.refresh_token);
       }
-      window.localStorage.removeItem('pkce_verifier');
+      localStorage.removeItem('pkce_verifier');
 
-      // Clear the URL
+      // Clear URL
       window.history.replaceState({}, document.title, window.location.pathname);
 
-      // Fetch user data with the new token
+      // Fetch user data
       await fetchUserData(data.access_token);
       setIsAuthenticated(true);
     } catch (err) {
       let errorMessage = 'Authentication failed';
       
-      // Check for network errors
       if (err instanceof TypeError && err.message === 'Failed to fetch') {
-        errorMessage = 'Network error: Could not connect to server.\n\n';
-        errorMessage += 'Possible causes:\n';
-        errorMessage += '1. Check your internet connection\n';
-        errorMessage += '2. Server might be temporarily unavailable\n';
-        errorMessage += '3. Please try again in a moment\n\n';
-        errorMessage += 'Please check the browser console (F12) for more details.';
-      } else if (err.name === 'NetworkError' || (err.message && err.message.includes('fetch'))) {
-        errorMessage = 'Network error: Unable to reach server.\n\n';
-        errorMessage += 'Please check your connection and try again.';
+        errorMessage = 'Network error: Could not connect to MAL servers.\n\nPlease check your internet connection and try again.';
       } else {
-        // Use the detailed error message we constructed
         errorMessage = err.message || 'Authentication failed';
       }
       
       setError(errorMessage);
       console.error('Token exchange error:', err);
-      console.error('Error details:', {
-        name: err.name,
-        message: err.message,
-        stack: err.stack,
-        redirectUri,
-        clientIdSet: !!CLIENT_ID && CLIENT_ID !== '<your_client_id_here>'
-      });
     } finally {
       setIsLoading(false);
     }
@@ -268,72 +173,38 @@ export default function MALWrapped() {
 
     if (!accessToken || accessToken.trim() === '') {
       setError('Invalid access token. Please try connecting again.');
-      window.localStorage.removeItem('mal_access_token');
+      localStorage.removeItem('mal_access_token');
       setIsLoading(false);
       return;
     }
 
     setIsLoading(true);
     setError('');
-    setLoadingProgress('Fetching your profile...');
     
     try {
-      console.log('Fetching user data with token (first 20 chars):', accessToken.substring(0, 20) + '...');
+      console.log('Fetching user data...');
       
       const response = await fetch('https://api.myanimelist.net/v2/users/@me?fields=id,name,picture,anime_statistics,manga_statistics', {
         headers: {
           'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
         },
       });
 
       console.log('User data response status:', response.status);
-      console.log('User data response headers:', Object.fromEntries(response.headers.entries()));
 
       if (!response.ok) {
-        let errorData = null;
-        let errorText = '';
-        
-        try {
-          errorText = await response.text();
-          console.error('Error response text:', errorText);
-          
-          try {
-            errorData = JSON.parse(errorText);
-          } catch (e) {
-            // Not JSON
-          }
-        } catch (e) {
-          console.error('Failed to read error response:', e);
-        }
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
         
         if (response.status === 401) {
           console.error('401 Unauthorized - Token is invalid or expired');
-          window.localStorage.removeItem('mal_access_token');
-          window.localStorage.removeItem('mal_refresh_token');
+          localStorage.removeItem('mal_access_token');
+          localStorage.removeItem('mal_refresh_token');
           
-          let errorMessage = 'Authentication failed: Invalid or expired token.\n\n';
-          errorMessage += 'This could mean:\n';
-          errorMessage += '1. The token exchange failed\n';
-          errorMessage += '2. The token expired\n';
-          errorMessage += '3. There was an issue with the authorization\n\n';
-          errorMessage += 'Please try connecting again.';
-          
-          if (errorData?.message) {
-            errorMessage += `\n\nDetails: ${errorData.message}`;
-          }
-          
-          throw new Error(errorMessage);
+          throw new Error('Authentication failed: Invalid or expired token.\n\nPlease try connecting again.');
         }
         
-        let errorMessage = `Failed to fetch user data (${response.status})`;
-        if (errorData?.message) {
-          errorMessage += `: ${errorData.message}`;
-        } else if (errorText) {
-          errorMessage += `: ${errorText.substring(0, 200)}`;
-        }
-        
-        throw new Error(errorMessage);
+        throw new Error(`Failed to fetch user data (${response.status}): ${errorText.substring(0, 200)}`);
       }
 
       const data = await response.json();
@@ -343,45 +214,30 @@ export default function MALWrapped() {
       setUserData(data);
       setIsAuthenticated(true);
       
-      // Fetch anime list
-      setLoadingProgress('Loading your anime list...');
-      // Note: We'll need to implement fetchAnimeList if it's not already there
-      
     } catch (err) {
       let errorMessage = 'Failed to fetch user data';
       
       if (err instanceof TypeError && err.message === 'Failed to fetch') {
-        errorMessage = 'Network error: Could not connect to MAL API.\n\n';
-        errorMessage += 'Please check your internet connection and try again.';
-      } else if (err.name === 'NetworkError') {
-        errorMessage = 'Network error: Unable to reach MAL API servers.';
+        errorMessage = 'Network error: Could not connect to MAL API.\n\nPlease check your internet connection and try again.';
       } else {
         errorMessage = err.message || 'Failed to fetch user data';
       }
       
       setError(errorMessage);
       console.error('Fetch user data error:', err);
-      console.error('Error details:', {
-        name: err.name,
-        message: err.message,
-        tokenLength: accessToken ? accessToken.length : 0,
-        tokenPreview: accessToken ? accessToken.substring(0, 20) + '...' : 'none'
-      });
     } finally {
       setIsLoading(false);
     }
   }
 
   async function handleBegin() {
-    // Only execute in browser
     if (typeof window === 'undefined') {
       setError('This feature requires a browser environment');
       return;
     }
 
-    // Validate CLIENT_ID
-    if (CLIENT_ID === '<your_client_id_here>' || !CLIENT_ID || CLIENT_ID.trim() === '') {
-      setError('CLIENT_ID is not configured. Please set NEXT_PUBLIC_MAL_CLIENT_ID environment variable in Vercel or update the CLIENT_ID constant.');
+    if (!CLIENT_ID || CLIENT_ID.trim() === '') {
+      setError('CLIENT_ID is not configured. Please set NEXT_PUBLIC_MAL_CLIENT_ID environment variable.');
       return;
     }
 
@@ -389,23 +245,18 @@ export default function MALWrapped() {
     setError('');
 
     try {
+      // Generate verifier - in PKCE plain, challenge = verifier
       const verifier = generateCodeVerifier();
-      setPkceVerifier(verifier);
-      window.localStorage.setItem('pkce_verifier', verifier);
+      localStorage.setItem('pkce_verifier', verifier);
 
-      const challenge = await pkceChallenge(verifier);
-      const redirectUri = getRedirectUri();
+      console.log('Initiating OAuth flow with PKCE plain method...');
+      console.log('code_challenge = code_verifier (plain method)');
 
-      console.log('Initiating OAuth flow...');
-      console.log('Redirect URI:', redirectUri);
-      console.log('Make sure this exact URL is set in your MAL app settings');
-
+      // Build authorization URL - NO redirect_uri needed according to MAL docs
       const params = new URLSearchParams({
         response_type: 'code',
         client_id: CLIENT_ID,
-        redirect_uri: redirectUri,
-        code_challenge: challenge,
-        code_challenge_method: 'S256',
+        code_challenge: verifier,  // Same as verifier in plain method
       });
 
       window.location.href = `${AUTH_URL}?${params.toString()}`;
@@ -489,8 +340,8 @@ export default function MALWrapped() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-violet-900 to-pink-900 flex items-center justify-center">
-      <div className="bg-black/50 rounded-3xl shadow-2xl p-10 text-white w-[90vw] max-w-2xl text-center border border-violet-700">
+    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-violet-900 to-pink-900 flex items-center justify-center p-4">
+      <div className="bg-black/50 rounded-3xl shadow-2xl p-10 text-white w-full max-w-2xl text-center border border-violet-700">
         {error && (
           <div className="bg-red-600/90 p-4 rounded-xl mb-6 border border-red-400">
             <p className="font-semibold whitespace-pre-line text-sm">{error}</p>
@@ -505,16 +356,15 @@ export default function MALWrapped() {
             <button 
               onClick={handleBegin} 
               className="bg-violet-700 hover:bg-pink-500 px-7 py-3 text-lg rounded-full font-bold shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={CLIENT_ID === '<your_client_id_here>' || !CLIENT_ID}
+              disabled={!CLIENT_ID}
             >
               Connect with MAL
             </button>
-            {typeof window !== 'undefined' && (
-              <div className="text-xs text-gray-400 mt-4 p-3 bg-gray-800/50 rounded-lg">
-                <p className="font-semibold mb-1">Redirect URI (set this in MAL app settings):</p>
-                <p className="font-mono break-all text-violet-300">{getRedirectUri()}</p>
-              </div>
-            )}
+            <div className="text-xs text-gray-400 mt-6 p-3 bg-gray-800/50 rounded-lg">
+              <p className="font-semibold mb-2">⚠️ Security Note:</p>
+              <p className="mb-2">CLIENT_SECRET should be kept private. Consider moving token exchange to a backend API route to avoid exposing it in the browser.</p>
+              <p className="text-violet-300">Using PKCE plain method as per MAL documentation</p>
+            </div>
           </>
         )}
         {isAuthenticated && userData && (
