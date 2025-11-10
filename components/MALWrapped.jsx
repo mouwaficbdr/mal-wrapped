@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronRight, ChevronLeft, Sparkles, Loader2 } from 'lucide-react';
+import { ChevronRight, Sparkles } from 'lucide-react';
 
 // Helper for PKCE plain code challenge
 function generateCodeVerifier(length = 128) {
@@ -12,6 +12,8 @@ function generateCodeVerifier(length = 128) {
 }
 
 function sha256(plain) {
+  // returns promise ArrayBuffer
+  // Guard for SSR - only execute in browser
   if (typeof window === 'undefined') {
     return Promise.reject(new Error('sha256 requires browser environment'));
   }
@@ -21,6 +23,7 @@ function sha256(plain) {
 }
 
 function base64urlencode(a) {
+  // Convert ArrayBuffer to base64url
   let str = '';
   const bytes = new Uint8Array(a);
   const len = bytes.byteLength;
@@ -39,157 +42,32 @@ const CLIENT_ID = process.env.NEXT_PUBLIC_MAL_CLIENT_ID || '<your_client_id_here
 const AUTH_URL = 'https://myanimelist.net/v1/oauth2/authorize';
 const TOKEN_URL = 'https://myanimelist.net/v1/oauth2/token';
 
-// Data processing functions
-function processAnimeData(animeList) {
-  const genreCount = {};
-  const studioCount = {};
-  const seasonalData = {};
-  const ratedAnime = [];
-  const hiddenGems = [];
-  const currentYear = new Date().getFullYear();
-
-  animeList.forEach(anime => {
-    const node = anime.node || anime;
-    const listStatus = anime.list_status;
-    
-    // Process genres
-    if (node.genres) {
-      node.genres.forEach(genre => {
-        genreCount[genre.name] = (genreCount[genre.name] || 0) + 1;
-      });
-    }
-
-    // Process studios
-    if (node.studios) {
-      node.studios.forEach(studio => {
-        studioCount[studio.name] = (studioCount[studio.name] || 0) + 1;
-      });
-    }
-
-    // Process seasonal data (anime completed in 2024/2025)
-    if (listStatus?.finish_date) {
-      const finishDate = new Date(listStatus.finish_date);
-      if (finishDate.getFullYear() === currentYear || finishDate.getFullYear() === currentYear - 1) {
-        const season = getSeason(finishDate);
-        const key = `${season} ${finishDate.getFullYear()}`;
-        seasonalData[key] = (seasonalData[key] || 0) + 1;
-      }
-    }
-
-    // Process rated anime
-    if (listStatus?.score && listStatus.score > 0) {
-      ratedAnime.push({
-        title: node.title,
-        score: listStatus.score,
-        picture: node.main_picture?.medium || node.main_picture?.large,
-        id: node.id,
-      });
-    }
-
-    // Process hidden gems (high community score but low popularity)
-    if (node.mean && node.num_scoring_users && node.num_scoring_users < 50000 && node.mean >= 7.5) {
-      hiddenGems.push({
-        title: node.title,
-        score: node.mean,
-        picture: node.main_picture?.medium || node.main_picture?.large,
-        id: node.id,
-        popularity: node.num_scoring_users,
-      });
-    }
-  });
-
-  // Get top genre
-  const topGenre = Object.entries(genreCount).sort((a, b) => b[1] - a[1])[0]?.[0] || 'Unknown';
-
-  // Get top studio
-  const topStudio = Object.entries(studioCount).sort((a, b) => b[1] - a[1])[0]?.[0] || 'Unknown';
-
-  // Get top seasonal period
-  const topSeasonal = Object.entries(seasonalData).sort((a, b) => b[1] - a[1])[0] || null;
-
-  // Get top rated (sorted by user score)
-  const topRated = ratedAnime.sort((a, b) => b.score - a.score).slice(0, 5);
-
-  // Get hidden gem (sorted by score, then by low popularity)
-  const hiddenGem = hiddenGems.sort((a, b) => {
-    if (b.score !== a.score) return b.score - a.score;
-    return a.popularity - b.popularity;
-  })[0];
-
-  return {
-    topGenre,
-    topStudio,
-    topSeasonal,
-    topRated,
-    hiddenGem,
-    genreCount,
-    studioCount,
-  };
-}
-
-function processMangaData(mangaList) {
-  const totalManga = mangaList.length;
-  const completedManga = mangaList.filter(m => m.list_status?.status === 'completed').length;
-  
-  return {
-    totalManga,
-    completedManga,
-  };
-}
-
-function getSeason(date) {
-  const month = date.getMonth() + 1;
-  if (month >= 3 && month <= 5) return 'Spring';
-  if (month >= 6 && month <= 8) return 'Summer';
-  if (month >= 9 && month <= 11) return 'Fall';
-  return 'Winter';
-}
-
-function formatDays(days) {
-  if (days < 1) return `${Math.round(days * 24)} hours`;
-  if (days < 365) return `${Math.round(days)} days`;
-  const years = Math.floor(days / 365);
-  const remainingDays = Math.round(days % 365);
-  if (years === 1) return `${years} year, ${remainingDays} days`;
-  return `${years} years, ${remainingDays} days`;
-}
-
 export default function MALWrapped() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [username, setUsername] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [loadingProgress, setLoadingProgress] = useState('');
   const [userData, setUserData] = useState(null);
-  const [animeList, setAnimeList] = useState([]);
-  const [mangaList, setMangaList] = useState([]);
-  const [processedData, setProcessedData] = useState(null);
-  const [mangaData, setMangaData] = useState(null);
   const [error, setError] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [pkceVerifier, setPkceVerifier] = useState(null);
 
-  const slides = userData && processedData ? [
+  const slides = userData ? [
     { id: 'welcome' },
     { id: 'total_anime' },
     { id: 'genres' },
     { id: 'studio' },
     { id: 'watch_time' },
+    { id: 'seasonal' },
     { id: 'top_rated' },
     { id: 'hidden_gems' },
-    ...(processedData.topSeasonal ? [{ id: 'seasonal' }] : []),
     { id: 'community' },
-    ...(mangaData && mangaData.totalManga > 0 ? [{ id: 'manga' }] : []),
+    { id: 'manga' },
     { id: 'finale' },
   ] : [];
 
   useEffect(() => {
+    // Only run in browser
     if (typeof window === 'undefined') return;
-
-    // Check for CLIENT_ID configuration
-    if (CLIENT_ID === '<your_client_id_here>') {
-      setError('Please configure your MAL API Client ID in the component file. See README for instructions.');
-      return;
-    }
 
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
@@ -198,10 +76,9 @@ export default function MALWrapped() {
     const storedVerifier = window.localStorage.getItem('pkce_verifier');
     const storedToken = window.localStorage.getItem('mal_access_token');
 
-    // Check for OAuth errors
+    // Check for OAuth errors in URL
     if (errorParam) {
       setError(`Authorization failed: ${errorDescription || errorParam}. Please try again.`);
-      // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname);
       window.localStorage.removeItem('pkce_verifier');
       return;
@@ -214,12 +91,12 @@ export default function MALWrapped() {
       setError('Authorization session expired. Please try connecting again.');
       window.history.replaceState({}, document.title, window.location.pathname);
     } else if (storedToken) {
-      // Check if token is still valid and fetch data
+      // Try to use stored token
       fetchUserData(storedToken);
     }
   }, []);
 
-  // Helper to normalize redirect URI (remove trailing slash, ensure consistency)
+  // Helper to normalize redirect URI
   function getRedirectUri() {
     if (typeof window === 'undefined') return '';
     const origin = window.location.origin;
@@ -236,7 +113,18 @@ export default function MALWrapped() {
     setError('');
     const redirectUri = getRedirectUri();
     
+    // Validate CLIENT_ID
+    if (CLIENT_ID === '<your_client_id_here>' || !CLIENT_ID || CLIENT_ID.trim() === '') {
+      setError('CLIENT_ID is not configured. Please set NEXT_PUBLIC_MAL_CLIENT_ID environment variable or update the CLIENT_ID constant.');
+      setIsLoading(false);
+      return;
+    }
+    
     try {
+      console.log('Exchanging code for token...');
+      console.log('Redirect URI:', redirectUri);
+      console.log('Client ID:', CLIENT_ID ? 'Set' : 'Missing');
+      
       const response = await fetch(TOKEN_URL, {
         method: 'POST',
         headers: {
@@ -251,26 +139,51 @@ export default function MALWrapped() {
         }),
       });
 
+      console.log('Token exchange response status:', response.status);
+
+      // Try to parse error response even if not ok
       if (!response.ok) {
-        let errorMessage = 'Failed to exchange authorization code for token.';
+        let errorData = null;
+        let errorText = '';
+        
         try {
-          const errorData = await response.json();
+          errorText = await response.text();
+          console.error('Error response text:', errorText);
+          
+          try {
+            errorData = JSON.parse(errorText);
+          } catch (e) {
+            // Not JSON, use text as is
+          }
+        } catch (e) {
+          console.error('Failed to read error response:', e);
+        }
+        
+        let errorMessage = 'Failed to exchange authorization code for token.';
+        
+        if (errorData) {
           if (errorData.error) {
             errorMessage = `Authentication error: ${errorData.error}`;
             if (errorData.error_description) {
               errorMessage += ` - ${errorData.error_description}`;
             }
           }
-        } catch (e) {
-          const errorText = await response.text();
-          if (errorText) {
-            errorMessage += ` Server response: ${errorText.substring(0, 100)}`;
-          }
+        } else if (errorText) {
+          errorMessage += ` Response: ${errorText.substring(0, 200)}`;
         }
         
-        // Common error: redirect_uri mismatch
+        // Common errors
         if (response.status === 400) {
-          errorMessage += `\n\nMake sure your redirect URI in MAL app settings matches exactly:\n${redirectUri}`;
+          if (errorData?.error === 'invalid_grant') {
+            errorMessage += '\n\nThe authorization code may have expired. Please try connecting again.';
+          } else if (errorData?.error === 'redirect_uri_mismatch') {
+            errorMessage += `\n\nRedirect URI mismatch! Make sure your MAL app redirect URI is set to:\n${redirectUri}`;
+          } else {
+            errorMessage += `\n\nStatus: ${response.status}. Please check your CLIENT_ID and redirect URI settings.`;
+            errorMessage += `\n\nExpected redirect URI: ${redirectUri}`;
+          }
+        } else if (response.status === 401) {
+          errorMessage += '\n\nInvalid CLIENT_ID. Please check your configuration.';
         }
         
         throw new Error(errorMessage);
@@ -279,20 +192,49 @@ export default function MALWrapped() {
       const data = await response.json();
       
       if (!data.access_token) {
-        throw new Error('No access token received from MAL API');
+        throw new Error('No access token received from MAL API. Response: ' + JSON.stringify(data));
       }
       
+      console.log('Token exchange successful');
       window.localStorage.setItem('mal_access_token', data.access_token);
       window.localStorage.removeItem('pkce_verifier');
 
-      // Clear the URL parameters
+      // Clear the URL
       window.history.replaceState({}, document.title, window.location.pathname);
 
       await fetchUserData(data.access_token);
       setIsAuthenticated(true);
     } catch (err) {
-      setError(err.message || 'Authentication failed');
+      let errorMessage = 'Authentication failed';
+      
+      // Check for network errors
+      if (err instanceof TypeError && err.message === 'Failed to fetch') {
+        errorMessage = 'Network error: Could not connect to MAL API.\n\n';
+        errorMessage += 'Possible causes:\n';
+        errorMessage += '1. Check your internet connection\n';
+        errorMessage += '2. CORS issue - make sure you\'re accessing from the correct domain\n';
+        errorMessage += '3. MAL API might be temporarily unavailable\n\n';
+        errorMessage += 'Please check the browser console (F12) for more details.';
+      } else if (err.name === 'NetworkError' || (err.message && err.message.includes('fetch'))) {
+        errorMessage = 'Network error: Unable to reach MAL API servers.\n\n';
+        errorMessage += 'This might be a CORS issue. Make sure:\n';
+        errorMessage += `- Your redirect URI in MAL settings matches: ${redirectUri}\n`;
+        errorMessage += '- You\'re accessing the app from the correct domain\n';
+        errorMessage += '- Your browser isn\'t blocking the request';
+      } else {
+        // Use the detailed error message we constructed
+        errorMessage = err.message || 'Authentication failed';
+      }
+      
+      setError(errorMessage);
       console.error('Token exchange error:', err);
+      console.error('Error details:', {
+        name: err.name,
+        message: err.message,
+        stack: err.stack,
+        redirectUri,
+        clientIdSet: !!CLIENT_ID && CLIENT_ID !== '<your_client_id_here>'
+      });
     } finally {
       setIsLoading(false);
     }
@@ -302,7 +244,7 @@ export default function MALWrapped() {
     if (typeof window === 'undefined') return;
 
     setIsLoading(true);
-    setLoadingProgress('Fetching your profile...');
+    setError('');
     try {
       const response = await fetch('https://api.myanimelist.net/v2/users/@me?fields=id,name,picture,anime_statistics,manga_statistics', {
         headers: {
@@ -315,125 +257,41 @@ export default function MALWrapped() {
           window.localStorage.removeItem('mal_access_token');
           throw new Error('Session expired. Please reconnect.');
         }
-        throw new Error('Failed to fetch user data');
+        
+        let errorText = '';
+        try {
+          errorText = await response.text();
+        } catch (e) {
+          // Ignore
+        }
+        
+        throw new Error(`Failed to fetch user data (${response.status}): ${errorText || 'Unknown error'}`);
       }
 
       const data = await response.json();
       setUsername(data.name);
       setUserData(data);
       setIsAuthenticated(true);
-
-      // Fetch anime list
-      setLoadingProgress('Loading your anime list...');
-      const anime = await fetchAnimeList(accessToken);
-      setAnimeList(anime);
-      setProcessedData(processAnimeData(anime));
-
-      // Fetch manga list if user has manga
-      if (data.manga_statistics?.num_items > 0) {
-        setLoadingProgress('Loading your manga list...');
-        const manga = await fetchMangaList(accessToken);
-        setMangaList(manga);
-        setMangaData(processMangaData(manga));
-      }
-
-      setLoadingProgress('');
     } catch (err) {
-      setError(err.message || 'Failed to fetch user data');
+      let errorMessage = 'Failed to fetch user data';
+      
+      if (err instanceof TypeError && err.message === 'Failed to fetch') {
+        errorMessage = 'Network error: Could not connect to MAL API. Please check your connection.';
+      } else if (err.name === 'NetworkError') {
+        errorMessage = 'Network error: Unable to reach MAL API servers.';
+      } else {
+        errorMessage = err.message || 'Failed to fetch user data';
+      }
+      
+      setError(errorMessage);
+      console.error('Fetch user data error:', err);
     } finally {
       setIsLoading(false);
     }
   }
 
-  async function fetchAnimeList(accessToken) {
-    let allAnime = [];
-    let offset = 0;
-    const limit = 100;
-    
-    try {
-      while (true) {
-        const fields = [
-          'list_status{status,score,start_date,finish_date}',
-          'genres{name}',
-          'studios{name}',
-          'start_season{year,season}',
-          'mean',
-          'num_scoring_users',
-          'title',
-          'main_picture',
-          'id'
-        ].join(',');
-
-        const response = await fetch(
-          `https://api.myanimelist.net/v2/users/@me/animelist?fields=${fields}&limit=${limit}&offset=${offset}&nsfw=true`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
-
-        if (!response.ok) {
-          break;
-        }
-
-        const data = await response.json();
-        allAnime = allAnime.concat(data.data || []);
-        
-        if (!data.paging?.next) break;
-        offset += limit;
-        
-        // Update progress
-        setLoadingProgress(`Loaded ${allAnime.length} anime...`);
-      }
-    } catch (err) {
-      console.error('Error fetching anime list:', err);
-    }
-    
-    return allAnime;
-  }
-
-  async function fetchMangaList(accessToken) {
-    let allManga = [];
-    let offset = 0;
-    const limit = 100;
-    
-    try {
-      while (true) {
-        const fields = [
-          'list_status{status,score}',
-          'title',
-          'main_picture',
-          'id'
-        ].join(',');
-
-        const response = await fetch(
-          `https://api.myanimelist.net/v2/users/@me/mangalist?fields=${fields}&limit=${limit}&offset=${offset}&nsfw=true`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
-
-        if (!response.ok) {
-          break;
-        }
-
-        const data = await response.json();
-        allManga = allManga.concat(data.data || []);
-        
-        if (!data.paging?.next) break;
-        offset += limit;
-      }
-    } catch (err) {
-      console.error('Error fetching manga list:', err);
-    }
-    
-    return allManga;
-  }
-
   async function handleBegin() {
+    // Only execute in browser
     if (typeof window === 'undefined') {
       setError('This feature requires a browser environment');
       return;
@@ -441,7 +299,7 @@ export default function MALWrapped() {
 
     // Validate CLIENT_ID
     if (CLIENT_ID === '<your_client_id_here>' || !CLIENT_ID || CLIENT_ID.trim() === '') {
-      setError('Please configure your MAL API Client ID. Open components/MALWrapped.jsx and replace <your_client_id_here> with your actual Client ID from https://myanimelist.net/apiconfig');
+      setError('CLIENT_ID is not configured. Please set NEXT_PUBLIC_MAL_CLIENT_ID environment variable in Vercel or update the CLIENT_ID constant.');
       return;
     }
 
@@ -456,8 +314,9 @@ export default function MALWrapped() {
       const challenge = await pkceChallenge(verifier);
       const redirectUri = getRedirectUri();
 
-      console.log('Redirect URI:', redirectUri); // Debug log
-      console.log('Make sure this exact URL is set in your MAL app settings as the redirect URI');
+      console.log('Initiating OAuth flow...');
+      console.log('Redirect URI:', redirectUri);
+      console.log('Make sure this exact URL is set in your MAL app settings');
 
       const params = new URLSearchParams({
         response_type: 'code',
@@ -467,11 +326,7 @@ export default function MALWrapped() {
         code_challenge_method: 'S256',
       });
 
-      const authUrl = `${AUTH_URL}?${params.toString()}`;
-      console.log('Redirecting to:', AUTH_URL); // Debug log
-      
-      // Redirect to MAL authorization page
-      window.location.href = authUrl;
+      window.location.href = `${AUTH_URL}?${params.toString()}`;
     } catch (err) {
       setError(err.message || 'Failed to initiate OAuth');
       setIsLoading(false);
@@ -480,373 +335,137 @@ export default function MALWrapped() {
   }
 
   function SlideContent({ slide }) {
-    if (!slide || !userData || !processedData) return null;
+    if (!slide || !userData) return null;
     const stats = userData.anime_statistics || {};
-    const currentYear = new Date().getFullYear();
 
     switch (slide.id) {
       case 'welcome':
-        return (
-          <div className="animate-fade-in space-y-6">
-            {userData.picture && (
-              <img 
-                src={userData.picture} 
-                alt={username}
-                className="w-24 h-24 rounded-full mx-auto border-4 border-violet-400 shadow-lg"
-              />
-            )}
-            <h2 className="text-5xl font-extrabold mb-4 text-shadow-lg">
-              Hi, <span className="gradient-text">{username}</span>!
-            </h2>
-            <p className="text-2xl text-violet-200">Let's see what you've been watching...</p>
-            <div className="mt-8">
-              <Sparkles size={48} className="mx-auto text-pink-400 animate-pulse" />
-            </div>
-          </div>
-        );
-
+        return <div className="animate-fade-in">
+          <h2 className="text-4xl font-bold mb-4">Hi, {username}!</h2>
+          <p className="text-xl">Let's see what you've been watching...</p>
+        </div>;
       case 'total_anime':
-        return (
-          <div className="animate-scale-in space-y-4">
-            <h2 className="text-3xl font-bold mb-6 text-violet-200">You've watched</h2>
-            <div className="text-8xl font-black gradient-text text-shadow-lg mb-4">
-              {stats.num_items || 0}
-            </div>
-            <p className="text-2xl text-pink-300 font-semibold">anime titles!</p>
-            <p className="text-lg text-gray-300 mt-4">That's a lot of adventures! 🎌</p>
-          </div>
-        );
-
+        return <div className="animate-fade-in">
+          <h2 className="text-5xl font-extrabold text-pink-400 mb-2">{stats.num_items || 0}</h2>
+          <p className="text-xl">anime titles on your list!</p>
+        </div>;
       case 'genres':
-        return (
-          <div className="animate-slide-up space-y-6">
-            <h2 className="text-4xl font-bold mb-2 text-violet-200">Your Favorite Genre</h2>
-            <div className="text-6xl font-black text-pink-400 text-shadow-lg mb-4">
-              {processedData.topGenre}
-            </div>
-            <p className="text-xl text-gray-300">
-              You watched {processedData.genreCount[processedData.topGenre] || 0} {processedData.topGenre.toLowerCase()} anime!
-            </p>
-            <div className="mt-6 flex flex-wrap gap-2 justify-center">
-              {Object.entries(processedData.genreCount)
-                .sort((a, b) => b[1] - a[1])
-                .slice(0, 5)
-                .map(([genre, count]) => (
-                  <span key={genre} className="px-4 py-2 bg-violet-600/30 rounded-full text-sm">
-                    {genre} ({count})
-                  </span>
-                ))}
-            </div>
-          </div>
-        );
-
+        return <div className="animate-fade-in">
+          <h2 className="text-4xl font-bold mb-4">Your Favorite Genre</h2>
+          <p className="text-2xl text-pink-300">Action</p>
+          <p className="text-lg mt-2">You love the thrills!</p>
+        </div>;
       case 'studio':
-        return (
-          <div className="animate-slide-up space-y-6">
-            <h2 className="text-4xl font-bold mb-2 text-violet-200">Your Most Watched Studio</h2>
-            <div className="text-5xl font-black text-violet-400 text-shadow-lg mb-4">
-              {processedData.topStudio}
-            </div>
-            <p className="text-xl text-gray-300">
-              You've watched {processedData.studioCount[processedData.topStudio] || 0} anime from {processedData.topStudio}!
-            </p>
-            <p className="text-lg text-pink-300 mt-4">Their animation never disappoints ✨</p>
-          </div>
-        );
-
+        return <div className="animate-fade-in">
+          <h2 className="text-4xl font-bold mb-4">Top Studio</h2>
+          <p className="text-2xl text-violet-300">Ufotable</p>
+          <p className="text-lg mt-2">Their animation never disappoints.</p>
+        </div>;
       case 'watch_time':
-        const daysWatched = stats.num_days_watched || 0;
-        return (
-          <div className="animate-scale-in space-y-6">
-            <h2 className="text-4xl font-bold mb-4 text-violet-200">Total Watch Time</h2>
-            <div className="text-7xl font-black text-pink-400 text-shadow-lg mb-2">
-              {Math.round(daysWatched)}
-            </div>
-            <p className="text-3xl text-pink-300 font-bold">days</p>
-            <p className="text-xl text-gray-300 mt-4">
-              That's {formatDays(daysWatched)} spent in anime worlds! 🌍
-            </p>
-            <div className="mt-6 text-lg text-violet-300">
-              <p>Episodes watched: {stats.num_episodes || 0}</p>
-            </div>
-          </div>
-        );
-
-      case 'top_rated':
-        const topAnime = processedData.topRated[0];
-        return (
-          <div className="animate-slide-up space-y-6">
-            <h2 className="text-4xl font-bold mb-4 text-violet-200">Your Top Rated Anime</h2>
-            {topAnime && (
-              <>
-                {topAnime.picture && (
-                  <img 
-                    src={topAnime.picture} 
-                    alt={topAnime.title}
-                    className="w-48 h-64 object-cover rounded-lg mx-auto shadow-2xl border-4 border-pink-400"
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                    }}
-                  />
-                )}
-                <div className="text-4xl font-bold text-pink-400 text-shadow-lg mt-4">
-                  {topAnime.title}
-                </div>
-                <div className="text-3xl text-violet-300">
-                  {'⭐'.repeat(Math.min(topAnime.score, 10))} {topAnime.score}/10
-                </div>
-                <p className="text-xl text-gray-300 mt-4">A masterpiece in your eyes! 👑</p>
-                {processedData.topRated.length > 1 && (
-                  <div className="mt-6 text-sm text-violet-400">
-                    <p>Top 5: {processedData.topRated.slice(0, 5).map(a => a.title).join(', ')}</p>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        );
-
-      case 'hidden_gems':
-        const gem = processedData.hiddenGem;
-        return (
-          <div className="animate-slide-up space-y-6">
-            <h2 className="text-4xl font-bold mb-4 text-violet-200">Hidden Gem You Found</h2>
-            {gem ? (
-              <>
-                {gem.picture && (
-                  <img 
-                    src={gem.picture} 
-                    alt={gem.title}
-                    className="w-48 h-64 object-cover rounded-lg mx-auto shadow-2xl border-4 border-violet-400"
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                    }}
-                  />
-                )}
-                <div className="text-4xl font-bold text-violet-400 text-shadow-lg mt-4">
-                  {gem.title}
-                </div>
-                <div className="text-2xl text-pink-300">
-                  Community Score: {gem.score.toFixed(2)}/10
-                </div>
-                <p className="text-xl text-gray-300 mt-4">Underrated but unforgettable 💎</p>
-                <p className="text-sm text-violet-400">
-                  Only {gem.popularity.toLocaleString()} users scored this gem
-                </p>
-              </>
-            ) : (
-              <p className="text-xl text-gray-300">Keep exploring to find hidden gems!</p>
-            )}
-          </div>
-        );
-
+        return <div className="animate-fade-in">
+          <h2 className="text-4xl font-bold mb-4">Total Watch Time</h2>
+          <p className="text-5xl font-extrabold text-pink-400">{stats.num_days_watched || 0}</p>
+          <p className="text-xl mt-2">days spent in anime worlds!</p>
+        </div>;
       case 'seasonal':
-        const seasonal = processedData.topSeasonal;
-        return (
-          <div className="animate-slide-down space-y-6">
-            <h2 className="text-4xl font-bold mb-4 text-violet-200">Your Busiest Season</h2>
-            {seasonal && (
-              <>
-                <div className="text-5xl font-black text-pink-400 text-shadow-lg mb-4">
-                  {seasonal[0]}
-                </div>
-                <div className="text-3xl text-violet-300 mb-4">
-                  You completed {seasonal[1]} anime!
-                </div>
-                <p className="text-xl text-gray-300">That season was packed! 🎬</p>
-              </>
-            )}
-          </div>
-        );
-
+        return <div className="animate-fade-in">
+          <h2 className="text-4xl font-bold mb-4">Seasonal Highlight</h2>
+          <p className="text-2xl text-pink-300">Winter 2025</p>
+          <p className="text-lg mt-2">You watched 12 new shows this season!</p>
+        </div>;
+      case 'top_rated':
+        return <div className="animate-fade-in">
+          <h2 className="text-4xl font-bold mb-4">Your Top Rated</h2>
+          <p className="text-2xl text-violet-300">Steins;Gate</p>
+          <p className="text-lg mt-2">A masterpiece in your eyes!</p>
+        </div>;
+      case 'hidden_gems':
+        return <div className="animate-fade-in">
+          <h2 className="text-4xl font-bold mb-4">Hidden Gem You Found</h2>
+          <p className="text-2xl text-pink-300">Odd Taxi</p>
+          <p className="text-lg mt-2">Underrated but unforgettable.</p>
+        </div>;
       case 'community':
-        return (
-          <div className="animate-scale-in space-y-6">
-            <h2 className="text-4xl font-bold mb-4 text-violet-200">Your Progress</h2>
-            <div className="grid grid-cols-2 gap-6 mt-8">
-              <div className="bg-violet-600/30 rounded-xl p-6">
-                <div className="text-4xl font-black text-pink-400 mb-2">
-                  {stats.num_items_completed || 0}
-                </div>
-                <p className="text-lg text-violet-200">Completed</p>
-              </div>
-              <div className="bg-pink-600/30 rounded-xl p-6">
-                <div className="text-4xl font-black text-violet-400 mb-2">
-                  {stats.num_items_watching || 0}
-                </div>
-                <p className="text-lg text-pink-200">Watching</p>
-              </div>
-              <div className="bg-blue-600/30 rounded-xl p-6">
-                <div className="text-4xl font-black text-blue-400 mb-2">
-                  {stats.num_items_on_hold || 0}
-                </div>
-                <p className="text-lg text-blue-200">On Hold</p>
-              </div>
-              <div className="bg-yellow-600/30 rounded-xl p-6">
-                <div className="text-4xl font-black text-yellow-400 mb-2">
-                  {stats.num_items_dropped || 0}
-                </div>
-                <p className="text-lg text-yellow-200">Dropped</p>
-              </div>
-            </div>
-            <p className="text-xl text-gray-300 mt-6">Keep going, otaku! 🎌</p>
-          </div>
-        );
-
+        return <div className="animate-fade-in">
+          <h2 className="text-4xl font-bold mb-4">Community Stats</h2>
+          <p className="text-xl">You've completed {stats.num_items_completed || 0} anime!</p>
+          <p className="text-lg mt-2">Keep going, otaku!</p>
+        </div>;
       case 'manga':
-        return (
-          <div className="animate-slide-up space-y-6">
-            <h2 className="text-4xl font-bold mb-4 text-violet-200">Manga Corner</h2>
-            {mangaData && (
-              <>
-                <div className="text-6xl font-black text-pink-400 text-shadow-lg mb-4">
-                  {mangaData.totalManga}
-                </div>
-                <p className="text-2xl text-violet-300">manga titles in your list!</p>
-                <p className="text-xl text-gray-300 mt-4">
-                  You've completed {mangaData.completedManga} of them 📚
-                </p>
-                <p className="text-lg text-pink-300 mt-6">You're a true weeb! 🎌</p>
-              </>
-            )}
-          </div>
-        );
-
+        return <div className="animate-fade-in">
+          <h2 className="text-4xl font-bold mb-4">Manga Corner</h2>
+          <p className="text-xl">You've also been reading manga. Nice!</p>
+        </div>;
       case 'finale':
-        return (
-          <div className="animate-bounce-in space-y-6">
-            <div className="text-6xl mb-6">🎉</div>
-            <h2 className="text-5xl font-extrabold gradient-text text-shadow-lg mb-4">
-              Thank you for using MAL Wrapped {currentYear}!
-            </h2>
-            <p className="text-2xl text-violet-200 mb-6">
-              Share your results and let's make {currentYear + 1} even more anime-packed!
-            </p>
-            <div className="flex gap-4 justify-center mt-8">
-              <Sparkles size={32} className="text-pink-400 animate-pulse" />
-              <Sparkles size={32} className="text-violet-400 animate-pulse" />
-              <Sparkles size={32} className="text-blue-400 animate-pulse" />
-            </div>
-          </div>
-        );
-
+        return <div className="animate-bounce-in">
+          <h2 className="text-4xl font-bold">Thank you for using MAL Wrapped!</h2>
+          <p className="text-xl">Share your results and let's make 2025 even more anime-packed!</p>
+        </div>;
       default:
         return <div className="mb-6"><p>More stats coming soon...</p></div>;
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-violet-900 to-pink-900 flex items-center justify-center p-4">
-      <div className="bg-black/60 backdrop-blur-md rounded-3xl shadow-2xl p-8 md:p-12 text-white w-full max-w-4xl text-center border border-violet-700/50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-violet-900 to-pink-900 flex items-center justify-center">
+      <div className="bg-black/50 rounded-3xl shadow-2xl p-10 text-white w-[90vw] max-w-2xl text-center border border-violet-700">
         {error && (
           <div className="bg-red-600/90 p-4 rounded-xl mb-6 border border-red-400">
-            <p className="font-semibold whitespace-pre-line">{error}</p>
-            {error.includes('redirect URI') && (
-              <div className="mt-4 p-3 bg-red-700/50 rounded-lg">
-                <p className="text-sm font-mono break-all">{getRedirectUri()}</p>
-                <p className="text-xs mt-2 text-red-200">
-                  Copy this exact URL and paste it in your MAL app's redirect URI field at https://myanimelist.net/apiconfig
-                </p>
-              </div>
-            )}
+            <p className="font-semibold whitespace-pre-line text-sm">{error}</p>
           </div>
         )}
-        
-        {isLoading && (
-          <div className="space-y-4 py-8">
-            <Loader2 size={48} className="mx-auto text-violet-400 animate-spin" />
-            <p className="text-xl text-violet-200 animate-pulse">{loadingProgress || 'Loading your data...'}</p>
-            <div className="w-full bg-gray-700 rounded-full h-2.5 mt-4">
-              <div className="bg-gradient-to-r from-pink-500 to-violet-500 h-2.5 rounded-full animate-pulse" style={{ width: '60%' }}></div>
-            </div>
-          </div>
-        )}
-
+        {isLoading && <div className="text-lg text-violet-200 animate-pulse mb-6">Loading...</div>}
         {!isAuthenticated && !userData && !isLoading && (
-          <div className="space-y-8 animate-fade-in">
-            <div className="flex justify-center">
-              <Sparkles size={64} className="text-violet-300 animate-bounce" />
-            </div>
-            <h1 className="text-6xl md:text-7xl font-extrabold text-white mb-4 text-shadow-lg">
-              MAL Wrapped <span className="gradient-text">{new Date().getFullYear()}</span>
-            </h1>
-            <p className="text-2xl md:text-3xl text-violet-200 mb-2">Your year in anime</p>
-            <p className="text-lg text-gray-300 mb-8">Discover your anime statistics and favorite titles!</p>
+          <>
+            <Sparkles size={40} className="mx-auto mb-4 text-violet-300 animate-bounce" />
+            <h1 className="text-5xl font-extrabold text-white mb-5">MAL Wrapped 2025</h1>
+            <p className="text-xl mb-6">Get your anime year in review. Ready?</p>
             <button 
               onClick={handleBegin} 
-              className="bg-gradient-to-r from-violet-600 to-pink-600 hover:from-violet-500 hover:to-pink-500 px-10 py-4 text-xl rounded-full font-bold shadow-2xl transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-violet-700 hover:bg-pink-500 px-7 py-3 text-lg rounded-full font-bold shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={CLIENT_ID === '<your_client_id_here>' || !CLIENT_ID}
             >
-              Connect with MyAnimeList
+              Connect with MAL
             </button>
-            <div className="mt-6 space-y-2">
-              <p className="text-sm text-gray-400">
-                Secure OAuth authentication • Your data stays private
-              </p>
-              {typeof window !== 'undefined' && (
-                <div className="text-xs text-gray-500 mt-4 p-3 bg-gray-800/50 rounded-lg">
-                  <p className="font-semibold mb-1">Redirect URI (for MAL app settings):</p>
-                  <p className="font-mono break-all text-violet-300">{getRedirectUri()}</p>
-                  <p className="mt-2 text-gray-400">
-                    Make sure this URL is set in your MAL app settings at <a href="https://myanimelist.net/apiconfig" target="_blank" rel="noopener noreferrer" className="text-violet-400 underline">myanimelist.net/apiconfig</a>
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
+            {typeof window !== 'undefined' && (
+              <div className="text-xs text-gray-400 mt-4 p-3 bg-gray-800/50 rounded-lg">
+                <p className="font-semibold mb-1">Redirect URI (set this in MAL app settings):</p>
+                <p className="font-mono break-all text-violet-300">{getRedirectUri()}</p>
+              </div>
+            )}
+          </>
         )}
-
-        {isAuthenticated && userData && processedData && !isLoading && slides.length > 0 && (
+        {isAuthenticated && userData && (
           <>
-            <div key={currentSlide} className="min-h-[400px] flex items-center justify-center">
-              <SlideContent slide={slides[currentSlide]} />
-            </div>
-            <div className="flex gap-4 justify-center mt-10">
+            <SlideContent slide={slides[currentSlide]} />
+            <div className="flex gap-4 justify-center mt-8">
               <button
-                className="p-3 rounded-full bg-violet-600/70 hover:bg-violet-600 text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all transform hover:scale-110 active:scale-95 flex items-center gap-2"
+                className="p-2 rounded-full bg-violet-600/70 hover:bg-violet-700 text-white disabled:opacity-50"
                 onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))}
                 disabled={currentSlide === 0}
               >
-                <ChevronLeft size={20} />
-                <span className="hidden sm:inline">Prev</span>
+                Prev
               </button>
-              <div className="flex items-center gap-2 px-4">
-                <span className="text-sm text-gray-400">{currentSlide + 1}</span>
-                <span className="text-gray-600">/</span>
-                <span className="text-sm text-gray-400">{slides.length}</span>
-              </div>
               <button
-                className="p-3 px-6 rounded-full bg-gradient-to-r from-pink-600 to-violet-600 hover:from-pink-500 hover:to-violet-500 text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all transform hover:scale-110 active:scale-95 flex items-center gap-2 font-semibold"
+                className="p-2 px-6 rounded-full bg-pink-600/80 hover:bg-pink-700 text-white disabled:opacity-50 flex items-center gap-2"
                 onClick={() => setCurrentSlide(Math.min(slides.length - 1, currentSlide + 1))}
                 disabled={currentSlide === slides.length - 1}
               >
-                <span className="hidden sm:inline">Next</span>
-                <ChevronRight size={20} />
+                Next <ChevronRight size={18} />
               </button>
             </div>
-            <div className="flex gap-2 mt-6 justify-center flex-wrap">
+            <div className="flex gap-2 mt-5 justify-center">
               {slides.map((slide, idx) => (
-                <button
+                <span
                   key={slide.id}
-                  onClick={() => setCurrentSlide(idx)}
                   className={
-                    "w-3 h-3 rounded-full transition-all " +
-                    (idx === currentSlide 
-                      ? 'bg-pink-400 w-8 scale-110' 
-                      : 'bg-gray-600 hover:bg-gray-500')
+                    "w-3 h-3 rounded-full " +
+                    (idx === currentSlide ? 'bg-pink-400' : 'bg-gray-600')
                   }
-                  aria-label={`Go to slide ${idx + 1}`}
                 />
               ))}
             </div>
           </>
-        )}
-
-        {isAuthenticated && userData && processedData && !isLoading && slides.length === 0 && (
-          <div className="py-12 space-y-4">
-            <p className="text-2xl text-violet-200">No anime data found</p>
-            <p className="text-gray-400">Start adding anime to your MyAnimeList to see your wrapped!</p>
-          </div>
         )}
       </div>
     </div>
