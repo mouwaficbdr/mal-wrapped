@@ -144,13 +144,20 @@ export default function MALWrapped() {
       if (!response.ok) {
         let errorData = null;
         
-        try {
-          errorData = await response.json();
-          console.error('Error response:', errorData);
-        } catch (e) {
-          const errorText = await response.text();
-          console.error('Error response text:', errorText);
-          errorData = { error: 'Unknown error', message: errorText };
+        // Read response once
+        const responseText = await response.text();
+        console.error('Error response status:', response.status);
+        console.error('Error response text:', responseText);
+        
+        if (responseText) {
+          try {
+            errorData = JSON.parse(responseText);
+          } catch (e) {
+            // Not JSON, use as text
+            errorData = { error: 'Unknown error', message: responseText };
+          }
+        } else {
+          errorData = { error: 'Empty response', message: `Server returned ${response.status} with no response body` };
         }
         
         let errorMessage = 'Failed to exchange authorization code for token.';
@@ -201,16 +208,26 @@ export default function MALWrapped() {
       const data = await response.json();
       
       if (!data.access_token) {
+        console.error('No access_token in response:', data);
         throw new Error('No access token received from MAL API. Response: ' + JSON.stringify(data));
       }
       
       console.log('Token exchange successful');
+      console.log('Token received, length:', data.access_token.length);
+      console.log('Token type:', data.token_type);
+      console.log('Expires in:', data.expires_in);
+      
+      // Store the token
       window.localStorage.setItem('mal_access_token', data.access_token);
+      if (data.refresh_token) {
+        window.localStorage.setItem('mal_refresh_token', data.refresh_token);
+      }
       window.localStorage.removeItem('pkce_verifier');
 
       // Clear the URL
       window.history.replaceState({}, document.title, window.location.pathname);
 
+      // Fetch user data with the new token
       await fetchUserData(data.access_token);
       setIsAuthenticated(true);
     } catch (err) {
@@ -249,40 +266,93 @@ export default function MALWrapped() {
   async function fetchUserData(accessToken) {
     if (typeof window === 'undefined') return;
 
+    if (!accessToken || accessToken.trim() === '') {
+      setError('Invalid access token. Please try connecting again.');
+      window.localStorage.removeItem('mal_access_token');
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     setError('');
+    setLoadingProgress('Fetching your profile...');
+    
     try {
+      console.log('Fetching user data with token (first 20 chars):', accessToken.substring(0, 20) + '...');
+      
       const response = await fetch('https://api.myanimelist.net/v2/users/@me?fields=id,name,picture,anime_statistics,manga_statistics', {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
         },
       });
 
+      console.log('User data response status:', response.status);
+      console.log('User data response headers:', Object.fromEntries(response.headers.entries()));
+
       if (!response.ok) {
-        if (response.status === 401) {
-          window.localStorage.removeItem('mal_access_token');
-          throw new Error('Session expired. Please reconnect.');
-        }
-        
+        let errorData = null;
         let errorText = '';
+        
         try {
           errorText = await response.text();
+          console.error('Error response text:', errorText);
+          
+          try {
+            errorData = JSON.parse(errorText);
+          } catch (e) {
+            // Not JSON
+          }
         } catch (e) {
-          // Ignore
+          console.error('Failed to read error response:', e);
         }
         
-        throw new Error(`Failed to fetch user data (${response.status}): ${errorText || 'Unknown error'}`);
+        if (response.status === 401) {
+          console.error('401 Unauthorized - Token is invalid or expired');
+          window.localStorage.removeItem('mal_access_token');
+          window.localStorage.removeItem('mal_refresh_token');
+          
+          let errorMessage = 'Authentication failed: Invalid or expired token.\n\n';
+          errorMessage += 'This could mean:\n';
+          errorMessage += '1. The token exchange failed\n';
+          errorMessage += '2. The token expired\n';
+          errorMessage += '3. There was an issue with the authorization\n\n';
+          errorMessage += 'Please try connecting again.';
+          
+          if (errorData?.message) {
+            errorMessage += `\n\nDetails: ${errorData.message}`;
+          }
+          
+          throw new Error(errorMessage);
+        }
+        
+        let errorMessage = `Failed to fetch user data (${response.status})`;
+        if (errorData?.message) {
+          errorMessage += `: ${errorData.message}`;
+        } else if (errorText) {
+          errorMessage += `: ${errorText.substring(0, 200)}`;
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
+      console.log('User data fetched successfully:', { id: data.id, name: data.name });
+      
       setUsername(data.name);
       setUserData(data);
       setIsAuthenticated(true);
+      
+      // Fetch anime list
+      setLoadingProgress('Loading your anime list...');
+      // Note: We'll need to implement fetchAnimeList if it's not already there
+      
     } catch (err) {
       let errorMessage = 'Failed to fetch user data';
       
       if (err instanceof TypeError && err.message === 'Failed to fetch') {
-        errorMessage = 'Network error: Could not connect to MAL API. Please check your connection.';
+        errorMessage = 'Network error: Could not connect to MAL API.\n\n';
+        errorMessage += 'Please check your internet connection and try again.';
       } else if (err.name === 'NetworkError') {
         errorMessage = 'Network error: Unable to reach MAL API servers.';
       } else {
@@ -291,6 +361,12 @@ export default function MALWrapped() {
       
       setError(errorMessage);
       console.error('Fetch user data error:', err);
+      console.error('Error details:', {
+        name: err.name,
+        message: err.message,
+        tokenLength: accessToken ? accessToken.length : 0,
+        tokenPreview: accessToken ? accessToken.substring(0, 20) + '...' : 'none'
+      });
     } finally {
       setIsLoading(false);
     }
