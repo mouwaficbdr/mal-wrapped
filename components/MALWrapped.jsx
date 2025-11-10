@@ -43,16 +43,21 @@ function AnimatedNumber({ value, duration = 1500, className = '' }) {
   const frameRef = useRef(null);
 
   useEffect(() => {
+    const numValue = Number(value) || 0;
+    if (numValue === 0) {
+      setCount(0);
+      return;
+    }
     let startTime = null;
     const animate = (timestamp) => {
       if (!startTime) startTime = timestamp;
       const progress = timestamp - startTime;
       const percentage = Math.min(progress / duration, 1);
-      setCount(Math.floor(percentage * value));
+      setCount(Math.floor(percentage * numValue));
       if (progress < duration) {
         frameRef.current = requestAnimationFrame(animate);
       } else {
-        setCount(value);
+        setCount(numValue);
       }
     };
     frameRef.current = requestAnimationFrame(animate);
@@ -86,7 +91,6 @@ export default function MALWrapped() {
     { id: 'anime_time' },
     { id: 'top_genre' },
     { id: 'drumroll_anime' },
-    { id: 'favorite_anime' },
     { id: 'top_studio' },
     { id: 'seasonal_highlights' },
     { id: 'hidden_gems_anime' },
@@ -96,7 +100,6 @@ export default function MALWrapped() {
     { id: 'manga_time' },
     { id: 'top_manga_genre' },
     { id: 'drumroll_manga' },
-    { id: 'favorite_manga' },
     { id: 'top_author' },
     { id: 'hidden_gems_manga' },
     { id: 'planned_manga' },
@@ -548,7 +551,7 @@ export default function MALWrapped() {
     setIsCapturing(true);
     try {
       // Wait for animations and carousels to settle
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
       // Dynamically import html2canvas
       const html2canvas = (await import('html2canvas')).default;
@@ -578,14 +581,22 @@ export default function MALWrapped() {
           if (clonedCard) {
             clonedCard.style.transform = 'none';
             clonedCard.style.position = 'relative';
+            clonedCard.style.top = '0';
+            clonedCard.style.left = '0';
           }
+          // Stop all animations in cloned document
+          const style = clonedDoc.createElement('style');
+          style.textContent = '* { animation: none !important; transition: none !important; }';
+          clonedDoc.head.appendChild(style);
         },
       });
       
       const link = document.createElement('a');
       link.download = `mal-wrapped-${username || 'user'}-slide-${currentSlide + 1}.png`;
       link.href = canvas.toDataURL('image/png', 1.0);
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
     } catch (err) {
       console.error('Error generating PNG:', err);
       alert('Failed to download image. Please try again.');
@@ -638,13 +649,17 @@ export default function MALWrapped() {
     }
   }
 
-  // Drumroll Slide Component
-  function DrumrollSlide({ type, topItem, verticalText }) {
-    const [revealed, setRevealed] = useState(false);
+  // Drumroll to Top 5 Slide Component
+  function DrumrollToTop5Slide({ type, topItem, top5Items, verticalText }) {
+    const [phase, setPhase] = useState(0); // 0: drumroll, 1: reveal #1, 2: show top 5
     
     useEffect(() => {
-      const timer = setTimeout(() => setRevealed(true), 2000);
-      return () => clearTimeout(timer);
+      const timer1 = setTimeout(() => setPhase(1), 2000);
+      const timer2 = setTimeout(() => setPhase(2), 5000);
+      return () => {
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+      };
     }, []);
 
     const SlideLayout = ({ children, verticalText }) => (
@@ -660,50 +675,122 @@ export default function MALWrapped() {
       </div>
     );
 
+    const top5Formatted = top5Items.map(item => ({
+      id: item.node.id,
+      title: item.node.title,
+      coverImage: item.node.main_picture?.large || item.node.main_picture?.medium || '',
+      userRating: item.list_status.score,
+      studio: type === 'anime' ? (item.node.studios?.[0]?.name || '') : '',
+      author: type === 'manga' ? (`${item.node.authors?.[0]?.node?.first_name || ''} ${item.node.authors?.[0]?.node?.last_name || ''}`.trim()) : '',
+      genres: item.node.genres?.map(g => g.name) || []
+    }));
+
     return (
       <SlideLayout verticalText={verticalText}>
-        <div className="text-center relative overflow-hidden">
-          {!revealed ? (
-            <div className="animate-pop-in">
-              <h1 className="text-6xl md:text-8xl font-bold uppercase text-[#9EFF00] animate-pulse">{type === 'anime' ? '🎬' : '📚'}</h1>
-              <h2 className="text-4xl md:text-6xl font-bold uppercase text-white mt-8">Your Favorite</h2>
-              <h2 className="text-4xl md:text-6xl font-bold uppercase text-[#9EFF00] mt-4 animate-pulse">{type === 'anime' ? 'Anime' : 'Manga'} Awaits...</h2>
-            </div>
-          ) : topItem ? (
-            <div className="animate-pop-in">
-              <h1 className="text-3xl md:text-4xl font-bold uppercase text-[#9EFF00] mb-6">Your #1 Favorite</h1>
-              <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8">
-                <div className="w-32 md:w-48 aspect-[2/3] bg-black/50 border-2 border-[#9EFF00] rounded-lg overflow-hidden shadow-2xl shadow-[#9EFF00]/50 transition-all duration-500 hover:scale-105">
-                  {topItem.node?.main_picture?.large && (
-                    <img 
-                      src={topItem.node.main_picture.large} 
-                      alt={topItem.node.title} 
-                      crossOrigin="anonymous" 
-                      className="w-full h-full object-cover" 
-                    />
-                  )}
-                </div>
-                <div className="text-center md:text-left">
-                  <h3 className="text-3xl md:text-5xl font-bold text-white mb-2">{topItem.node?.title}</h3>
-                  {type === 'anime' && topItem.node?.studios?.[0]?.name && (
-                    <p className="text-xl md:text-2xl text-[#9EFF00] mb-4">{topItem.node.studios[0].name}</p>
-                  )}
-                  {type === 'manga' && topItem.node?.authors?.[0] && (
-                    <p className="text-xl md:text-2xl text-[#9EFF00] mb-4">
-                      {`${topItem.node.authors[0].node?.first_name || ''} ${topItem.node.authors[0].node?.last_name || ''}`.trim()}
-                    </p>
-                  )}
-                  <div className="flex items-center justify-center md:justify-start text-3xl md:text-4xl text-yellow-300">
-                    <span className="mr-2">★</span>
-                    <span>{topItem.list_status?.score?.toFixed(1)} / 10</span>
-                  </div>
+        {phase === 0 ? (
+          <div className="text-center relative overflow-hidden animate-pop-in">
+            <h1 className="text-6xl md:text-8xl font-bold uppercase text-[#9EFF00] animate-pulse">{type === 'anime' ? '🎬' : '📚'}</h1>
+            <h2 className="text-4xl md:text-6xl font-bold uppercase text-white mt-8">Your Favorite</h2>
+            <h2 className="text-4xl md:text-6xl font-bold uppercase text-[#9EFF00] mt-4 animate-pulse">{type === 'anime' ? 'Anime' : 'Manga'} Awaits...</h2>
+          </div>
+        ) : phase === 1 && topItem ? (
+          <div className="text-center relative overflow-hidden animate-pop-in">
+            <h1 className="text-3xl md:text-4xl font-bold uppercase text-[#9EFF00] mb-6">Your #1 Favorite</h1>
+            <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8">
+              <div className="w-32 md:w-48 aspect-[2/3] bg-black/50 border-2 border-[#9EFF00] rounded-lg overflow-hidden shadow-2xl shadow-[#9EFF00]/50">
+                {topItem.node?.main_picture?.large && (
+                  <img 
+                    src={topItem.node.main_picture.large} 
+                    alt={topItem.node.title} 
+                    crossOrigin="anonymous" 
+                    className="w-full h-full object-cover" 
+                  />
+                )}
+              </div>
+              <div className="text-center md:text-left">
+                <h3 className="text-3xl md:text-5xl font-bold text-white mb-2">{topItem.node?.title}</h3>
+                {type === 'anime' && topItem.node?.studios?.[0]?.name && (
+                  <p className="text-xl md:text-2xl text-[#9EFF00] mb-4">{topItem.node.studios[0].name}</p>
+                )}
+                {type === 'manga' && topItem.node?.authors?.[0] && (
+                  <p className="text-xl md:text-2xl text-[#9EFF00] mb-4">
+                    {`${topItem.node.authors[0].node?.first_name || ''} ${topItem.node.authors[0].node?.last_name || ''}`.trim()}
+                  </p>
+                )}
+                <div className="flex items-center justify-center md:justify-start text-3xl md:text-4xl text-yellow-300">
+                  <span className="mr-2">★</span>
+                  <span>{topItem.list_status?.score?.toFixed(1)} / 10</span>
                 </div>
               </div>
             </div>
-          ) : (
-            <div className="text-white/50">No favorite {type} found</div>
-          )}
-        </div>
+          </div>
+        ) : phase === 2 && top5Formatted.length > 0 ? (
+          <div className="animate-pop-in">
+            <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block">
+              Your Favorite {type === 'anime' ? 'Anime' : 'Manga'}
+            </h1>
+            <h2 className="text-xl md:text-2xl font-semibold uppercase tracking-wider text-white/80 mt-3">
+              The {type === 'anime' ? 'series' : 'manga'} you rated the highest.
+            </h2>
+            <div className="mt-2 flex flex-col gap-2 w-full justify-center">
+              {(() => {
+                const [featured, ...others] = top5Formatted;
+                return (
+                  <>
+                    <div className="bg-white/5 border border-white/10 rounded-lg overflow-hidden group transition-all duration-300 hover:border-[#9EFF00]/50 flex flex-row relative">
+                      <div className="absolute top-2.5 right-2.5 z-10 w-9 h-9 bg-black text-white rounded-full flex items-center justify-center font-bold text-xl">1</div>
+                      <div className="w-32 md:w-40 flex-shrink-0 aspect-[2/3] bg-black/50">
+                        {featured.coverImage && (
+                          <img src={featured.coverImage} crossOrigin="anonymous" alt={featured.title} className="w-full h-full object-cover" />
+                        )}
+                      </div>
+                      <div className="p-3 flex flex-col justify-center flex-grow min-w-0">
+                        <p className="text-base uppercase tracking-widest text-[#9EFF00] font-bold">#1 Favorite</p>
+                        <h3 className="font-bold text-white text-lg md:text-2xl mt-1 leading-tight truncate">{featured.title}</h3>
+                        {featured.studio && <p className="text-base md:text-lg text-[#9EFF00] truncate">{featured.studio}</p>}
+                        {featured.author && <p className="text-base md:text-lg text-[#9EFF00] truncate">{featured.author}</p>}
+                        <div className="flex items-center text-lg md:text-xl text-yellow-300 mt-2">
+                          <span className="mr-2">★</span>
+                          <span>{featured.userRating.toFixed(1)} / 10</span>
+                        </div>
+                        {featured.genres.length > 0 && (
+                          <div className="mt-2 md:mt-3 flex flex-wrap gap-2">
+                            {featured.genres.slice(0, 2).map(g => (
+                              <span key={g} className="text-base uppercase tracking-wider bg-white/10 text-white/80 px-2 py-1 rounded">{g}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    {others.length > 0 && (
+                      <div className="grid grid-cols-4 gap-2 md:gap-3">
+                        {others.map((item, index) => (
+                          <div key={item.id}>
+                            <div className="bg-black/50 border border-white/10 rounded-lg overflow-hidden group aspect-[4/5] relative transition-all duration-300 hover:border-[#9EFF00]/50">
+                              <div className="absolute top-1.5 right-1.5 z-10 w-7 h-7 bg-black text-white rounded-full flex items-center justify-center font-bold text-base">{index + 2}</div>
+                              {item.coverImage && (
+                                <img src={item.coverImage} alt={item.title} crossOrigin="anonymous" className="w-full h-full object-cover" />
+                              )}
+                            </div>
+                            <div className="mt-1.5 text-left">
+                              <h3 className="font-bold text-white truncate text-base leading-tight">{item.title}</h3>
+                              <div className="flex items-center text-base text-yellow-300">
+                                <span className="mr-1 shrink-0">★</span>
+                                <span>{item.userRating.toFixed(1)}</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
+            </div>
+          </div>
+        ) : (
+          <div className="text-white/50">No favorite {type} found</div>
+        )}
       </SlideLayout>
     );
   }
@@ -725,21 +812,27 @@ export default function MALWrapped() {
     );
 
     // Image Carousel Component
-    const ImageCarousel = ({ items, maxItems = 20 }) => {
+    const ImageCarousel = ({ items, maxItems = 20, showHover = true }) => {
       const [currentIndex, setCurrentIndex] = useState(0);
       const [isHovered, setIsHovered] = useState(false);
       const [hoveredItem, setHoveredItem] = useState(null);
       const visibleItems = items.slice(0, maxItems);
       const itemsPerView = 5;
       
+      // Duplicate items for infinite loop
+      const duplicatedItems = [...visibleItems, ...visibleItems, ...visibleItems];
+      
       useEffect(() => {
         if (visibleItems.length <= itemsPerView || isHovered) return;
         const interval = setInterval(() => {
           setCurrentIndex((prev) => {
-            const maxIndex = Math.max(0, visibleItems.length - itemsPerView);
-            return (prev + 1) % (maxIndex + 1);
+            // Loop infinitely - when we reach the end, reset to start
+            if (prev >= visibleItems.length - itemsPerView) {
+              return 0;
+            }
+            return prev + 1;
           });
-        }, 1500);
+        }, 2000);
         return () => clearInterval(interval);
       }, [visibleItems.length, itemsPerView, isHovered]);
 
@@ -748,34 +841,37 @@ export default function MALWrapped() {
       return (
         <div 
           className="mt-6 overflow-hidden relative"
-          onMouseEnter={() => setIsHovered(true)}
+          onMouseEnter={() => showHover && setIsHovered(true)}
           onMouseLeave={() => {
-            setIsHovered(false);
+            showHover && setIsHovered(false);
             setHoveredItem(null);
           }}
         >
           <div 
             className="flex transition-transform duration-700 ease-in-out"
-            style={{ transform: `translateX(-${currentIndex * (100 / itemsPerView)}%)` }}
+            style={{ 
+              transform: `translateX(-${currentIndex * (100 / itemsPerView)}%)`,
+              willChange: 'transform'
+            }}
           >
-            {visibleItems.map((item, idx) => (
+            {duplicatedItems.map((item, idx) => (
               <div 
                 key={idx} 
                 className="flex-shrink-0 relative group" 
                 style={{ width: `${100 / itemsPerView}%` }}
-                onMouseEnter={() => setHoveredItem(idx)}
-                onMouseLeave={() => setHoveredItem(null)}
+                onMouseEnter={() => showHover && setHoveredItem(idx % visibleItems.length)}
+                onMouseLeave={() => showHover && setHoveredItem(null)}
               >
-                <div className="mx-1 aspect-[2/3] bg-black/50 border border-white/10 rounded-lg overflow-hidden transition-all duration-300 group-hover:border-[#9EFF00] group-hover:scale-105 group-hover:shadow-lg group-hover:shadow-[#9EFF00]/30">
+                <div className={`mx-1 aspect-[2/3] bg-black/50 border border-white/10 rounded-lg overflow-hidden ${showHover ? 'transition-transform duration-300 group-hover:scale-110' : ''}`}>
                   {item.coverImage && (
                     <img 
                       src={item.coverImage} 
                       alt={item.title || ''} 
                       crossOrigin="anonymous" 
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" 
+                      className="w-full h-full object-cover" 
                     />
                   )}
-                  {hoveredItem === idx && item.title && (
+                  {showHover && hoveredItem === (idx % visibleItems.length) && item.title && (
                     <div className="absolute inset-0 bg-black/80 flex items-center justify-center p-2 z-10 transition-opacity duration-300">
                       <p className="text-white text-sm font-bold text-center leading-tight">{item.title}</p>
                       {item.userRating && (
@@ -918,89 +1014,13 @@ export default function MALWrapped() {
         );
 
       case 'drumroll_anime':
-        return <DrumrollSlide 
+        return <DrumrollToTop5Slide 
           type="anime" 
           topItem={stats.topRated.length > 0 ? stats.topRated[0] : null}
+          top5Items={stats.topRated.slice(0, 5)}
           verticalText="DRUMROLL"
         />;
 
-      case 'favorite_anime':
-        const topAnime = stats.topRated.slice(0, 5).map(item => ({
-          id: item.node.id,
-          title: item.node.title,
-          coverImage: item.node.main_picture?.large || item.node.main_picture?.medium || '',
-          userRating: item.list_status.score,
-          studio: item.node.studios?.[0]?.name || '',
-          genres: item.node.genres?.map(g => g.name) || []
-        }));
-        return (
-          <SlideLayout verticalText="TOP-SELECTION">
-            <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block animate-pop-in animation-delay-100">
-              Your Favorite Anime
-            </h1>
-            <h2 className="text-xl md:text-2xl font-semibold uppercase tracking-wider text-white/80 mt-3 animate-pop-in animation-delay-200">
-              The series you rated the highest.
-            </h2>
-            {topAnime && topAnime.length > 0 ? (
-              <div className="mt-2 flex flex-col gap-2 w-full justify-center stagger-children">
-                {(() => {
-                  const [featured, ...others] = topAnime;
-                  return (
-                    <>
-                      <div className="bg-white/5 border border-white/10 rounded-lg overflow-hidden group transition-all duration-300 hover:border-[#9EFF00]/50 flex flex-row relative">
-                        <div className="absolute top-2.5 right-2.5 z-10 w-9 h-9 bg-black text-white rounded-full flex items-center justify-center font-bold text-xl">1</div>
-                        <div className="w-32 md:w-40 flex-shrink-0 aspect-[2/3] bg-black/50">
-                          {featured.coverImage && (
-                            <img src={featured.coverImage} crossOrigin="anonymous" alt={featured.title} className="w-full h-full object-cover" />
-                          )}
-                        </div>
-                        <div className="p-3 flex flex-col justify-center flex-grow min-w-0">
-                          <p className="text-base uppercase tracking-widest text-[#9EFF00] font-bold">#1 Favorite</p>
-                          <h3 className="font-bold text-white text-lg md:text-2xl mt-1 leading-tight truncate">{featured.title}</h3>
-                          {featured.studio && <p className="text-base md:text-lg text-[#9EFF00] truncate">{featured.studio}</p>}
-                          <div className="flex items-center text-lg md:text-xl text-yellow-300 mt-2">
-                            <span className="mr-2">★</span>
-                            <span>{featured.userRating.toFixed(1)} / 10</span>
-                          </div>
-                          {featured.genres.length > 0 && (
-                            <div className="mt-2 md:mt-3 flex flex-wrap gap-2">
-                              {featured.genres.slice(0, 2).map(g => (
-                                <span key={g} className="text-base uppercase tracking-wider bg-white/10 text-white/80 px-2 py-1 rounded">{g}</span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      {others.length > 0 && (
-                        <div className="grid grid-cols-4 gap-2 md:gap-3">
-                          {others.map((anime, index) => (
-                            <div key={anime.id}>
-                              <div className="bg-black/50 border border-white/10 rounded-lg overflow-hidden group aspect-[4/5] relative transition-all duration-300 hover:border-[#9EFF00]/50">
-                                <div className="absolute top-1.5 right-1.5 z-10 w-7 h-7 bg-black text-white rounded-full flex items-center justify-center font-bold text-base">{index + 2}</div>
-                                {anime.coverImage && (
-                                  <img src={anime.coverImage} alt={anime.title} crossOrigin="anonymous" className="w-full h-full object-cover" />
-                                )}
-                              </div>
-                              <div className="mt-1.5">
-                                <h3 className="font-bold text-white truncate text-base leading-tight">{anime.title}</h3>
-                                <div className="flex items-center text-base text-yellow-300">
-                                  <span className="mr-1 shrink-0">★</span>
-                                  <span>{anime.userRating.toFixed(1)}</span>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </>
-                  );
-                })()}
-              </div>
-            ) : (
-              <div className="mt-8 text-center text-white/50">No rated anime found. Rate some anime to see your favorites here!</div>
-            )}
-          </SlideLayout>
-        );
 
       case 'top_studio':
         const topStudio = stats.topStudios && stats.topStudios.length > 0 ? stats.topStudios[0][0] : null;
@@ -1074,9 +1094,12 @@ export default function MALWrapped() {
 
       case 'hidden_gems_anime':
         const gems = stats.hiddenGems.slice(0, 5).map(item => ({
-          title: item.node?.title || '',
-          coverImage: item.node?.main_picture?.large || item.node?.main_picture?.medium || '',
-          userRating: item.list_status?.score
+          id: item.node.id,
+          title: item.node.title,
+          coverImage: item.node.main_picture?.large || item.node.main_picture?.medium || '',
+          userRating: item.list_status.score,
+          studio: item.node.studios?.[0]?.name || '',
+          genres: item.node.genres?.map(g => g.name) || []
         }));
         return (
           <SlideLayout verticalText="DEEP-CUTS">
@@ -1087,7 +1110,60 @@ export default function MALWrapped() {
               High ratings, low popularity.
             </h2>
             {gems.length > 0 ? (
-              <ImageCarousel items={gems} maxItems={20} />
+              <div className="mt-2 flex flex-col gap-2 w-full justify-center">
+                {(() => {
+                  const [featured, ...others] = gems;
+                  return (
+                    <>
+                      <div className="bg-white/5 border border-white/10 rounded-lg overflow-hidden group transition-all duration-300 hover:border-[#9EFF00]/50 flex flex-row relative">
+                        <div className="absolute top-2.5 right-2.5 z-10 w-9 h-9 bg-black text-white rounded-full flex items-center justify-center font-bold text-xl">1</div>
+                        <div className="w-32 md:w-40 flex-shrink-0 aspect-[2/3] bg-black/50">
+                          {featured.coverImage && (
+                            <img src={featured.coverImage} crossOrigin="anonymous" alt={featured.title} className="w-full h-full object-cover" />
+                          )}
+                        </div>
+                        <div className="p-3 flex flex-col justify-center flex-grow min-w-0">
+                          <p className="text-base uppercase tracking-widest text-[#9EFF00] font-bold">#1 Hidden Gem</p>
+                          <h3 className="font-bold text-white text-lg md:text-2xl mt-1 leading-tight truncate">{featured.title}</h3>
+                          {featured.studio && <p className="text-base md:text-lg text-[#9EFF00] truncate">{featured.studio}</p>}
+                          <div className="flex items-center text-lg md:text-xl text-yellow-300 mt-2">
+                            <span className="mr-2">★</span>
+                            <span>{featured.userRating.toFixed(1)} / 10</span>
+                          </div>
+                          {featured.genres.length > 0 && (
+                            <div className="mt-2 md:mt-3 flex flex-wrap gap-2">
+                              {featured.genres.slice(0, 2).map(g => (
+                                <span key={g} className="text-base uppercase tracking-wider bg-white/10 text-white/80 px-2 py-1 rounded">{g}</span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      {others.length > 0 && (
+                        <div className="grid grid-cols-4 gap-2 md:gap-3">
+                          {others.map((item, index) => (
+                            <div key={item.id}>
+                              <div className="bg-black/50 border border-white/10 rounded-lg overflow-hidden group aspect-[4/5] relative transition-all duration-300 hover:border-[#9EFF00]/50">
+                                <div className="absolute top-1.5 right-1.5 z-10 w-7 h-7 bg-black text-white rounded-full flex items-center justify-center font-bold text-base">{index + 2}</div>
+                                {item.coverImage && (
+                                  <img src={item.coverImage} alt={item.title} crossOrigin="anonymous" className="w-full h-full object-cover" />
+                                )}
+                              </div>
+                              <div className="mt-1.5 text-left">
+                                <h3 className="font-bold text-white truncate text-base leading-tight">{item.title}</h3>
+                                <div className="flex items-center text-base text-yellow-300">
+                                  <span className="mr-1 shrink-0">★</span>
+                                  <span>{item.userRating.toFixed(1)}</span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
             ) : (
               <div className="mt-8 text-center text-white/50">No hidden gems found</div>
             )}
@@ -1108,7 +1184,7 @@ export default function MALWrapped() {
               5 shows you plan to watch {stats.selectedYear === 'all' ? '' : 'this year'}.
             </h2>
             {plannedAnimeItems.length > 0 ? (
-              <ImageCarousel items={plannedAnimeItems} maxItems={10} />
+              <ImageCarousel items={plannedAnimeItems} maxItems={10} showHover={false} />
             ) : (
               <div className="mt-8 text-center text-white/50">No planned anime found</div>
             )}
@@ -1117,9 +1193,12 @@ export default function MALWrapped() {
 
       case 'didnt_land_anime':
         const didntLandAnime = stats.lowestRatedAnime.slice(0, 5).map(item => ({
-          title: item.node?.title || '',
-          coverImage: item.node?.main_picture?.large || item.node?.main_picture?.medium || '',
-          userRating: item.list_status?.score
+          id: item.node.id,
+          title: item.node.title,
+          coverImage: item.node.main_picture?.large || item.node.main_picture?.medium || '',
+          userRating: item.list_status.score,
+          studio: item.node.studios?.[0]?.name || '',
+          genres: item.node.genres?.map(g => g.name) || []
         }));
         return (
           <SlideLayout verticalText="MISSED">
@@ -1130,19 +1209,60 @@ export default function MALWrapped() {
               5 shows that didn't land with you.
             </h2>
             {didntLandAnime.length > 0 ? (
-              <>
-                <ImageCarousel items={didntLandAnime} maxItems={10} />
-                <div className="mt-4 grid grid-cols-1 md:grid-cols-5 gap-3">
-                  {didntLandAnime.map((item, idx) => (
-                    <div key={idx} className="text-center">
-                      <p className="text-sm text-white font-bold truncate mb-1">{item.title}</p>
-                      {item.userRating && (
-                        <p className="text-xs text-yellow-300">★ {item.userRating.toFixed(1)}</p>
+              <div className="mt-2 flex flex-col gap-2 w-full justify-center">
+                {(() => {
+                  const [featured, ...others] = didntLandAnime;
+                  return (
+                    <>
+                      <div className="bg-white/5 border border-white/10 rounded-lg overflow-hidden group transition-all duration-300 hover:border-[#9EFF00]/50 flex flex-row relative">
+                        <div className="absolute top-2.5 right-2.5 z-10 w-9 h-9 bg-black text-white rounded-full flex items-center justify-center font-bold text-xl">1</div>
+                        <div className="w-32 md:w-40 flex-shrink-0 aspect-[2/3] bg-black/50">
+                          {featured.coverImage && (
+                            <img src={featured.coverImage} crossOrigin="anonymous" alt={featured.title} className="w-full h-full object-cover" />
+                          )}
+                        </div>
+                        <div className="p-3 flex flex-col justify-center flex-grow min-w-0">
+                          <p className="text-base uppercase tracking-widest text-[#9EFF00] font-bold">#1 Didn't Land</p>
+                          <h3 className="font-bold text-white text-lg md:text-2xl mt-1 leading-tight truncate">{featured.title}</h3>
+                          {featured.studio && <p className="text-base md:text-lg text-[#9EFF00] truncate">{featured.studio}</p>}
+                          <div className="flex items-center text-lg md:text-xl text-yellow-300 mt-2">
+                            <span className="mr-2">★</span>
+                            <span>{featured.userRating.toFixed(1)} / 10</span>
+                          </div>
+                          {featured.genres.length > 0 && (
+                            <div className="mt-2 md:mt-3 flex flex-wrap gap-2">
+                              {featured.genres.slice(0, 2).map(g => (
+                                <span key={g} className="text-base uppercase tracking-wider bg-white/10 text-white/80 px-2 py-1 rounded">{g}</span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      {others.length > 0 && (
+                        <div className="grid grid-cols-4 gap-2 md:gap-3">
+                          {others.map((item, index) => (
+                            <div key={item.id}>
+                              <div className="bg-black/50 border border-white/10 rounded-lg overflow-hidden group aspect-[4/5] relative transition-all duration-300 hover:border-[#9EFF00]/50">
+                                <div className="absolute top-1.5 right-1.5 z-10 w-7 h-7 bg-black text-white rounded-full flex items-center justify-center font-bold text-base">{index + 2}</div>
+                                {item.coverImage && (
+                                  <img src={item.coverImage} alt={item.title} crossOrigin="anonymous" className="w-full h-full object-cover" />
+                                )}
+                              </div>
+                              <div className="mt-1.5 text-left">
+                                <h3 className="font-bold text-white truncate text-base leading-tight">{item.title}</h3>
+                                <div className="flex items-center text-base text-yellow-300">
+                                  <span className="mr-1 shrink-0">★</span>
+                                  <span>{item.userRating.toFixed(1)}</span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       )}
-                    </div>
-                  ))}
-                </div>
-              </>
+                    </>
+                  );
+                })()}
+              </div>
             ) : (
               <div className="mt-8 text-center text-white/50">No data available</div>
             )}
@@ -1291,89 +1411,13 @@ export default function MALWrapped() {
         );
 
       case 'drumroll_manga':
-        return <DrumrollSlide 
+        return <DrumrollToTop5Slide 
           type="manga" 
           topItem={stats.topManga.length > 0 ? stats.topManga[0] : null}
+          top5Items={stats.topManga.slice(0, 5)}
           verticalText="DRUMROLL"
         />;
 
-      case 'favorite_manga':
-        const topManga = stats.topManga.slice(0, 5).map(item => ({
-          id: item.node.id,
-          title: item.node.title,
-          coverImage: item.node.main_picture?.large || item.node.main_picture?.medium || '',
-          userRating: item.list_status.score,
-          author: item.node.authors?.[0] ? `${item.node.authors[0].node?.first_name || ''} ${item.node.authors[0].node?.last_name || ''}`.trim() : '',
-          genres: item.node.genres?.map(g => g.name) || []
-        }));
-        return (
-          <SlideLayout verticalText="TOP-SELECTION">
-            <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block animate-pop-in animation-delay-100">
-              Your Favorite Manga
-            </h1>
-            <h2 className="text-xl md:text-2xl font-semibold uppercase tracking-wider text-white/80 mt-3 animate-pop-in animation-delay-200">
-              The manga you rated the highest.
-            </h2>
-            {topManga && topManga.length > 0 ? (
-              <div className="mt-2 flex flex-col gap-2 w-full justify-center stagger-children">
-                {(() => {
-                  const [featured, ...others] = topManga;
-                  return (
-                    <>
-                      <div className="bg-white/5 border border-white/10 rounded-lg overflow-hidden group transition-all duration-300 hover:border-[#9EFF00]/50 flex flex-row relative">
-                        <div className="absolute top-2.5 right-2.5 z-10 w-9 h-9 bg-black text-white rounded-full flex items-center justify-center font-bold text-xl">1</div>
-                        <div className="w-32 md:w-40 flex-shrink-0 aspect-[2/3] bg-black/50">
-                          {featured.coverImage && (
-                            <img src={featured.coverImage} crossOrigin="anonymous" alt={featured.title} className="w-full h-full object-cover" />
-                          )}
-                        </div>
-                        <div className="p-3 flex flex-col justify-center flex-grow min-w-0">
-                          <p className="text-base uppercase tracking-widest text-[#9EFF00] font-bold">#1 Favorite</p>
-                          <h3 className="font-bold text-white text-lg md:text-2xl mt-1 leading-tight truncate">{featured.title}</h3>
-                          {featured.author && <p className="text-base md:text-lg text-[#9EFF00] truncate">{featured.author}</p>}
-                          <div className="flex items-center text-lg md:text-xl text-yellow-300 mt-2">
-                            <span className="mr-2">★</span>
-                            <span>{featured.userRating.toFixed(1)} / 10</span>
-                          </div>
-                          {featured.genres.length > 0 && (
-                            <div className="mt-2 md:mt-3 flex flex-wrap gap-2">
-                              {featured.genres.slice(0, 2).map(g => (
-                                <span key={g} className="text-base uppercase tracking-wider bg-white/10 text-white/80 px-2 py-1 rounded">{g}</span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      {others.length > 0 && (
-                        <div className="grid grid-cols-4 gap-2 md:gap-3">
-                          {others.map((manga, index) => (
-                            <div key={manga.id}>
-                              <div className="bg-black/50 border border-white/10 rounded-lg overflow-hidden group aspect-[4/5] relative transition-all duration-300 hover:border-[#9EFF00]/50">
-                                <div className="absolute top-1.5 right-1.5 z-10 w-7 h-7 bg-black text-white rounded-full flex items-center justify-center font-bold text-base">{index + 2}</div>
-                                {manga.coverImage && (
-                                  <img src={manga.coverImage} alt={manga.title} crossOrigin="anonymous" className="w-full h-full object-cover" />
-                                )}
-                              </div>
-                              <div className="mt-1.5">
-                                <h3 className="font-bold text-white truncate text-base leading-tight">{manga.title}</h3>
-                                <div className="flex items-center text-base text-yellow-300">
-                                  <span className="mr-1 shrink-0">★</span>
-                                  <span>{manga.userRating.toFixed(1)}</span>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </>
-                  );
-                })()}
-              </div>
-            ) : (
-              <div className="mt-8 text-center text-white/50">No rated manga found. Rate some manga to see your favorites here!</div>
-            )}
-          </SlideLayout>
-        );
 
       case 'top_author':
         const topAuthor = stats.topAuthors && stats.topAuthors.length > 0 ? stats.topAuthors[0][0] : null;
@@ -1483,7 +1527,7 @@ export default function MALWrapped() {
               5 manga you plan to read {stats.selectedYear === 'all' ? '' : 'this year'}.
             </h2>
             {plannedMangaItems.length > 0 ? (
-              <ImageCarousel items={plannedMangaItems} maxItems={10} />
+              <ImageCarousel items={plannedMangaItems} maxItems={10} showHover={false} />
             ) : (
               <div className="mt-8 text-center text-white/50">No planned manga found</div>
             )}
@@ -1492,9 +1536,12 @@ export default function MALWrapped() {
 
       case 'didnt_land_manga':
         const didntLandManga = stats.lowestRatedManga.slice(0, 5).map(item => ({
-          title: item.node?.title || '',
-          coverImage: item.node?.main_picture?.large || item.node?.main_picture?.medium || '',
-          userRating: item.list_status?.score
+          id: item.node.id,
+          title: item.node.title,
+          coverImage: item.node.main_picture?.large || item.node.main_picture?.medium || '',
+          userRating: item.list_status.score,
+          author: item.node.authors?.[0] ? `${item.node.authors[0].node?.first_name || ''} ${item.node.authors[0].node?.last_name || ''}`.trim() : '',
+          genres: item.node.genres?.map(g => g.name) || []
         }));
         return (
           <SlideLayout verticalText="MISSED">
@@ -1505,19 +1552,60 @@ export default function MALWrapped() {
               5 manga that didn't land with you.
             </h2>
             {didntLandManga.length > 0 ? (
-              <>
-                <ImageCarousel items={didntLandManga} maxItems={10} />
-                <div className="mt-4 grid grid-cols-1 md:grid-cols-5 gap-3">
-                  {didntLandManga.map((item, idx) => (
-                    <div key={idx} className="text-center">
-                      <p className="text-sm text-white font-bold truncate mb-1">{item.title}</p>
-                      {item.userRating && (
-                        <p className="text-xs text-yellow-300">★ {item.userRating.toFixed(1)}</p>
+              <div className="mt-2 flex flex-col gap-2 w-full justify-center">
+                {(() => {
+                  const [featured, ...others] = didntLandManga;
+                  return (
+                    <>
+                      <div className="bg-white/5 border border-white/10 rounded-lg overflow-hidden group transition-all duration-300 hover:border-[#9EFF00]/50 flex flex-row relative">
+                        <div className="absolute top-2.5 right-2.5 z-10 w-9 h-9 bg-black text-white rounded-full flex items-center justify-center font-bold text-xl">1</div>
+                        <div className="w-32 md:w-40 flex-shrink-0 aspect-[2/3] bg-black/50">
+                          {featured.coverImage && (
+                            <img src={featured.coverImage} crossOrigin="anonymous" alt={featured.title} className="w-full h-full object-cover" />
+                          )}
+                        </div>
+                        <div className="p-3 flex flex-col justify-center flex-grow min-w-0">
+                          <p className="text-base uppercase tracking-widest text-[#9EFF00] font-bold">#1 Didn't Land</p>
+                          <h3 className="font-bold text-white text-lg md:text-2xl mt-1 leading-tight truncate">{featured.title}</h3>
+                          {featured.author && <p className="text-base md:text-lg text-[#9EFF00] truncate">{featured.author}</p>}
+                          <div className="flex items-center text-lg md:text-xl text-yellow-300 mt-2">
+                            <span className="mr-2">★</span>
+                            <span>{featured.userRating.toFixed(1)} / 10</span>
+                          </div>
+                          {featured.genres.length > 0 && (
+                            <div className="mt-2 md:mt-3 flex flex-wrap gap-2">
+                              {featured.genres.slice(0, 2).map(g => (
+                                <span key={g} className="text-base uppercase tracking-wider bg-white/10 text-white/80 px-2 py-1 rounded">{g}</span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      {others.length > 0 && (
+                        <div className="grid grid-cols-4 gap-2 md:gap-3">
+                          {others.map((item, index) => (
+                            <div key={item.id}>
+                              <div className="bg-black/50 border border-white/10 rounded-lg overflow-hidden group aspect-[4/5] relative transition-all duration-300 hover:border-[#9EFF00]/50">
+                                <div className="absolute top-1.5 right-1.5 z-10 w-7 h-7 bg-black text-white rounded-full flex items-center justify-center font-bold text-base">{index + 2}</div>
+                                {item.coverImage && (
+                                  <img src={item.coverImage} alt={item.title} crossOrigin="anonymous" className="w-full h-full object-cover" />
+                                )}
+                              </div>
+                              <div className="mt-1.5 text-left">
+                                <h3 className="font-bold text-white truncate text-base leading-tight">{item.title}</h3>
+                                <div className="flex items-center text-base text-yellow-300">
+                                  <span className="mr-1 shrink-0">★</span>
+                                  <span>{item.userRating.toFixed(1)}</span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       )}
-                    </div>
-                  ))}
-                </div>
-              </>
+                    </>
+                  );
+                })()}
+              </div>
             ) : (
               <div className="mt-8 text-center text-white/50">No data available</div>
             )}
@@ -1525,7 +1613,8 @@ export default function MALWrapped() {
         );
 
       case 'finale':
-        const totalDays = Math.floor(stats.totalTimeSpent / 24);
+        const totalTimeSpent = stats.totalTimeSpent || 0;
+        const totalDays = Math.floor(totalTimeSpent / 24);
         return (
           <SlideLayout verticalText="FINAL-REPORT">
             <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block animate-pop-in animation-delay-100">
@@ -1570,11 +1659,11 @@ export default function MALWrapped() {
                   {totalDays > 0 ? (
                     <>
                       <AnimatedNumber value={totalDays} duration={1000} /> Days
-                      <span className="text-xl text-white/70 ml-2">({stats.totalTimeSpent} hours)</span>
+                      <span className="text-xl text-white/70 ml-2">({totalTimeSpent} hours)</span>
                     </>
                   ) : (
                     <>
-                      <AnimatedNumber value={stats.totalTimeSpent} duration={1000} /> Hours
+                      <AnimatedNumber value={totalTimeSpent} duration={1000} /> Hours
                     </>
                   )}
                 </p>
