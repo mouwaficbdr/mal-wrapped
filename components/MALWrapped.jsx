@@ -141,8 +141,8 @@ export default function MALWrapped() {
       setUsername(data.name);
       setUserData(data);
       
-      await fetchAnimeList(accessToken);
-      await fetchMangaList(accessToken);
+      const animeData = await fetchAnimeList(accessToken);
+      await fetchMangaList(accessToken, animeData);
       
       setIsAuthenticated(true);
     } catch (err) {
@@ -184,20 +184,17 @@ export default function MALWrapped() {
 
       console.log(`Total anime loaded: ${allAnime.length}`);
       setAnimeList(allAnime);
-      // Calculate stats with current anime, manga will be added later
-      if (mangaList.length > 0) {
-        calculateStats(allAnime, mangaList);
-      } else {
-        // Set initial stats with just anime
-        calculateStats(allAnime, []);
-      }
+      // Set initial stats with just anime (manga will be added later)
+      calculateStats(allAnime, []);
+      return allAnime;
     } catch (err) {
       console.error('Error fetching anime list:', err);
       setError('Failed to load anime list. Please try again.');
+      return [];
     }
   }
 
-  async function fetchMangaList(accessToken) {
+  async function fetchMangaList(accessToken, animeData = []) {
     setLoadingProgress('Loading your manga list...');
     try {
       let allManga = [];
@@ -221,7 +218,9 @@ export default function MALWrapped() {
 
       setMangaList(allManga);
       // Recalculate stats with both anime and manga
-      calculateStats(animeList.length > 0 ? animeList : [], allManga);
+      // Use the passed animeData or fall back to state (shouldn't be needed)
+      const animeToUse = animeData.length > 0 ? animeData : animeList;
+      calculateStats(animeToUse, allManga);
     } catch (err) {
       console.error('Error fetching manga list:', err);
     }
