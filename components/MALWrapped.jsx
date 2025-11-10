@@ -48,6 +48,7 @@ export default function MALWrapped() {
   const [error, setError] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [stats, setStats] = useState(null);
+  const [isCapturing, setIsCapturing] = useState(false);
   const slideRef = useRef(null);
 
   const slides = stats ? [
@@ -407,30 +408,6 @@ export default function MALWrapped() {
     setStats(statsData);
   }
 
-  async function handleDownloadPNG() {
-    if (!slideRef.current || typeof window === 'undefined') return;
-    
-    try {
-      // Dynamically import html2canvas
-      const html2canvas = (await import('html2canvas')).default;
-      
-      const canvas = await html2canvas(slideRef.current, {
-        backgroundColor: '#000000',
-        scale: 2,
-        logging: false,
-        useCORS: true,
-        allowTaint: true,
-      });
-      
-      const link = document.createElement('a');
-      link.download = `mal-wrapped-${slides[currentSlide].id}-${Date.now()}.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-    } catch (err) {
-      console.error('Error generating PNG:', err);
-      alert('Failed to download image. Please try again.');
-    }
-  }
 
   function getRedirectUri() {
     if (typeof window === 'undefined') return '';
@@ -479,543 +456,443 @@ export default function MALWrapped() {
   function SlideContent({ slide }) {
     if (!slide || !stats) return null;
 
+    const SlideLayout = ({ children, verticalText }) => (
+      <div className="w-full h-full relative px-4 py-2 md:p-8 flex flex-col items-center justify-center">
+        {verticalText && (
+          <p className="absolute top-1/2 -left-2 md:-left-2 -translate-y-1/2 text-[#9EFF00]/50 font-bold uppercase tracking-[.3em] [writing-mode:vertical-lr] text-base">
+            {verticalText}
+          </p>
+        )}
+        <div className="w-full">
+          {children}
+        </div>
+      </div>
+    );
+
+    const RankedListItem = ({ item, rank }) => {
+      const isTop = rank === 1;
+      return (
+        <div className={`flex items-center p-3 border-b-2 transition-all duration-300 hover:bg-white/5 ${isTop ? 'border-[#9EFF00] bg-[#9EFF00]/10' : 'border-white/10'}`}>
+          <div className={`text-3xl font-bold w-12 shrink-0 ${isTop ? 'text-[#9EFF00]' : 'text-white/60'}`}>#{rank}</div>
+          <div className="flex-grow flex items-center gap-4 min-w-0">
+            <div className="flex-grow min-w-0">
+              <p className="font-bold text-white text-xl truncate">{item.name}</p>
+              <p className="text-base text-white/50">{item.count} entries</p>
+            </div>
+          </div>
+          {isTop && <span className="text-yellow-300 text-2xl ml-3 shrink-0">★</span>}
+        </div>
+      );
+    };
+
+    const MediaCard = ({ item, rank }) => (
+      <div className="flex flex-col group">
+        <div className="bg-black/50 border border-white/10 rounded-lg overflow-hidden group aspect-[2/3] relative transition-all duration-300 hover:border-[#9EFF00]/50 hover:shadow-lg hover:shadow-[#9EFF00]/10">
+          {rank && (
+            <div className="absolute top-2 right-2 z-10 w-8 h-8 bg-black text-white rounded-full flex items-center justify-center font-bold text-lg">
+              {rank}
+            </div>
+          )}
+          {item.coverImage && (
+            <img src={item.coverImage} alt={item.title} crossOrigin="anonymous" className="w-full h-full object-cover" />
+          )}
+        </div>
+        <div className="mt-2">
+          <h3 className="font-bold text-white truncate text-base">{item.title}</h3>
+          <div className="flex items-center text-base text-yellow-300">
+            <span className="mr-1">★</span>
+            <span>{item.userRating?.toFixed(1) || 'N/A'}</span>
+          </div>
+        </div>
+      </div>
+    );
+
     switch (slide.id) {
       case 'welcome':
         return (
-          <div ref={slideRef} className="slide-container">
-            <div className="progress-bar">
-              {slides.map((_, idx) => (
-                <div key={idx} className={`progress-dash ${idx === currentSlide ? 'active' : ''}`} />
-              ))}
+          <SlideLayout verticalText="INITIALIZE">
+            <div className="text-center">
+              <h2 className="text-3xl md:text-4xl font-medium uppercase text-white/80 animate-pop-in animation-delay-100">MyAnimeList Wrapped</h2>
+              <h1 className="text-7xl md:text-9xl font-bold uppercase text-[#9EFF00] my-4 animate-pop-in animation-delay-200">2025</h1>
+              <p className="text-2xl md:text-3xl text-white animate-pop-in animation-delay-300">A look back at your year, <span className="text-[#9EFF00]">{username || 'a'}</span>.</p>
             </div>
-            <button className="download-btn" onClick={handleDownloadPNG}>
-              <Download size={20} />
-            </button>
-            <div className="slide-content welcome-slide">
-              <h1 className="main-title">MYANIMELIST WRAPPED</h1>
-              <div className="year-display">2025</div>
-              <p className="subtitle">A look back at your year, <span className="highlight">a.</span></p>
-            </div>
-            <div className="slide-nav">
-              <button className="nav-arrow" onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))} disabled={currentSlide === 0}>
-                <ChevronLeft size={24} />
-              </button>
-              <span className="slide-counter">{String(currentSlide + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}</span>
-              <button className="nav-arrow" onClick={() => setCurrentSlide(Math.min(slides.length - 1, currentSlide + 1))} disabled={currentSlide === slides.length - 1}>
-                <ChevronRight size={24} />
-              </button>
-            </div>
-          </div>
+          </SlideLayout>
         );
 
       case 'anime_log':
         return (
-          <div ref={slideRef} className="slide-container">
-            <div className="progress-bar">
-              {slides.map((_, idx) => (
-                <div key={idx} className={`progress-dash ${idx === currentSlide ? 'active' : ''}`} />
-              ))}
+          <SlideLayout verticalText="ANIME-LOG">
+            <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block animate-pop-in animation-delay-100">
+              2025 Anime Log
+            </h1>
+            <h2 className="text-xl md:text-2xl font-semibold uppercase tracking-wider text-white/80 mt-3 animate-pop-in animation-delay-200">
+              A look at the series you completed this year.
+            </h2>
+            <div className="mt-8 text-center animate-pop-in animation-delay-400">
+              <p className="text-9xl md:text-[10rem] font-bold text-white">{stats.thisYearAnime.length}</p>
+              <p className="text-3xl font-medium uppercase text-[#9EFF00] mt-2">Anime Series Watched</p>
             </div>
-            <button className="download-btn" onClick={handleDownloadPNG}>
-              <Download size={20} />
-            </button>
-            <div className="slide-content">
-              <h2 className="section-title">2025 ANIME LOG</h2>
-              <div className="title-underline"></div>
-              <p className="section-subtitle">A LOOK AT THE SERIES YOU COMPLETED THIS YEAR.</p>
-              <div className="stat-number">{stats.thisYearAnime.length}</div>
-              <div className="stat-label">ANIME SERIES WATCHED</div>
-            </div>
-            <div className="slide-nav">
-              <button className="nav-arrow" onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))} disabled={currentSlide === 0}>
-                <ChevronLeft size={24} />
-              </button>
-              <span className="slide-counter">{String(currentSlide + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}</span>
-              <button className="nav-arrow" onClick={() => setCurrentSlide(Math.min(slides.length - 1, currentSlide + 1))} disabled={currentSlide === slides.length - 1}>
-                <ChevronRight size={24} />
-              </button>
-            </div>
-          </div>
+          </SlideLayout>
         );
 
       case 'total_watch_time':
         return (
-          <div ref={slideRef} className="slide-container">
-            <div className="progress-bar">
-              {slides.map((_, idx) => (
-                <div key={idx} className={`progress-dash ${idx === currentSlide ? 'active' : ''}`} />
-              ))}
+          <SlideLayout verticalText="TIME-ANALYSIS">
+            <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block animate-pop-in animation-delay-100">
+              Total Watch Time
+            </h1>
+            <h2 className="text-xl md:text-2xl font-semibold uppercase tracking-wider text-white/80 mt-3 animate-pop-in animation-delay-200">
+              How much time you spent in other worlds.
+            </h2>
+            <div className="mt-8 text-center animate-pop-in animation-delay-400">
+              <p className="text-9xl md:text-[10rem] font-bold text-white">{stats.watchTime}</p>
+              <p className="text-3xl font-medium uppercase text-[#9EFF00] mt-2">Hours of Anime Watched</p>
             </div>
-            <button className="download-btn" onClick={handleDownloadPNG}>
-              <Download size={20} />
-            </button>
-            <div className="slide-content">
-              <h2 className="section-title">TOTAL WATCH TIME</h2>
-              <div className="title-underline"></div>
-              <p className="section-subtitle">HOW MUCH TIME YOU SPENT IN OTHER WORLDS.</p>
-              <div className="stat-number">{stats.watchTime}</div>
-              <div className="stat-label">HOURS OF ANIME WATCHED</div>
-            </div>
-            <div className="slide-nav">
-              <button className="nav-arrow" onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))} disabled={currentSlide === 0}>
-                <ChevronLeft size={24} />
-              </button>
-              <span className="slide-counter">{String(currentSlide + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}</span>
-              <button className="nav-arrow" onClick={() => setCurrentSlide(Math.min(slides.length - 1, currentSlide + 1))} disabled={currentSlide === slides.length - 1}>
-                <ChevronRight size={24} />
-              </button>
-            </div>
-          </div>
+          </SlideLayout>
         );
 
       case 'top_genres':
         return (
-          <div ref={slideRef} className="slide-container">
-            <div className="progress-bar">
-              {slides.map((_, idx) => (
-                <div key={idx} className={`progress-dash ${idx === currentSlide ? 'active' : ''}`} />
-              ))}
-            </div>
-            <button className="download-btn" onClick={handleDownloadPNG}>
-              <Download size={20} />
-            </button>
-            <div className="slide-content">
-              <h2 className="section-title">YOUR TOP GENRES</h2>
-              <div className="title-underline"></div>
-              <p className="section-subtitle">THE GENRES YOU EXPLORED THE MOST.</p>
-              {stats.topGenres && stats.topGenres.length > 0 ? (
-                <div className="ranked-list">
-                  {stats.topGenres.map(([genre, count], idx) => (
-                    <div key={genre} className={`ranked-item ${idx === 0 ? 'highlighted' : ''}`}>
-                      <span className="rank-number">#{idx + 1}</span>
-                      <span className="rank-name">{genre}</span>
-                      <span className="rank-count">{count} entries</span>
-                      {idx === 0 && <span className="star-icon">★</span>}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="no-data">No genre data available</div>
-              )}
-            </div>
-            <div className="slide-nav">
-              <button className="nav-arrow" onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))} disabled={currentSlide === 0}>
-                <ChevronLeft size={24} />
-              </button>
-              <span className="slide-counter">{String(currentSlide + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}</span>
-              <button className="nav-arrow" onClick={() => setCurrentSlide(Math.min(slides.length - 1, currentSlide + 1))} disabled={currentSlide === slides.length - 1}>
-                <ChevronRight size={24} />
-              </button>
-            </div>
-          </div>
+          <SlideLayout verticalText="GENRE-MATRIX">
+            <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block animate-pop-in animation-delay-100">
+              Your Top Genres
+            </h1>
+            <h2 className="text-xl md:text-2xl font-semibold uppercase tracking-wider text-white/80 mt-3 animate-pop-in animation-delay-200">
+              The genres you explored the most.
+            </h2>
+            {stats.topGenres && stats.topGenres.length > 0 ? (
+              <div className="mt-8 space-y-1 stagger-children">
+                {stats.topGenres.map(([genre, count], idx) => (
+                  <RankedListItem key={genre} item={{ name: genre, count }} rank={idx + 1} />
+                ))}
+              </div>
+            ) : (
+              <div className="mt-8 text-center text-white/50">No genre data available</div>
+            )}
+          </SlideLayout>
         );
 
       case 'favorite_anime':
-        const topAnime = stats.topRated.slice(0, 5);
+        const topAnime = stats.topRated.slice(0, 5).map(item => ({
+          id: item.node.id,
+          title: item.node.title,
+          coverImage: item.node.main_picture?.large || item.node.main_picture?.medium || '',
+          userRating: item.list_status.score,
+          studio: item.node.studios?.[0]?.name || '',
+          genres: item.node.genres?.map(g => g.name) || []
+        }));
         return (
-          <div ref={slideRef} className="slide-container">
-            <div className="progress-bar">
-              {slides.map((_, idx) => (
-                <div key={idx} className={`progress-dash ${idx === currentSlide ? 'active' : ''}`} />
-              ))}
-            </div>
-            <button className="download-btn" onClick={handleDownloadPNG}>
-              <Download size={20} />
-            </button>
-            <div className="slide-content">
-              <h2 className="section-title">YOUR FAVORITE ANIME</h2>
-              <div className="title-underline"></div>
-              <p className="section-subtitle">THE SERIES YOU RATED THE HIGHEST.</p>
-              {topAnime && topAnime.length > 0 ? (
-                <>
-                  <div className="featured-card">
-                    <div className="featured-image">
-                      {topAnime[0]?.node?.main_picture?.large && (
-                        <img src={topAnime[0].node.main_picture.large} alt={topAnime[0].node.title || 'Anime'} />
-                      )}
-                      {!topAnime[0]?.node?.main_picture?.large && (
-                        <div style={{ width: '100%', height: '100%', background: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#666' }}>
-                          No Image
+          <SlideLayout verticalText="TOP-SELECTION">
+            <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block animate-pop-in animation-delay-100">
+              Your Favorite Anime
+            </h1>
+            <h2 className="text-xl md:text-2xl font-semibold uppercase tracking-wider text-white/80 mt-3 animate-pop-in animation-delay-200">
+              The series you rated the highest.
+            </h2>
+            {topAnime && topAnime.length > 0 ? (
+              <div className="mt-2 flex flex-col gap-2 w-full justify-center stagger-children">
+                {(() => {
+                  const [featured, ...others] = topAnime;
+                  return (
+                    <>
+                      <div className="bg-white/5 border border-white/10 rounded-lg overflow-hidden group transition-all duration-300 hover:border-[#9EFF00]/50 flex flex-row relative">
+                        <div className="absolute top-2.5 right-2.5 z-10 w-9 h-9 bg-black text-white rounded-full flex items-center justify-center font-bold text-xl">1</div>
+                        <div className="w-32 md:w-40 flex-shrink-0 aspect-[2/3] bg-black/50">
+                          {featured.coverImage && (
+                            <img src={featured.coverImage} crossOrigin="anonymous" alt={featured.title} className="w-full h-full object-cover" />
+                          )}
                         </div>
-                      )}
-                    </div>
-                    <div className="featured-content">
-                      <div className="featured-tag">#1 FAVORITE</div>
-                      <div className="featured-title">{topAnime[0].node?.title || 'Unknown'}</div>
-                      {topAnime[0].node?.studios?.[0] && (
-                        <div className="featured-studio">{topAnime[0].node.studios[0].name}</div>
-                      )}
-                      <div className="featured-rating">
-                        <span className="star">★</span> {topAnime[0].list_status?.score || 'N/A'}/10
+                        <div className="p-3 flex flex-col justify-center flex-grow min-w-0">
+                          <p className="text-base uppercase tracking-widest text-[#9EFF00] font-bold">#1 Favorite</p>
+                          <h3 className="font-bold text-white text-lg md:text-2xl mt-1 leading-tight truncate">{featured.title}</h3>
+                          {featured.studio && <p className="text-base md:text-lg text-[#9EFF00] truncate">{featured.studio}</p>}
+                          <div className="flex items-center text-lg md:text-xl text-yellow-300 mt-2">
+                            <span className="mr-2">★</span>
+                            <span>{featured.userRating.toFixed(1)} / 10</span>
+                          </div>
+                          {featured.genres.length > 0 && (
+                            <div className="mt-2 md:mt-3 flex flex-wrap gap-2">
+                              {featured.genres.slice(0, 2).map(g => (
+                                <span key={g} className="text-base uppercase tracking-wider bg-white/10 text-white/80 px-2 py-1 rounded">{g}</span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      {topAnime[0].node?.genres && topAnime[0].node.genres.length > 0 && (
-                        <div className="featured-genres">
-                          {topAnime[0].node.genres.slice(0, 2).map(genre => (
-                            <span key={genre.name} className="genre-tag">{genre.name.toUpperCase()}</span>
+                      {others.length > 0 && (
+                        <div className="grid grid-cols-4 gap-2 md:gap-3">
+                          {others.map((anime, index) => (
+                            <div key={anime.id}>
+                              <div className="bg-black/50 border border-white/10 rounded-lg overflow-hidden group aspect-[4/5] relative transition-all duration-300 hover:border-[#9EFF00]/50">
+                                <div className="absolute top-1.5 right-1.5 z-10 w-7 h-7 bg-black text-white rounded-full flex items-center justify-center font-bold text-base">{index + 2}</div>
+                                {anime.coverImage && (
+                                  <img src={anime.coverImage} alt={anime.title} crossOrigin="anonymous" className="w-full h-full object-cover" />
+                                )}
+                              </div>
+                              <div className="mt-1.5">
+                                <h3 className="font-bold text-white truncate text-base leading-tight">{anime.title}</h3>
+                                <div className="flex items-center text-base text-yellow-300">
+                                  <span className="mr-1 shrink-0">★</span>
+                                  <span>{anime.userRating.toFixed(1)}</span>
+                                </div>
+                              </div>
+                            </div>
                           ))}
                         </div>
                       )}
-                    </div>
-                    <div className="rank-badge">1</div>
-                  </div>
-                  {topAnime.length > 1 && (
-                    <div className="anime-grid">
-                      {topAnime.slice(1, 5).map((item, idx) => (
-                        <div key={item.node?.id || idx} className="anime-card">
-                          {item.node?.main_picture?.medium ? (
-                            <img src={item.node.main_picture.medium} alt={item.node.title || 'Anime'} />
-                          ) : (
-                            <div style={{ width: '100%', aspectRatio: '2/3', background: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#666', fontSize: '0.75rem' }}>
-                              No Image
-                            </div>
-                          )}
-                          <div className="anime-title">{item.node?.title || 'Unknown'}</div>
-                          <div className="anime-rating">
-                            <span className="star">★</span> {item.list_status?.score || 'N/A'}
-                          </div>
-                          <div className="rank-badge-small">{idx + 2}</div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div className="no-data">No rated anime found. Rate some anime to see your favorites here!</div>
-              )}
-            </div>
-            <div className="slide-nav">
-              <button className="nav-arrow" onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))} disabled={currentSlide === 0}>
-                <ChevronLeft size={24} />
-              </button>
-              <span className="slide-counter">{String(currentSlide + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}</span>
-              <button className="nav-arrow" onClick={() => setCurrentSlide(Math.min(slides.length - 1, currentSlide + 1))} disabled={currentSlide === slides.length - 1}>
-                <ChevronRight size={24} />
-              </button>
-            </div>
-          </div>
+                    </>
+                  );
+                })()}
+              </div>
+            ) : (
+              <div className="mt-8 text-center text-white/50">No rated anime found. Rate some anime to see your favorites here!</div>
+            )}
+          </SlideLayout>
         );
 
       case 'top_studios':
         return (
-          <div ref={slideRef} className="slide-container">
-            <div className="progress-bar">
-              {slides.map((_, idx) => (
-                <div key={idx} className={`progress-dash ${idx === currentSlide ? 'active' : ''}`} />
-              ))}
-            </div>
-            <button className="download-btn" onClick={handleDownloadPNG}>
-              <Download size={20} />
-            </button>
-            <div className="slide-content">
-              <h2 className="section-title">TOP ANIMATION STUDIOS</h2>
-              <div className="title-underline"></div>
-              <p className="section-subtitle">THE STUDIOS THAT BROUGHT YOUR FAVORITES TO LIFE.</p>
-              {stats.topStudios && stats.topStudios.length > 0 ? (
-                <div className="ranked-list">
-                  {stats.topStudios.map(([studio, count], idx) => (
-                    <div key={studio} className={`ranked-item ${idx === 0 ? 'highlighted' : ''}`}>
-                      <span className="rank-number">#{idx + 1}</span>
-                      <span className="rank-name">{studio}</span>
-                      <span className="rank-count">{count} entries</span>
-                      {idx === 0 && <span className="star-icon">★</span>}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="no-data">No studio data available</div>
-              )}
-            </div>
-            <div className="slide-nav">
-              <button className="nav-arrow" onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))} disabled={currentSlide === 0}>
-                <ChevronLeft size={24} />
-              </button>
-              <span className="slide-counter">{String(currentSlide + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}</span>
-              <button className="nav-arrow" onClick={() => setCurrentSlide(Math.min(slides.length - 1, currentSlide + 1))} disabled={currentSlide === slides.length - 1}>
-                <ChevronRight size={24} />
-              </button>
-            </div>
-          </div>
+          <SlideLayout verticalText="PRODUCTION">
+            <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block animate-pop-in animation-delay-100">
+              Top Animation Studios
+            </h1>
+            <h2 className="text-xl md:text-2xl font-semibold uppercase tracking-wider text-white/80 mt-3 animate-pop-in animation-delay-200">
+              The studios that brought your favorites to life.
+            </h2>
+            {stats.topStudios && stats.topStudios.length > 0 ? (
+              <div className="mt-8 space-y-1 stagger-children">
+                {stats.topStudios.map(([studio, count], idx) => (
+                  <RankedListItem key={studio} item={{ name: studio, count }} rank={idx + 1} />
+                ))}
+              </div>
+            ) : (
+              <div className="mt-8 text-center text-white/50">No studio data available</div>
+            )}
+          </SlideLayout>
         );
 
       case 'seasonal_highlight':
+        const seasonalItem = stats.seasonalAnime ? {
+          id: stats.seasonalAnime.node.id,
+          title: stats.seasonalAnime.node.title,
+          coverImage: stats.seasonalAnime.node.main_picture?.large || stats.seasonalAnime.node.main_picture?.medium || '',
+          userRating: stats.seasonalAnime.node.mean || 0,
+          studio: stats.seasonalAnime.node.studios?.[0]?.name || '',
+          season: stats.seasonalAnime.season || ''
+        } : null;
         return (
-          <div ref={slideRef} className="slide-container">
-            <div className="progress-bar">
-              {slides.map((_, idx) => (
-                <div key={idx} className={`progress-dash ${idx === currentSlide ? 'active' : ''}`} />
-              ))}
-            </div>
-            <button className="download-btn" onClick={handleDownloadPNG}>
-              <Download size={20} />
-            </button>
-            <div className="slide-content">
-              <h2 className="section-title">SEASONAL HIGHLIGHT</h2>
-              <div className="title-underline"></div>
-              <p className="section-subtitle">THE TOP-RATED SHOW FROM A SINGLE SEASON.</p>
-              {stats.seasonalAnime ? (
-                <div className="seasonal-featured">
-                  <div className="seasonal-image">
-                    {stats.seasonalAnime.node.main_picture?.large && (
-                      <img src={stats.seasonalAnime.node.main_picture.large} alt={stats.seasonalAnime.node.title} />
-                    )}
-                  </div>
-                  <div className="seasonal-content">
-                    <div className="seasonal-title">{stats.seasonalAnime.node.title}</div>
-                    {stats.seasonalAnime.node.studios?.[0] && (
-                      <div className="seasonal-studio">{stats.seasonalAnime.node.studios[0].name}</div>
-                    )}
-                    <div className="seasonal-season">{stats.seasonalAnime.season}</div>
-                    <div className="seasonal-rating">
-                      <span className="star">★</span> {stats.seasonalAnime.node.mean?.toFixed(1) || 'N/A'} / 10
-                    </div>
+          <SlideLayout verticalText="HIGHLIGHT">
+            <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block animate-pop-in animation-delay-100">
+              Seasonal Highlight
+            </h1>
+            <h2 className="text-xl md:text-2xl font-semibold uppercase tracking-wider text-white/80 mt-3 animate-pop-in animation-delay-200">
+              The top-rated show from a single season.
+            </h2>
+            {seasonalItem ? (
+              <div className="mt-8 flex flex-col md:flex-row items-center gap-4 md:gap-8 stagger-children">
+                <div className="w-36 md:w-52 shrink-0">
+                  <MediaCard item={seasonalItem} />
+                </div>
+                <div className="text-center md:text-left">
+                  <h3 className="text-3xl md:text-4xl font-bold text-white">{seasonalItem.title}</h3>
+                  {seasonalItem.studio && <p className="text-xl md:text-2xl text-[#9EFF00] mt-1">{seasonalItem.studio}</p>}
+                  {seasonalItem.season && <p className="text-lg md:text-xl text-white/70 mt-4">{seasonalItem.season}</p>}
+                  <div className="flex items-center justify-center md:justify-start text-2xl md:text-3xl text-yellow-300 mt-2">
+                    <span className="mr-2">★</span>
+                    <span>{seasonalItem.userRating.toFixed(1)} / 10</span>
                   </div>
                 </div>
-              ) : (
-                <div className="no-data">No seasonal data available</div>
-              )}
-            </div>
-            <div className="slide-nav">
-              <button className="nav-arrow" onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))} disabled={currentSlide === 0}>
-                <ChevronLeft size={24} />
-              </button>
-              <span className="slide-counter">{String(currentSlide + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}</span>
-              <button className="nav-arrow" onClick={() => setCurrentSlide(Math.min(slides.length - 1, currentSlide + 1))} disabled={currentSlide === slides.length - 1}>
-                <ChevronRight size={24} />
-              </button>
-            </div>
-          </div>
+              </div>
+            ) : (
+              <div className="mt-8 text-center text-white/50">No seasonal data available</div>
+            )}
+          </SlideLayout>
         );
 
       case 'hidden_gems':
+        const gems = stats.hiddenGems.slice(0, 3).map(item => ({
+          id: item.node.id,
+          title: item.node.title,
+          coverImage: item.node.main_picture?.large || item.node.main_picture?.medium || '',
+          userRating: item.list_status.score
+        }));
         return (
-          <div ref={slideRef} className="slide-container">
-            <div className="progress-bar">
-              {slides.map((_, idx) => (
-                <div key={idx} className={`progress-dash ${idx === currentSlide ? 'active' : ''}`} />
-              ))}
-            </div>
-            <button className="download-btn" onClick={handleDownloadPNG}>
-              <Download size={20} />
-            </button>
-            <div className="slide-content">
-              <h2 className="section-title">HIDDEN GEMS</h2>
-              <div className="title-underline"></div>
-              <p className="section-subtitle">POPULARITY-WISE, THESE WERE DEEP CUTS.</p>
-              {stats.hiddenGems.length > 0 ? (
-                <div className="gems-grid">
-                  {stats.hiddenGems.slice(0, 3).map((item) => (
-                    <div key={item.node.id} className="gem-card">
-                      {item.node.main_picture?.large && (
-                        <img src={item.node.main_picture.large} alt={item.node.title} />
-                      )}
-                      <div className="gem-title">{item.node.title}</div>
-                      <div className="gem-rating">
-                        <span className="star">★</span> {item.list_status.score}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="no-data">No hidden gems found</div>
-              )}
-            </div>
-            <div className="slide-nav">
-              <button className="nav-arrow" onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))} disabled={currentSlide === 0}>
-                <ChevronLeft size={24} />
-              </button>
-              <span className="slide-counter">{String(currentSlide + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}</span>
-              <button className="nav-arrow" onClick={() => setCurrentSlide(Math.min(slides.length - 1, currentSlide + 1))} disabled={currentSlide === slides.length - 1}>
-                <ChevronRight size={24} />
-              </button>
-            </div>
-          </div>
+          <SlideLayout verticalText="DEEP-CUTS">
+            <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block animate-pop-in animation-delay-100">
+              Hidden Gems
+            </h1>
+            <h2 className="text-xl md:text-2xl font-semibold uppercase tracking-wider text-white/80 mt-3 animate-pop-in animation-delay-200">
+              Popularity-wise, these were deep cuts.
+            </h2>
+            {gems.length > 0 ? (
+              <div className="mt-8 grid grid-cols-3 gap-3 md:gap-4 stagger-children">
+                {gems.map((anime) => <MediaCard key={anime.id} item={anime} />)}
+              </div>
+            ) : (
+              <div className="mt-8 text-center text-white/50">No hidden gems found</div>
+            )}
+          </SlideLayout>
         );
 
       case 'manga_log':
         return (
-          <div ref={slideRef} className="slide-container">
-            <div className="progress-bar">
-              {slides.map((_, idx) => (
-                <div key={idx} className={`progress-dash ${idx === currentSlide ? 'active' : ''}`} />
-              ))}
+          <SlideLayout verticalText="MANGA-LOG">
+            <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block animate-pop-in animation-delay-100">
+              2025 Manga Log
+            </h1>
+            <h2 className="text-xl md:text-2xl font-semibold uppercase tracking-wider text-white/80 mt-3 animate-pop-in animation-delay-200">
+              You didn't just watch, you read.
+            </h2>
+            <div className="mt-8 text-center animate-pop-in animation-delay-400">
+              <p className="text-9xl md:text-[10rem] font-bold text-white">{stats.totalManga}</p>
+              <p className="text-3xl font-medium uppercase text-[#9EFF00] mt-2">Manga Read</p>
             </div>
-            <button className="download-btn" onClick={handleDownloadPNG}>
-              <Download size={20} />
-            </button>
-            <div className="slide-content">
-              <h2 className="section-title">2025 MANGA LOG</h2>
-              <div className="title-underline"></div>
-              <p className="section-subtitle">YOU DIDN'T JUST WATCH, YOU READ.</p>
-              <div className="stat-number">{stats.totalManga}</div>
-              <div className="stat-label">MANGA READ</div>
-            </div>
-            <div className="slide-nav">
-              <button className="nav-arrow" onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))} disabled={currentSlide === 0}>
-                <ChevronLeft size={24} />
-              </button>
-              <span className="slide-counter">{String(currentSlide + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}</span>
-              <button className="nav-arrow" onClick={() => setCurrentSlide(Math.min(slides.length - 1, currentSlide + 1))} disabled={currentSlide === slides.length - 1}>
-                <ChevronRight size={24} />
-              </button>
-            </div>
-          </div>
+          </SlideLayout>
         );
 
       case 'favorite_manga':
+        const topManga = stats.topManga.slice(0, 5).map(item => ({
+          id: item.node.id,
+          title: item.node.title,
+          coverImage: item.node.main_picture?.large || item.node.main_picture?.medium || '',
+          userRating: item.list_status.score,
+          author: item.node.authors?.[0] ? `${item.node.authors[0].node?.first_name || ''} ${item.node.authors[0].node?.last_name || ''}`.trim() : '',
+          genres: item.node.genres?.map(g => g.name) || []
+        }));
         return (
-          <div ref={slideRef} className="slide-container">
-            <div className="progress-bar">
-              {slides.map((_, idx) => (
-                <div key={idx} className={`progress-dash ${idx === currentSlide ? 'active' : ''}`} />
-              ))}
-            </div>
-            <button className="download-btn" onClick={handleDownloadPNG}>
-              <Download size={20} />
-            </button>
-            <div className="slide-content">
-              <h2 className="section-title">YOUR FAVORITE MANGA</h2>
-              <div className="title-underline"></div>
-              <p className="section-subtitle">THE MANGA YOU RATED THE HIGHEST.</p>
-              {stats.topManga && stats.topManga.length > 0 ? (
-                <>
-                  <div className="featured-card">
-                    <div className="featured-image">
-                      {stats.topManga[0]?.node?.main_picture?.large && (
-                        <img src={stats.topManga[0].node.main_picture.large} alt={stats.topManga[0].node.title || 'Manga'} />
-                      )}
-                      {!stats.topManga[0]?.node?.main_picture?.large && (
-                        <div style={{ width: '100%', height: '100%', background: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#666' }}>
-                          No Image
+          <SlideLayout verticalText="TOP-SELECTION">
+            <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block animate-pop-in animation-delay-100">
+              Your Favorite Manga
+            </h1>
+            <h2 className="text-xl md:text-2xl font-semibold uppercase tracking-wider text-white/80 mt-3 animate-pop-in animation-delay-200">
+              The manga you rated the highest.
+            </h2>
+            {topManga && topManga.length > 0 ? (
+              <div className="mt-2 flex flex-col gap-2 w-full justify-center stagger-children">
+                {(() => {
+                  const [featured, ...others] = topManga;
+                  return (
+                    <>
+                      <div className="bg-white/5 border border-white/10 rounded-lg overflow-hidden group transition-all duration-300 hover:border-[#9EFF00]/50 flex flex-row relative">
+                        <div className="absolute top-2.5 right-2.5 z-10 w-9 h-9 bg-black text-white rounded-full flex items-center justify-center font-bold text-xl">1</div>
+                        <div className="w-32 md:w-40 flex-shrink-0 aspect-[2/3] bg-black/50">
+                          {featured.coverImage && (
+                            <img src={featured.coverImage} crossOrigin="anonymous" alt={featured.title} className="w-full h-full object-cover" />
+                          )}
                         </div>
-                      )}
-                    </div>
-                    <div className="featured-content">
-                      <div className="featured-tag">#1 FAVORITE</div>
-                      <div className="featured-title">{stats.topManga[0].node?.title || 'Unknown'}</div>
-                      {stats.topManga[0].node?.authors?.[0] && (
-                        <div className="featured-studio">
-                          {stats.topManga[0].node.authors[0].node?.first_name} {stats.topManga[0].node.authors[0].node?.last_name}
+                        <div className="p-3 flex flex-col justify-center flex-grow min-w-0">
+                          <p className="text-base uppercase tracking-widest text-[#9EFF00] font-bold">#1 Favorite</p>
+                          <h3 className="font-bold text-white text-lg md:text-2xl mt-1 leading-tight truncate">{featured.title}</h3>
+                          {featured.author && <p className="text-base md:text-lg text-[#9EFF00] truncate">{featured.author}</p>}
+                          <div className="flex items-center text-lg md:text-xl text-yellow-300 mt-2">
+                            <span className="mr-2">★</span>
+                            <span>{featured.userRating.toFixed(1)} / 10</span>
+                          </div>
+                          {featured.genres.length > 0 && (
+                            <div className="mt-2 md:mt-3 flex flex-wrap gap-2">
+                              {featured.genres.slice(0, 2).map(g => (
+                                <span key={g} className="text-base uppercase tracking-wider bg-white/10 text-white/80 px-2 py-1 rounded">{g}</span>
+                              ))}
+                            </div>
+                          )}
                         </div>
-                      )}
-                      <div className="featured-rating">
-                        <span className="star">★</span> {stats.topManga[0].list_status?.score || 'N/A'}/10
                       </div>
-                      {stats.topManga[0].node?.genres && stats.topManga[0].node.genres.length > 0 && (
-                        <div className="featured-genres">
-                          {stats.topManga[0].node.genres.slice(0, 2).map(genre => (
-                            <span key={genre.name} className="genre-tag">{genre.name.toUpperCase()}</span>
+                      {others.length > 0 && (
+                        <div className="grid grid-cols-4 gap-2 md:gap-3">
+                          {others.map((manga, index) => (
+                            <div key={manga.id}>
+                              <div className="bg-black/50 border border-white/10 rounded-lg overflow-hidden group aspect-[4/5] relative transition-all duration-300 hover:border-[#9EFF00]/50">
+                                <div className="absolute top-1.5 right-1.5 z-10 w-7 h-7 bg-black text-white rounded-full flex items-center justify-center font-bold text-base">{index + 2}</div>
+                                {manga.coverImage && (
+                                  <img src={manga.coverImage} alt={manga.title} crossOrigin="anonymous" className="w-full h-full object-cover" />
+                                )}
+                              </div>
+                              <div className="mt-1.5">
+                                <h3 className="font-bold text-white truncate text-base leading-tight">{manga.title}</h3>
+                                <div className="flex items-center text-base text-yellow-300">
+                                  <span className="mr-1 shrink-0">★</span>
+                                  <span>{manga.userRating.toFixed(1)}</span>
+                                </div>
+                              </div>
+                            </div>
                           ))}
                         </div>
                       )}
-                    </div>
-                    <div className="rank-badge">1</div>
-                  </div>
-                  {stats.topManga.length > 1 && (
-                    <div className="anime-grid">
-                      {stats.topManga.slice(1, 5).map((item, idx) => (
-                        <div key={item.node?.id || idx} className="anime-card">
-                          {item.node?.main_picture?.medium ? (
-                            <img src={item.node.main_picture.medium} alt={item.node.title || 'Manga'} />
-                          ) : (
-                            <div style={{ width: '100%', aspectRatio: '2/3', background: '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#666', fontSize: '0.75rem' }}>
-                              No Image
-                            </div>
-                          )}
-                          <div className="anime-title">{item.node?.title || 'Unknown'}</div>
-                          <div className="anime-rating">
-                            <span className="star">★</span> {item.list_status?.score || 'N/A'}
-                          </div>
-                          <div className="rank-badge-small">{idx + 2}</div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div className="no-data">No rated manga found. Rate some manga to see your favorites here!</div>
-              )}
-            </div>
-            <div className="slide-nav">
-              <button className="nav-arrow" onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))} disabled={currentSlide === 0}>
-                <ChevronLeft size={24} />
-              </button>
-              <span className="slide-counter">{String(currentSlide + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}</span>
-              <button className="nav-arrow" onClick={() => setCurrentSlide(Math.min(slides.length - 1, currentSlide + 1))} disabled={currentSlide === slides.length - 1}>
-                <ChevronRight size={24} />
-              </button>
-            </div>
-          </div>
+                    </>
+                  );
+                })()}
+              </div>
+            ) : (
+              <div className="mt-8 text-center text-white/50">No rated manga found. Rate some manga to see your favorites here!</div>
+            )}
+          </SlideLayout>
         );
 
       case 'top_authors':
         return (
-          <div ref={slideRef} className="slide-container">
-            <div className="progress-bar">
-              {slides.map((_, idx) => (
-                <div key={idx} className={`progress-dash ${idx === currentSlide ? 'active' : ''}`} />
-              ))}
-            </div>
-            <button className="download-btn" onClick={handleDownloadPNG}>
-              <Download size={20} />
-            </button>
-            <div className="slide-content">
-              <h2 className="section-title">TOP MANGA AUTHORS</h2>
-              <div className="title-underline"></div>
-              <p className="section-subtitle">THE AUTHORS WHOSE WORK YOU READ MOST.</p>
-              {stats.topAuthors && stats.topAuthors.length > 0 ? (
-                <div className="ranked-list">
-                  {stats.topAuthors.map(([author, count], idx) => (
-                    <div key={author} className={`ranked-item ${idx === 0 ? 'highlighted' : ''}`}>
-                      <span className="rank-number">#{idx + 1}</span>
-                      <span className="rank-name">{author}</span>
-                      <span className="rank-count">{count} entries</span>
-                      {idx === 0 && <span className="star-icon">★</span>}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="no-data">No author data available</div>
-              )}
-            </div>
-            <div className="slide-nav">
-              <button className="nav-arrow" onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))} disabled={currentSlide === 0}>
-                <ChevronLeft size={24} />
-              </button>
-              <span className="slide-counter">{String(currentSlide + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}</span>
-              <button className="nav-arrow" onClick={() => setCurrentSlide(Math.min(slides.length - 1, currentSlide + 1))} disabled={currentSlide === slides.length - 1}>
-                <ChevronRight size={24} />
-              </button>
-            </div>
-          </div>
+          <SlideLayout verticalText="CREATORS">
+            <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block animate-pop-in animation-delay-100">
+              Top Manga Authors
+            </h1>
+            <h2 className="text-xl md:text-2xl font-semibold uppercase tracking-wider text-white/80 mt-3 animate-pop-in animation-delay-200">
+              The authors whose work you read most.
+            </h2>
+            {stats.topAuthors && stats.topAuthors.length > 0 ? (
+              <div className="mt-8 space-y-1 stagger-children">
+                {stats.topAuthors.map(([author, count], idx) => (
+                  <RankedListItem key={author} item={{ name: author, count }} rank={idx + 1} />
+                ))}
+              </div>
+            ) : (
+              <div className="mt-8 text-center text-white/50">No author data available</div>
+            )}
+          </SlideLayout>
         );
 
       case 'finale':
         return (
-          <div ref={slideRef} className="slide-container">
-            <div className="progress-bar">
-              {slides.map((_, idx) => (
-                <div key={idx} className={`progress-dash ${idx === currentSlide ? 'active' : ''}`} />
-              ))}
+          <SlideLayout verticalText="FINAL-REPORT">
+            <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block animate-pop-in animation-delay-100">
+              Year In Review
+            </h1>
+            <h2 className="text-xl md:text-2xl font-semibold uppercase tracking-wider text-white/80 mt-3 animate-pop-in animation-delay-200">
+              Your complete 2025 stats.
+            </h2>
+            <div className="mt-6 grid grid-cols-2 gap-2 md:gap-3 text-white stagger-children">
+              <div className="border border-white/20 p-2 rounded-lg col-span-1 flex flex-col">
+                <h3 className="text-base font-bold uppercase text-[#9EFF00] mb-2 shrink-0">Top Anime</h3>
+                <div className="space-y-1.5 min-h-0">
+                  {stats.topRated.slice(0, 4).map((a, i) => (
+                    <p key={a.node.id} className="bg-white/5 py-1 px-2 rounded truncate text-base">
+                      <span className="font-bold text-white/50 w-6 inline-block">{i+1}.</span>{a.node.title}
+                    </p>
+                  ))}
+                </div>
+              </div>
+              <div className="border border-white/20 p-2 rounded-lg col-span-1 flex flex-col">
+                <h3 className="text-base font-bold uppercase text-[#9EFF00] mb-2 shrink-0">Top Manga</h3>
+                <div className="space-y-1.5 min-h-0">
+                  {stats.topManga.slice(0, 4).map((m, i) => (
+                    <p key={m.node.id} className="bg-white/5 py-1 px-2 rounded truncate text-base">
+                      <span className="font-bold text-white/50 w-6 inline-block">{i+1}.</span>{m.node.title}
+                    </p>
+                  ))}
+                </div>
+              </div>
+              <div className="border border-white/20 p-3 rounded-lg col-span-1">
+                <p className="text-base uppercase text-white/70">Time Spent</p>
+                <p className="text-lg md:text-xl font-bold text-white">{stats.watchTime} Hours</p>
+              </div>
+              <div className="border border-white/20 p-3 rounded-lg col-span-1">
+                <p className="text-base uppercase text-white/70">Favorite Studio</p>
+                <p className="text-lg md:text-xl font-bold text-white truncate">{stats.topStudios?.[0]?.[0] || 'N/A'}</p>
+              </div>
+              <div className="border border-white/20 p-3 rounded-lg col-span-2">
+                <p className="text-base uppercase text-white/70">Favorite Author</p>
+                <p className="text-lg md:text-xl font-bold text-white truncate">{stats.topAuthors?.[0]?.[0] || 'N/A'}</p>
+              </div>
             </div>
-            <button className="download-btn" onClick={handleDownloadPNG}>
-              <Download size={20} />
-            </button>
-            <div className="slide-content finale-slide">
-              <h1 className="main-title">THANK YOU</h1>
-              <div className="year-display">2025</div>
-              <p className="subtitle">Thanks for using MAL Wrapped!</p>
-              <p className="finale-text">Share your results and let's make 2026 even more anime-packed!</p>
-            </div>
-            <div className="slide-nav">
-              <button className="nav-arrow" onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))} disabled={currentSlide === 0}>
-                <ChevronLeft size={24} />
-              </button>
-              <span className="slide-counter">{String(currentSlide + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}</span>
-              <button className="nav-arrow" onClick={() => setCurrentSlide(0)}>
-                RESTART
-              </button>
-            </div>
-          </div>
+          </SlideLayout>
         );
 
       default:
@@ -1024,768 +901,92 @@ export default function MALWrapped() {
   }
 
   return (
-    <>
-      <style jsx>{`
-        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap');
-        
-        * {
-          box-sizing: border-box;
-          margin: 0;
-          padding: 0;
-        }
-
-        body {
-          background: #000000;
-          color: #ffffff;
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-          overflow-x: hidden;
-        }
-
-        .slide-container {
-          width: 100%;
-          min-height: 100vh;
-          background: #000000;
-          position: relative;
-          display: flex;
-          flex-direction: column;
-          padding: 2rem;
-        }
-
-        .progress-bar {
-          display: flex;
-          gap: 0.5rem;
-          padding: 1.5rem 0 1rem 0;
-          position: absolute;
-          top: 0;
-          left: 2rem;
-          z-index: 10;
-        }
-
-        .progress-dash {
-          width: 40px;
-          height: 3px;
-          background: #666666;
-          transition: all 0.3s ease;
-        }
-
-        .progress-dash.active {
-          background: #00FF00;
-          box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
-        }
-
-        .download-btn {
-          position: absolute;
-          top: 1.5rem;
-          right: 2rem;
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
-          background: rgba(255, 255, 255, 0.1);
-          border: none;
-          color: #ffffff;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: all 0.3s ease;
-          z-index: 10;
-        }
-
-        .download-btn:hover {
-          background: rgba(255, 255, 255, 0.2);
-          transform: scale(1.1);
-        }
-
-        .slide-content {
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-          padding: 4rem 2rem;
-          animation: fadeIn 0.6s ease-in;
-        }
-
-        .welcome-slide {
-          text-align: center;
-        }
-
-        .main-title {
-          font-family: 'Inter', sans-serif;
-          font-size: 3rem;
-          font-weight: 700;
-          color: #ffffff;
-          letter-spacing: 0.1em;
-          margin-bottom: 2rem;
-          text-transform: uppercase;
-          animation: slideUp 0.8s ease-out;
-        }
-
-        .year-display {
-          font-family: 'Space Mono', monospace;
-          font-size: 12rem;
-          font-weight: 700;
-          color: #00FF00;
-          line-height: 1;
-          margin: 2rem 0;
-          text-shadow: 0 0 30px rgba(0, 255, 0, 0.5);
-          animation: scaleIn 1s ease-out;
-        }
-
-        .subtitle {
-          font-family: 'Inter', sans-serif;
-          font-size: 1.25rem;
-          color: #ffffff;
-          margin-top: 1rem;
-          animation: fadeIn 1.2s ease-in;
-        }
-
-        .subtitle .highlight {
-          color: #00FF00;
-        }
-
-        .section-title {
-          font-family: 'Space Mono', monospace;
-          font-size: 3.5rem;
-          font-weight: 700;
-          color: #00FF00;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-          margin-bottom: 0.5rem;
-          animation: slideDown 0.6s ease-out;
-        }
-
-        .title-underline {
-          width: 200px;
-          height: 2px;
-          background: #00FF00;
-          margin-bottom: 1.5rem;
-          animation: slideDown 0.8s ease-out;
-        }
-
-        .section-subtitle {
-          font-family: 'Inter', sans-serif;
-          font-size: 1rem;
-          color: #CCCCCC;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-          margin-bottom: 3rem;
-          animation: fadeIn 1s ease-in;
-        }
-
-        .stat-number {
-          font-family: 'Space Mono', monospace;
-          font-size: 10rem;
-          font-weight: 700;
-          color: #ffffff;
-          line-height: 1;
-          margin: 2rem 0;
-          animation: scaleIn 0.8s ease-out;
-        }
-
-        .stat-label {
-          font-family: 'Space Mono', monospace;
-          font-size: 2rem;
-          font-weight: 700;
-          color: #00FF00;
-          text-transform: uppercase;
-          letter-spacing: 0.1em;
-          animation: fadeIn 1.2s ease-in;
-        }
-
-        .ranked-list {
-          width: 100%;
-          max-width: 800px;
-          display: flex;
-          flex-direction: column;
-          gap: 0;
-          margin-top: 2rem;
-        }
-
-        .ranked-item {
-          display: flex;
-          align-items: center;
-          padding: 1.5rem 2rem;
-          border-bottom: 1px solid #333333;
-          animation: slideUp 0.6s ease-out;
-          animation-fill-mode: both;
-        }
-
-        .ranked-item:nth-child(1) { animation-delay: 0.1s; }
-        .ranked-item:nth-child(2) { animation-delay: 0.2s; }
-        .ranked-item:nth-child(3) { animation-delay: 0.3s; }
-        .ranked-item:nth-child(4) { animation-delay: 0.4s; }
-        .ranked-item:nth-child(5) { animation-delay: 0.5s; }
-
-        .ranked-item.highlighted {
-          background: #1a3a1a;
-          border-left: 3px solid #00FF00;
-          border-bottom: 1px solid #00FF00;
-        }
-
-        .rank-number {
-          font-family: 'Space Mono', monospace;
-          font-size: 2rem;
-          font-weight: 700;
-          color: #00FF00;
-          min-width: 80px;
-        }
-
-        .ranked-item.highlighted .rank-number {
-          color: #00FF00;
-        }
-
-        .rank-name {
-          font-family: 'Inter', sans-serif;
-          font-size: 1.5rem;
-          font-weight: 700;
-          color: #ffffff;
-          flex: 1;
-          margin-left: 2rem;
-        }
-
-        .rank-count {
-          font-family: 'Inter', sans-serif;
-          font-size: 1rem;
-          color: #999999;
-          margin-right: 2rem;
-        }
-
-        .star-icon {
-          color: #FFD700;
-          font-size: 1.5rem;
-        }
-
-        .featured-card {
-          position: relative;
-          display: flex;
-          width: 100%;
-          max-width: 900px;
-          background: #1a1a1a;
-          border-radius: 12px;
-          overflow: hidden;
-          margin-bottom: 2rem;
-          animation: slideUp 0.8s ease-out;
-        }
-
-        .featured-image {
-          width: 300px;
-          height: 400px;
-          flex-shrink: 0;
-        }
-
-        .featured-image img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
-
-        .featured-content {
-          flex: 1;
-          padding: 2rem;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-        }
-
-        .featured-tag {
-          font-family: 'Space Mono', monospace;
-          font-size: 0.875rem;
-          color: #00FF00;
-          text-transform: uppercase;
-          letter-spacing: 0.1em;
-          margin-bottom: 1rem;
-        }
-
-        .featured-title {
-          font-family: 'Inter', sans-serif;
-          font-size: 2.5rem;
-          font-weight: 700;
-          color: #ffffff;
-          margin-bottom: 0.5rem;
-        }
-
-        .featured-studio {
-          font-family: 'Inter', sans-serif;
-          font-size: 1.25rem;
-          color: #00FF00;
-          margin-bottom: 1rem;
-        }
-
-        .featured-rating {
-          font-family: 'Inter', sans-serif;
-          font-size: 1.5rem;
-          color: #ffffff;
-          margin-bottom: 1rem;
-        }
-
-        .star {
-          color: #FFD700;
-        }
-
-        .featured-genres {
-          display: flex;
-          gap: 0.5rem;
-          margin-top: 1rem;
-        }
-
-        .genre-tag {
-          font-family: 'Inter', sans-serif;
-          font-size: 0.75rem;
-          padding: 0.25rem 0.75rem;
-          background: #333333;
-          color: #CCCCCC;
-          border-radius: 4px;
-          text-transform: uppercase;
-        }
-
-        .rank-badge {
-          position: absolute;
-          top: 1rem;
-          right: 1rem;
-          width: 50px;
-          height: 50px;
-          border-radius: 50%;
-          background: #ffffff;
-          color: #000000;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-family: 'Inter', sans-serif;
-          font-size: 1.5rem;
-          font-weight: 700;
-        }
-
-        .anime-grid {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 1rem;
-          width: 100%;
-          max-width: 900px;
-        }
-
-        .anime-card {
-          position: relative;
-          background: #1a1a1a;
-          border-radius: 8px;
-          overflow: hidden;
-          animation: slideUp 0.6s ease-out;
-          animation-fill-mode: both;
-        }
-
-        .anime-card:nth-child(1) { animation-delay: 0.2s; }
-        .anime-card:nth-child(2) { animation-delay: 0.3s; }
-        .anime-card:nth-child(3) { animation-delay: 0.4s; }
-        .anime-card:nth-child(4) { animation-delay: 0.5s; }
-
-        .anime-card img {
-          width: 100%;
-          aspect-ratio: 2/3;
-          object-fit: cover;
-        }
-
-        .anime-title {
-          font-family: 'Inter', sans-serif;
-          font-size: 0.875rem;
-          font-weight: 600;
-          color: #ffffff;
-          padding: 0.75rem;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-
-        .anime-rating {
-          font-family: 'Inter', sans-serif;
-          font-size: 0.875rem;
-          color: #ffffff;
-          padding: 0 0.75rem 0.75rem 0.75rem;
-        }
-
-        .rank-badge-small {
-          position: absolute;
-          top: 0.5rem;
-          right: 0.5rem;
-          width: 30px;
-          height: 30px;
-          border-radius: 50%;
-          background: #ffffff;
-          color: #000000;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-family: 'Inter', sans-serif;
-          font-size: 0.875rem;
-          font-weight: 700;
-        }
-
-        .seasonal-featured {
-          display: flex;
-          width: 100%;
-          max-width: 800px;
-          gap: 2rem;
-          align-items: center;
-          animation: slideUp 0.8s ease-out;
-        }
-
-        .seasonal-image {
-          width: 200px;
-          height: 280px;
-          flex-shrink: 0;
-          border-radius: 8px;
-          overflow: hidden;
-        }
-
-        .seasonal-image img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
-
-        .seasonal-content {
-          flex: 1;
-        }
-
-        .seasonal-title {
-          font-family: 'Inter', sans-serif;
-          font-size: 2rem;
-          font-weight: 700;
-          color: #ffffff;
-          margin-bottom: 0.5rem;
-        }
-
-        .seasonal-studio {
-          font-family: 'Inter', sans-serif;
-          font-size: 1.25rem;
-          color: #00FF00;
-          margin-bottom: 0.5rem;
-        }
-
-        .seasonal-season {
-          font-family: 'Inter', sans-serif;
-          font-size: 1rem;
-          color: #ffffff;
-          margin-bottom: 1rem;
-        }
-
-        .seasonal-rating {
-          font-family: 'Inter', sans-serif;
-          font-size: 1.5rem;
-          color: #ffffff;
-        }
-
-        .gems-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 1.5rem;
-          width: 100%;
-          max-width: 1000px;
-          margin-top: 2rem;
-        }
-
-        .gem-card {
-          background: #1a1a1a;
-          border-radius: 8px;
-          overflow: hidden;
-          animation: slideUp 0.6s ease-out;
-          animation-fill-mode: both;
-        }
-
-        .gem-card:nth-child(1) { animation-delay: 0.1s; }
-        .gem-card:nth-child(2) { animation-delay: 0.2s; }
-        .gem-card:nth-child(3) { animation-delay: 0.3s; }
-
-        .gem-card img {
-          width: 100%;
-          aspect-ratio: 2/3;
-          object-fit: cover;
-        }
-
-        .gem-title {
-          font-family: 'Inter', sans-serif;
-          font-size: 1rem;
-          font-weight: 600;
-          color: #ffffff;
-          padding: 1rem;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-
-        .gem-rating {
-          font-family: 'Inter', sans-serif;
-          font-size: 1rem;
-          color: #ffffff;
-          padding: 0 1rem 1rem 1rem;
-        }
-
-        .no-data {
-          font-family: 'Inter', sans-serif;
-          font-size: 1.5rem;
-          color: #666666;
-          margin-top: 3rem;
-        }
-
-        .slide-nav {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 2rem 0;
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          padding: 2rem;
-        }
-
-        .nav-arrow {
-          width: 50px;
-          height: 50px;
-          border-radius: 50%;
-          background: rgba(255, 255, 255, 0.1);
-          border: none;
-          color: #ffffff;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: all 0.3s ease;
-        }
-
-        .nav-arrow:hover:not(:disabled) {
-          background: rgba(255, 255, 255, 0.2);
-          transform: scale(1.1);
-        }
-
-        .nav-arrow:disabled {
-          opacity: 0.3;
-          cursor: not-allowed;
-        }
-
-        .slide-counter {
-          font-family: 'Space Mono', monospace;
-          font-size: 1rem;
-          color: #999999;
-        }
-
-        .finale-slide {
-          text-align: center;
-        }
-
-        .finale-text {
-          font-family: 'Inter', sans-serif;
-          font-size: 1.25rem;
-          color: #CCCCCC;
-          margin-top: 2rem;
-          max-width: 600px;
-        }
-
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-
-        @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes slideDown {
-          from {
-            opacity: 0;
-            transform: translateY(-30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes scaleIn {
-          from {
-            opacity: 0;
-            transform: scale(0.8);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
-
-        @media (max-width: 768px) {
-          .year-display {
-            font-size: 6rem;
-          }
-
-          .stat-number {
-            font-size: 5rem;
-          }
-
-          .section-title {
-            font-size: 2rem;
-          }
-
-          .main-title {
-            font-size: 2rem;
-          }
-
-          .anime-grid {
-            grid-template-columns: repeat(2, 1fr);
-          }
-
-          .gems-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .featured-card {
-            flex-direction: column;
-          }
-
-          .featured-image {
-            width: 100%;
-            height: 300px;
-          }
-
-          .seasonal-featured {
-            flex-direction: column;
-          }
-
-          .seasonal-image {
-            width: 100%;
-            height: 300px;
-          }
-        }
-      `}</style>
-
-      <div style={{ minHeight: '100vh', background: '#000000' }}>
-        {error && (
-          <div style={{
-            position: 'fixed',
-            top: '2rem',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            background: 'rgba(220, 38, 38, 0.9)',
-            padding: '1rem 2rem',
-            borderRadius: '8px',
-            color: '#ffffff',
-            zIndex: 1000,
-            maxWidth: '90%',
-            textAlign: 'center'
-          }}>
-            {error}
-          </div>
-        )}
-
-        {isLoading && (
-          <div style={{
-            minHeight: '100vh',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexDirection: 'column',
-            gap: '1rem'
-          }}>
-            <div style={{
-              width: '50px',
-              height: '50px',
-              border: '3px solid #333333',
-              borderTopColor: '#00FF00',
-              borderRadius: '50%',
-              animation: 'spin 1s linear infinite'
-            }}></div>
-            <p style={{ color: '#00FF00', fontFamily: 'Space Mono, monospace', fontSize: '1rem' }}>
-              {loadingProgress || 'Loading...'}
-            </p>
-          </div>
-        )}
-
-        {!isAuthenticated && !isLoading && (
-          <div style={{
-            minHeight: '100vh',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexDirection: 'column',
-            padding: '2rem',
-            textAlign: 'center'
-          }}>
-            <h1 style={{
-              fontFamily: "'Space Mono', monospace",
-              fontSize: '4rem',
-              fontWeight: 700,
-              color: '#00FF00',
-              marginBottom: '1rem',
-              textTransform: 'uppercase',
-              letterSpacing: '0.1em'
-            }}>
-              MYANIMELIST WRAPPED
-            </h1>
-            <div style={{
-              fontFamily: "'Space Mono', monospace",
-              fontSize: '8rem',
-              fontWeight: 700,
-              color: '#00FF00',
-              lineHeight: 1,
-              marginBottom: '2rem',
-              textShadow: '0 0 30px rgba(0, 255, 0, 0.5)'
-            }}>
-              2025
+    <main className="bg-[#0A0A0A] text-white h-screen flex items-center justify-center p-2 selection:bg-[#9EFF00] selection:text-black relative overflow-hidden moving-grid-bg">
+      <div ref={slideRef} className={`w-full max-w-5xl h-full bg-[#101010] border-2 border-white/10 rounded-xl shadow-2xl shadow-black/50 flex flex-col justify-center relative overflow-hidden ${isCapturing ? 'capturing' : ''}`}>
+        <div className="z-10 w-full h-full flex flex-col items-center justify-center">
+          {error && (
+            <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500/90 text-white px-6 py-3 rounded-lg z-50">
+              {error}
             </div>
-            <p style={{
-              fontFamily: "'Inter', sans-serif",
-              fontSize: '1.25rem',
-              color: '#CCCCCC',
-              marginBottom: '3rem'
-            }}>
-              Enter your MyAnimeList username to see your year in review.
-            </p>
-            <button
-              onClick={handleBegin}
-              style={{
-                fontFamily: "'Space Mono', monospace",
-                fontSize: '1.25rem',
-                fontWeight: 700,
-                color: '#000000',
-                background: '#00FF00',
-                border: 'none',
-                padding: '1rem 3rem',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                textTransform: 'uppercase',
-                letterSpacing: '0.1em',
-                transition: 'all 0.3s ease'
-              }}
-              onMouseOver={(e) => {
-                e.target.style.transform = 'scale(1.05)';
-                e.target.style.boxShadow = '0 0 20px rgba(0, 255, 0, 0.5)';
-              }}
-              onMouseOut={(e) => {
-                e.target.style.transform = 'scale(1)';
-                e.target.style.boxShadow = 'none';
-              }}
-              disabled={!CLIENT_ID || CLIENT_ID === '<your_client_id_here>'}
-            >
-              GENERATE
-            </button>
-          </div>
-        )}
+          )}
 
-        {isAuthenticated && stats && (
-          <SlideContent slide={slides[currentSlide]} />
-        )}
+          {isLoading && (
+            <div className="text-center">
+              <div className="animate-pulse-fast text-[#9EFF00] mb-4 text-4xl">*</div>
+              <h1 className="text-3xl text-white uppercase tracking-widest">{loadingProgress || 'Generating your report...'}</h1>
+            </div>
+          )}
+
+          {!isAuthenticated && !isLoading && (
+            <div className="text-center p-4">
+              <div className="mb-4 animate-pop-in text-[#9EFF00] text-4xl">*</div>
+              <h1 className="text-4xl sm:text-6xl md:text-7xl font-bold uppercase tracking-wider text-[#9EFF00] animate-pop-in animation-delay-100">MyAnimeList</h1>
+              <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold uppercase tracking-wider text-white animate-pop-in animation-delay-200">Wrapped 2025</h2>
+              <p className="mt-4 text-lg text-white/70 max-w-md mx-auto animate-pop-in animation-delay-300">Enter your MyAnimeList username to see your year in review.</p>
+              <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center animate-pop-in animation-delay-400">
+                <button
+                  onClick={handleBegin}
+                  className="bg-[#9EFF00] text-black font-bold uppercase text-lg px-8 py-3 rounded-md hover:bg-white transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={!CLIENT_ID || CLIENT_ID === '<your_client_id_here>'}
+                >
+                  Connect with MAL
+                </button>
+              </div>
+            </div>
+          )}
+
+          {isAuthenticated && stats && slides.length > 0 && (
+            <div className="w-full h-full flex flex-col">
+              {/* Top Bar */}
+              <div className="flex-shrink-0 px-4 md:px-8 pt-4 flex items-center justify-between gap-4">
+                <div className="flex-grow flex items-center gap-2">
+                  {slides.map((_, i) => {
+                    const isCompleted = i < currentSlide;
+                    const isActive = i === currentSlide;
+                    return (
+                      <div key={i} className="flex-1 h-1.5 rounded-full bg-white/20 overflow-hidden">
+                        <div 
+                          className={`h-full rounded-full transition-all duration-500 ease-out ${isActive ? 'bg-[#9EFF00]' : 'bg-white/50'}`} 
+                          style={{ width: (isCompleted || isActive) ? '100%' : '0%' }} 
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="flex-shrink-0 flex items-center gap-2 md:gap-4">
+                  <button onClick={handleDownloadPNG} className="p-2 md:p-3 text-white rounded-full bg-black/30 backdrop-blur-sm hover:bg-black/50 transition" title="Download Slide">
+                    <Download className="w-5 h-5 md:w-6 md:h-6" />
+                  </button>
+                </div>
+              </div>
+              
+              {/* Slide Content */}
+              <div key={currentSlide} className={`w-full flex-grow flex items-center justify-center overflow-hidden py-2 ${!isCapturing && 'animate-pop-in'}`}>
+                <SlideContent slide={slides[currentSlide]} />
+              </div>
+              
+              {/* Bottom Controls */}
+              <div className="flex-shrink-0 w-full px-4 md:px-6 pb-4 flex items-center justify-between">
+                <button onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))} disabled={currentSlide === 0} className="p-2 md:p-3 text-white rounded-full bg-black/30 backdrop-blur-sm hover:bg-black/50 disabled:opacity-30 transition">
+                  <ChevronLeft className="w-6 h-6"/>
+                </button>
+                
+                <p className="text-white/50 text-base font-mono py-2 px-4 rounded-full bg-black/30 backdrop-blur-sm">{String(currentSlide + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}</p>
+
+                {currentSlide === slides.length - 1 ? (
+                  <button onClick={() => { setCurrentSlide(0); setIsAuthenticated(false); setStats(null); }} className="bg-[#9EFF00] text-black font-bold uppercase px-4 md:px-6 py-2 md:py-3 rounded-full hover:bg-white transition-colors duration-300 text-base animate-pop-in">
+                    Restart
+                  </button>
+                ) : (
+                  <button onClick={() => setCurrentSlide(Math.min(slides.length - 1, currentSlide + 1))} className="p-2 md:p-3 text-white rounded-full bg-black/30 backdrop-blur-sm hover:bg-black/50 transition">
+                    <ChevronRight className="w-6 h-6"/>
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-
-      <style jsx global>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
-    </>
+    </main>
   );
 }
