@@ -1339,22 +1339,21 @@ export default function MALWrapped() {
                     <h3 className="heading-md font-bold text-[#9EFF00] mb-2">{season}</h3>
                     {highlight && (
                       <>
-                        <div className="flex gap-2 sm:gap-3 mb-2">
+                        <div className="flex gap-2 sm:gap-3">
                           <div className="w-12 sm:w-16 aspect-[2/3] bg-transparent border border-white/10 rounded overflow-hidden flex-shrink-0 group transition-all duration-300 hover:border-[#9EFF00] hover:border-2" style={{ boxSizing: 'border-box' }}>
                             {highlight.node?.main_picture?.large && (
                               <img src={highlight.node.main_picture.large} alt={highlight.node.title} crossOrigin="anonymous" className="w-full h-full object-cover rounded transition-transform duration-300 group-hover:scale-110" />
                             )}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-bold text-white text-sm truncate">{highlight.node?.title}</p>
+                            <p className="font-bold text-white text-xs sm:text-sm md:text-base truncate">{highlight.node?.title}</p>
                             <p className="text-xs text-[#9EFF00] truncate">{highlight.node?.studios?.[0]?.name || ''}</p>
-                            <p className="text-xs text-yellow-300 mt-1">★ {highlight.list_status?.score || 'N/A'}</p>
+                            <p className="text-xs sm:text-sm md:text-base text-yellow-300 mt-1">★ {highlight.list_status?.score || 'N/A'}</p>
+                            <div className="body-sm text-white/70 space-y-0.5 mt-1">
+                              <p>{seasonData.totalEpisodes} episodes</p>
+                              <p>{seasonData.totalHours} hours</p>
+                            </div>
                           </div>
-                        </div>
-                        <div className="body-sm text-white/70 space-y-0.5">
-                          <p>{seasonData.totalAnime} anime</p>
-                          <p>{seasonData.totalEpisodes} episodes</p>
-                          <p>{seasonData.totalHours} hours</p>
                         </div>
                       </>
                     )}
