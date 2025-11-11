@@ -896,6 +896,7 @@ export default function MALWrapped() {
       const [isHovered, setIsHovered] = useState(false);
       const [hoveredItem, setHoveredItem] = useState(null);
       const [scrollPosition, setScrollPosition] = useState(0);
+      const [gapSize, setGapSize] = useState('4px');
       
       // Deduplicate items by title to prevent repeats
       const uniqueItemsMap = new Map();
@@ -912,6 +913,16 @@ export default function MALWrapped() {
       
       // Duplicate items for infinite loop
       const duplicatedItems = [...visibleItems, ...visibleItems, ...visibleItems];
+      
+      // Update gap size based on screen width
+      useEffect(() => {
+        const updateGap = () => {
+          setGapSize(window.innerWidth >= 768 ? '2px' : '4px');
+        };
+        updateGap();
+        window.addEventListener('resize', updateGap);
+        return () => window.removeEventListener('resize', updateGap);
+      }, []);
       
       useEffect(() => {
         if (visibleItems.length <= itemsPerView || isHovered) return;
@@ -961,7 +972,7 @@ export default function MALWrapped() {
             style={{ 
               transform: `translateX(-${scrollPosition}%)`,
               willChange: 'transform',
-              gap: '4px'
+              gap: gapSize
             }}
           >
             {duplicatedItems.map((item, idx) => {
