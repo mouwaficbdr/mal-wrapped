@@ -501,7 +501,15 @@ export default function MALWrapped() {
       });
     });
 
-    const topAuthors = Object.entries(authorCounts)
+    // Deduplicate authors - only keep unique entries
+    const uniqueAuthorCounts = {};
+    Object.entries(authorCounts).forEach(([name, count]) => {
+      if (!uniqueAuthorCounts[name]) {
+        uniqueAuthorCounts[name] = count;
+      }
+    });
+    
+    const topAuthors = Object.entries(uniqueAuthorCounts)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5);
 
@@ -559,46 +567,67 @@ export default function MALWrapped() {
     
     setIsCapturing(true);
     try {
-      // Use dom-to-image-more library as alternative to html2canvas
-      const domtoimage = (await import('dom-to-image-more')).default;
+      // Wait for all animations to complete and settle
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Dynamically import html2canvas
+      const html2canvas = (await import('html2canvas')).default;
       
       // Get the main card container
       const cardElement = slideRef.current;
+      const rect = cardElement.getBoundingClientRect();
       
-      // Capture the entire card without reloading
-      const dataUrl = await domtoimage.toPng(cardElement, {
-        quality: 1.0,
-        bgcolor: '#101010',
-        width: cardElement.offsetWidth,
-        height: cardElement.offsetHeight,
-        style: {
-          transform: 'scale(2)',
-          transformOrigin: 'top left',
+      // Capture the entire card with final positions
+      const canvas = await html2canvas(cardElement, {
+        backgroundColor: '#101010',
+        scale: 2,
+        logging: false,
+        useCORS: true,
+        allowTaint: true,
+        width: rect.width,
+        height: rect.height,
+        x: 0,
+        y: 0,
+        scrollX: 0,
+        scrollY: 0,
+        windowWidth: window.innerWidth,
+        windowHeight: window.innerHeight,
+        onclone: (clonedDoc) => {
+          // Stop all animations and transitions in cloned document
+          const style = clonedDoc.createElement('style');
+          style.textContent = `
+            * {
+              animation: none !important;
+              transition: none !important;
+            }
+            .slide-card {
+              transform: none !important;
+              position: relative !important;
+              top: 0 !important;
+              left: 0 !important;
+            }
+          `;
+          clonedDoc.head.appendChild(style);
+          
+          // Ensure all images are loaded
+          const images = clonedDoc.querySelectorAll('img');
+          images.forEach(img => {
+            if (!img.complete) {
+              img.style.display = 'none';
+            }
+          });
         },
-        filter: (node) => {
-          // Don't filter out any nodes
-          return true;
-        }
       });
       
       const link = document.createElement('a');
       link.download = `mal-wrapped-${username || 'user'}-slide-${currentSlide + 1}.png`;
-      link.href = dataUrl;
+      link.href = canvas.toDataURL('image/png', 1.0);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     } catch (err) {
       console.error('Error generating PNG:', err);
-      // Fallback to screenshot API if available
-      try {
-        if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
-          alert('Please use your browser\'s screenshot tool (Ctrl+Shift+S or Cmd+Shift+S) to capture this slide.');
-        } else {
-          alert('Failed to download image. Please use your browser\'s screenshot tool.');
-        }
-      } catch (fallbackErr) {
-        alert('Failed to download image. Please use your browser\'s screenshot tool.');
-      }
+      alert('Failed to download image. Please try again.');
     } finally {
       setIsCapturing(false);
     }
@@ -697,7 +726,7 @@ export default function MALWrapped() {
           <div className="text-center relative overflow-hidden animate-pop-in">
             <h1 className="text-3xl md:text-4xl font-bold uppercase text-[#9EFF00] mb-6">Your #1 Favorite</h1>
             <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8">
-              <div className="w-32 md:w-48 aspect-[2/3] bg-black/50 border-2 border-[#9EFF00] rounded-lg overflow-visible group transition-all duration-300 hover:border-[#9EFF00]">
+              <div className="w-32 md:w-48 aspect-[2/3] bg-black/50 border-2 border-[#9EFF00] rounded-lg overflow-hidden group transition-all duration-300 hover:border-[#9EFF00]">
                 {topItem.node?.main_picture?.large && (
                   <img 
                     src={topItem.node.main_picture.large} 
@@ -708,16 +737,16 @@ export default function MALWrapped() {
                 )}
               </div>
               <div className="text-center md:text-left">
-                <h3 className="text-3xl md:text-5xl font-bold text-white mb-2 animate-pop-in animation-delay-400">{topItem.node?.title}</h3>
+                <h3 className="text-3xl md:text-5xl font-bold text-white mb-2">{topItem.node?.title}</h3>
                 {type === 'anime' && topItem.node?.studios?.[0]?.name && (
-                  <p className="text-xl md:text-2xl text-[#9EFF00] mb-4 animate-pop-in animation-delay-500">{topItem.node.studios[0].name}</p>
+                  <p className="text-xl md:text-2xl text-[#9EFF00] mb-4">{topItem.node.studios[0].name}</p>
                 )}
                 {type === 'manga' && topItem.node?.authors?.[0] && (
-                  <p className="text-xl md:text-2xl text-[#9EFF00] mb-4 animate-pop-in animation-delay-500">
+                  <p className="text-xl md:text-2xl text-[#9EFF00] mb-4">
                     {`${topItem.node.authors[0].node?.first_name || ''} ${topItem.node.authors[0].node?.last_name || ''}`.trim()}
                   </p>
                 )}
-                <div className="flex items-center justify-center md:justify-start text-3xl md:text-4xl text-yellow-300 animate-pop-in animation-delay-600">
+                <div className="flex items-center justify-center md:justify-start text-3xl md:text-4xl text-yellow-300">
                   <span className="mr-2">★</span>
                   <span>{topItem.list_status?.score?.toFixed(1)} / 10</span>
                 </div>
@@ -739,17 +768,17 @@ export default function MALWrapped() {
                   <>
                     <div className="bg-white/5 border border-white/10 rounded-lg overflow-hidden group transition-all duration-300 hover:border-[#9EFF00]/50 flex flex-row relative">
                       <div className="absolute top-2.5 right-2.5 z-10 w-9 h-9 bg-black text-white rounded-full flex items-center justify-center font-bold text-xl">1</div>
-                      <div className="w-32 md:w-40 flex-shrink-0 aspect-[2/3] bg-black/50 border border-white/10 rounded-lg overflow-visible group transition-all duration-300 hover:border-[#9EFF00]">
+                      <div className="w-32 md:w-40 flex-shrink-0 aspect-[2/3] bg-black/50 border border-white/10 rounded-lg overflow-hidden group transition-all duration-300 hover:border-[#9EFF00]">
                         {featured.coverImage && (
                           <img src={featured.coverImage} crossOrigin="anonymous" alt={featured.title} className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-110" />
                         )}
                       </div>
                       <div className="p-3 flex flex-col justify-center flex-grow min-w-0">
-                        <p className="text-base uppercase tracking-widest text-[#9EFF00] font-bold animate-pop-in animation-delay-300">#1 Favorite</p>
-                        <h3 className="font-bold text-white text-lg md:text-2xl mt-1 leading-tight truncate animate-pop-in animation-delay-400">{featured.title}</h3>
-                        {featured.studio && <p className="text-base md:text-lg text-[#9EFF00] truncate animate-pop-in animation-delay-500">{featured.studio}</p>}
-                        {featured.author && <p className="text-base md:text-lg text-[#9EFF00] truncate animate-pop-in animation-delay-500">{featured.author}</p>}
-                        <div className="flex items-center text-lg md:text-xl text-yellow-300 mt-2 animate-pop-in animation-delay-600">
+                        <p className="text-base uppercase tracking-widest text-[#9EFF00] font-bold">#1 Favorite</p>
+                        <h3 className="font-bold text-white text-lg md:text-2xl mt-1 leading-tight truncate">{featured.title}</h3>
+                        {featured.studio && <p className="text-base md:text-lg text-[#9EFF00] truncate">{featured.studio}</p>}
+                        {featured.author && <p className="text-base md:text-lg text-[#9EFF00] truncate">{featured.author}</p>}
+                        <div className="flex items-center text-lg md:text-xl text-yellow-300 mt-2">
                           <span className="mr-2">★</span>
                           <span>{featured.userRating.toFixed(1)} / 10</span>
                         </div>
@@ -766,15 +795,15 @@ export default function MALWrapped() {
                       <div className="grid grid-cols-4 gap-2 md:gap-3">
                         {others.map((item, index) => (
                           <div key={item.id}>
-                            <div className="bg-black/50 border border-white/10 rounded-lg overflow-visible group aspect-[4/5] relative transition-all duration-300 hover:border-[#9EFF00]">
-                              <div className="absolute top-1.5 right-1.5 z-10 w-7 h-7 bg-black text-white rounded-full flex items-center justify-center font-bold text-base">{index + 2}</div>
-                              {item.coverImage && (
-                                <img src={item.coverImage} alt={item.title} crossOrigin="anonymous" className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-110" />
-                              )}
-                            </div>
+                            <div className="bg-black/50 border border-white/10 rounded-lg overflow-hidden group aspect-[4/5] relative transition-all duration-300 hover:border-[#9EFF00]">
+                                <div className="absolute top-1.5 right-1.5 z-10 w-7 h-7 bg-black text-white rounded-full flex items-center justify-center font-bold text-base">{index + 2}</div>
+                                {item.coverImage && (
+                                  <img src={item.coverImage} alt={item.title} crossOrigin="anonymous" className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-110" />
+                                )}
+                              </div>
                               <div className="mt-1.5 text-left">
-                                <h3 className="font-bold text-white truncate text-base leading-tight animate-pop-in">{item.title}</h3>
-                                <div className="flex items-center text-base text-yellow-300 animate-pop-in">
+                                <h3 className="font-bold text-white truncate text-base leading-tight">{item.title}</h3>
+                                <div className="flex items-center text-base text-yellow-300">
                                   <span className="mr-1 shrink-0">★</span>
                                   <span>{item.userRating.toFixed(1)}</span>
                                 </div>
@@ -872,7 +901,7 @@ export default function MALWrapped() {
                 onMouseEnter={() => showHover && setHoveredItem(idx % visibleItems.length)}
                 onMouseLeave={() => showHover && setHoveredItem(null)}
               >
-                <div className={`mx-1 aspect-[2/3] bg-black/50 border border-white/10 rounded-lg overflow-visible transition-all duration-300 ${showHover ? 'group-hover:border-[#9EFF00]' : ''}`}>
+                <div className={`mx-1 aspect-[2/3] bg-black/50 border border-white/10 rounded-lg overflow-hidden transition-all duration-300 ${showHover ? 'group-hover:border-[#9EFF00]' : ''}`}>
                   {item.coverImage && (
                     <img 
                       src={item.coverImage} 
@@ -892,11 +921,11 @@ export default function MALWrapped() {
                     </div>
                   )}
                 </div>
-                {showNames && item.title && (
+                {(showNames || showHover) && item.title && (
                   <div className="mt-1.5 text-left">
-                    <p className="text-xs text-white font-bold truncate animate-pop-in">{item.title}</p>
+                    <p className="text-xs text-white font-bold truncate">{item.title}</p>
                     {item.userRating && (
-                      <p className="text-xs text-yellow-300 animate-pop-in">★ {item.userRating.toFixed(1)}</p>
+                      <p className="text-xs text-yellow-300">★ {item.userRating.toFixed(1)}</p>
                     )}
                   </div>
                 )}
@@ -925,7 +954,7 @@ export default function MALWrapped() {
 
     const MediaCard = ({ item, rank }) => (
       <div className="flex flex-col group">
-        <div className="bg-black/50 border border-white/10 rounded-lg overflow-visible group aspect-[2/3] relative transition-all duration-300 hover:border-[#9EFF00]">
+        <div className="bg-black/50 border border-white/10 rounded-lg overflow-hidden group aspect-[2/3] relative transition-all duration-300 hover:border-[#9EFF00]">
           {rank && (
             <div className="absolute top-2 right-2 z-10 w-8 h-8 bg-black text-white rounded-full flex items-center justify-center font-bold text-lg">
               {rank}
@@ -950,9 +979,11 @@ export default function MALWrapped() {
         return (
           <SlideLayout verticalText="INITIALIZE">
             <div className="text-center">
-              <h2 className="text-3xl md:text-4xl font-medium uppercase text-white/80 animate-pop-in animation-delay-100">MyAnimeList Wrapped</h2>
-              <h1 className="text-7xl md:text-9xl font-bold uppercase text-[#9EFF00] my-4 animate-pop-in animation-delay-200">{stats.selectedYear === 'all' ? 'ALL TIME' : stats.selectedYear}</h1>
-              <p className="text-2xl md:text-3xl text-white animate-pop-in animation-delay-300">A look back at your {stats.selectedYear === 'all' ? 'anime journey' : 'year'}, <span className="text-[#9EFF00]">{username || 'a'}</span>.</p>
+              <div className="animate-pop-in">
+                <h2 className="text-3xl md:text-4xl font-medium uppercase text-white/80">MyAnimeList Wrapped</h2>
+                <h1 className="text-7xl md:text-9xl font-bold uppercase text-[#9EFF00] my-4">{stats.selectedYear === 'all' ? 'ALL TIME' : stats.selectedYear}</h1>
+                <p className="text-2xl md:text-3xl text-white">A look back at your {stats.selectedYear === 'all' ? 'anime journey' : 'year'}, <span className="text-[#9EFF00]">{username || 'a'}</span>.</p>
+              </div>
             </div>
           </SlideLayout>
         );
@@ -973,7 +1004,7 @@ export default function MALWrapped() {
               </p>
               <p className="text-3xl font-medium uppercase text-[#9EFF00] mt-2">Anime Series</p>
             </div>
-            {animeCarouselItems.length > 0 && <ImageCarousel items={animeCarouselItems} maxItems={50} />}
+            {animeCarouselItems.length > 0 && <ImageCarousel items={animeCarouselItems} maxItems={50} showHover={true} showNames={true} />}
           </SlideLayout>
         );
 
@@ -983,34 +1014,34 @@ export default function MALWrapped() {
             <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block animate-pop-in animation-delay-100">
               Anime Stats
             </h1>
-            <div className="mt-8 space-y-6 animate-pop-in animation-delay-200">
+            <div className="mt-8 space-y-6 animate-pop-in">
               <div className="text-center">
-                <p className="text-6xl md:text-8xl font-bold text-white animate-pop-in animation-delay-300">
+                <p className="text-6xl md:text-8xl font-bold text-white">
                   <AnimatedNumber value={stats.totalEpisodes || 0} />
                 </p>
-                <p className="text-2xl font-medium uppercase text-[#9EFF00] mt-2 animate-pop-in animation-delay-400">Episodes</p>
+                <p className="text-2xl font-medium uppercase text-[#9EFF00] mt-2">Episodes</p>
               </div>
               <div className="text-center">
-                <p className="text-6xl md:text-8xl font-bold text-white animate-pop-in animation-delay-500">
+                <p className="text-6xl md:text-8xl font-bold text-white">
                   <AnimatedNumber value={stats.totalSeasons || 0} />
                 </p>
-                <p className="text-2xl font-medium uppercase text-[#9EFF00] mt-2 animate-pop-in animation-delay-600">Seasons</p>
+                <p className="text-2xl font-medium uppercase text-[#9EFF00] mt-2">Seasons</p>
               </div>
               <div className="text-center">
                 {stats.watchDays > 0 ? (
                   <>
-                    <p className="text-6xl md:text-8xl font-bold text-white animate-pop-in animation-delay-700">
+                    <p className="text-6xl md:text-8xl font-bold text-white">
                       <AnimatedNumber value={stats.watchDays} />
                     </p>
-                    <p className="text-2xl font-medium uppercase text-[#9EFF00] mt-2 animate-pop-in animation-delay-800">Days</p>
-                    <p className="text-xl text-white/70 mt-2 animate-pop-in animation-delay-900">or <AnimatedNumber value={stats.watchTime} /> hours</p>
+                    <p className="text-2xl font-medium uppercase text-[#9EFF00] mt-2">Days</p>
+                    <p className="text-xl text-white/70 mt-2">or <AnimatedNumber value={stats.watchTime} /> hours</p>
                   </>
                 ) : (
                   <>
-                    <p className="text-6xl md:text-8xl font-bold text-white animate-pop-in animation-delay-700">
+                    <p className="text-6xl md:text-8xl font-bold text-white">
                       <AnimatedNumber value={stats.watchTime} />
                     </p>
-                    <p className="text-2xl font-medium uppercase text-[#9EFF00] mt-2 animate-pop-in animation-delay-800">Hours</p>
+                    <p className="text-2xl font-medium uppercase text-[#9EFF00] mt-2">Hours</p>
                   </>
                 )}
               </div>
@@ -1036,14 +1067,16 @@ export default function MALWrapped() {
             {topGenre ? (
               <>
                 <div className="mt-4 text-center animate-pop-in animation-delay-200">
-                  <p className="text-4xl md:text-6xl font-bold text-[#9EFF00] uppercase animate-pop-in animation-delay-300">{topGenre}</p>
-                  <p className="text-xl text-white/70 mt-2 animate-pop-in animation-delay-400">{stats.topGenres[0][1]} anime</p>
+                  <p className="text-sm text-[#9EFF00] font-bold mb-2">#1</p>
+                  <p className="text-4xl md:text-6xl font-bold text-[#9EFF00] uppercase">{topGenre}</p>
+                  <p className="text-xl text-white/70 mt-2">{stats.topGenres[0][1]} anime</p>
                 </div>
-                {genreAnime.length > 0 && <ImageCarousel items={genreAnime} maxItems={30} />}
+                {genreAnime.length > 0 && <ImageCarousel items={genreAnime} maxItems={30} showHover={true} showNames={true} />}
                 {otherGenres.length > 0 && (
-                  <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3 animate-pop-in animation-delay-500">
                     {otherGenres.map(([genreName, count], idx) => (
-                      <div key={idx} className="text-center p-3 border border-white/10 rounded-lg animate-pop-in" style={{ animationDelay: `${(idx + 1) * 100}ms` }}>
+                      <div key={idx} className="text-center p-3 border border-white/10 rounded-lg">
+                        <p className="text-sm text-[#9EFF00] font-bold mb-1">#{idx + 2}</p>
                         <p className="text-lg md:text-xl font-bold text-[#9EFF00]">{genreName}</p>
                         <p className="text-sm text-white/70">{count} anime</p>
                       </div>
@@ -1087,7 +1120,7 @@ export default function MALWrapped() {
               <>
                 <div className="mt-4 flex items-center justify-center gap-4 animate-pop-in animation-delay-200">
                   {topStudioRepresentation && (
-                    <div className="w-20 md:w-28 aspect-square bg-black/50 border-2 border-[#9EFF00] rounded-lg overflow-visible group transition-all duration-300 hover:border-[#9EFF00]">
+                    <div className="w-20 md:w-28 aspect-square bg-black/50 border-2 border-[#9EFF00] rounded-lg overflow-hidden group transition-all duration-300 hover:border-[#9EFF00]">
                       {topStudioRepresentation.node?.main_picture?.large && (
                         <img 
                           src={topStudioRepresentation.node.main_picture.large} 
@@ -1099,15 +1132,17 @@ export default function MALWrapped() {
                     </div>
                   )}
                   <div className="text-left">
-                    <p className="text-4xl md:text-6xl font-bold text-[#9EFF00] animate-pop-in animation-delay-300">{topStudio}</p>
-                    <p className="text-xl text-white/70 mt-2 animate-pop-in animation-delay-400">{stats.topStudios[0][1]} anime</p>
+                    <p className="text-sm text-[#9EFF00] font-bold mb-2">#1</p>
+                    <p className="text-4xl md:text-6xl font-bold text-[#9EFF00]">{topStudio}</p>
+                    <p className="text-xl text-white/70 mt-2">{stats.topStudios[0][1]} anime</p>
                   </div>
                 </div>
-                {studioAnime.length > 0 && <ImageCarousel items={studioAnime} maxItems={30} />}
+                {studioAnime.length > 0 && <ImageCarousel items={studioAnime} maxItems={30} showHover={true} showNames={true} />}
                 {otherStudios.length > 0 && (
-                  <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3 animate-pop-in animation-delay-500">
                     {otherStudios.map(([studioName, count], idx) => (
-                      <div key={idx} className="text-center p-3 border border-white/10 rounded-lg animate-pop-in" style={{ animationDelay: `${(idx + 1) * 100}ms` }}>
+                      <div key={idx} className="text-center p-3 border border-white/10 rounded-lg">
+                        <p className="text-sm text-[#9EFF00] font-bold mb-1">#{idx + 2}</p>
                         <p className="text-lg md:text-xl font-bold text-[#9EFF00] truncate">{studioName}</p>
                         <p className="text-sm text-white/70">{count} anime</p>
                       </div>
@@ -1134,26 +1169,26 @@ export default function MALWrapped() {
                 if (!seasonData) return null;
                 const highlight = seasonData.highlight;
                 return (
-                  <div key={season} className="bg-white/5 border border-white/10 rounded-lg p-4">
-                    <h3 className="text-2xl font-bold text-[#9EFF00] mb-3 animate-pop-in">{season}</h3>
+                  <div key={season} className="bg-white/5 border border-white/10 rounded-lg p-4 animate-pop-in" style={{ animationDelay: `${seasons.indexOf(season) * 100}ms` }}>
+                    <h3 className="text-2xl font-bold text-[#9EFF00] mb-3">{season}</h3>
                     {highlight && (
                       <>
                         <div className="flex gap-3 mb-3">
-                          <div className="w-16 aspect-[2/3] bg-black/50 border border-white/10 rounded overflow-visible flex-shrink-0 group transition-all duration-300 hover:border-[#9EFF00]">
+                          <div className="w-16 aspect-[2/3] bg-black/50 border border-white/10 rounded overflow-hidden flex-shrink-0 group transition-all duration-300 hover:border-[#9EFF00]">
                             {highlight.node?.main_picture?.large && (
                               <img src={highlight.node.main_picture.large} alt={highlight.node.title} crossOrigin="anonymous" className="w-full h-full object-cover rounded transition-transform duration-300 group-hover:scale-110" />
                             )}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-bold text-white text-sm truncate animate-pop-in">{highlight.node?.title}</p>
-                            <p className="text-xs text-[#9EFF00] truncate animate-pop-in">{highlight.node?.studios?.[0]?.name || ''}</p>
-                            <p className="text-xs text-yellow-300 mt-1 animate-pop-in">★ {highlight.list_status?.score || 'N/A'}</p>
+                            <p className="font-bold text-white text-sm truncate">{highlight.node?.title}</p>
+                            <p className="text-xs text-[#9EFF00] truncate">{highlight.node?.studios?.[0]?.name || ''}</p>
+                            <p className="text-xs text-yellow-300 mt-1">★ {highlight.list_status?.score || 'N/A'}</p>
                           </div>
                         </div>
                         <div className="text-xs text-white/70 space-y-1">
-                          <p className="animate-pop-in">{seasonData.totalAnime} anime</p>
-                          <p className="animate-pop-in">{seasonData.totalEpisodes} episodes</p>
-                          <p className="animate-pop-in">{seasonData.totalHours} hours</p>
+                          <p>{seasonData.totalAnime} anime</p>
+                          <p>{seasonData.totalEpisodes} episodes</p>
+                          <p>{seasonData.totalHours} hours</p>
                         </div>
                       </>
                     )}
@@ -1186,23 +1221,23 @@ export default function MALWrapped() {
             <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block animate-pop-in animation-delay-100">
               Hidden Gems & Didn't Land
             </h1>
-            <div className="mt-6 grid grid-cols-2 gap-6">
+            <div className="mt-6 grid grid-cols-2 gap-6 animate-pop-in animation-delay-200">
               <div>
-                <h2 className="text-xl md:text-2xl font-semibold uppercase tracking-wider text-white/80 mb-4 animate-pop-in animation-delay-200">
+                <h2 className="text-xl md:text-2xl font-semibold uppercase tracking-wider text-white/80 mb-4">
                   Hidden Gems
                 </h2>
                 {gems.length > 0 ? (
                   <div className="space-y-3">
                     {gems.map((item, idx) => (
-                      <div key={item.id} className="flex gap-3 animate-pop-in" style={{ animationDelay: `${(idx + 1) * 100}ms` }}>
-                        <div className="w-16 md:w-20 aspect-[2/3] bg-black/50 border border-white/10 rounded-lg overflow-visible group transition-all duration-300 hover:border-[#9EFF00] flex-shrink-0">
+                      <div key={item.id} className="flex gap-3">
+                        <div className="w-16 md:w-20 aspect-[2/3] bg-black/50 border border-white/10 rounded-lg overflow-hidden group transition-all duration-300 hover:border-[#9EFF00] flex-shrink-0">
                           {item.coverImage && (
                             <img src={item.coverImage} crossOrigin="anonymous" alt={item.title} className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-110" />
                           )}
                         </div>
                         <div className="flex-1 min-w-0 text-left">
-                          <h3 className="font-bold text-white text-sm md:text-base leading-tight truncate animate-pop-in">{item.title}</h3>
-                          <div className="flex items-center text-sm md:text-base text-yellow-300 mt-1 animate-pop-in">
+                          <h3 className="font-bold text-white text-sm md:text-base leading-tight truncate">{item.title}</h3>
+                          <div className="flex items-center text-sm md:text-base text-yellow-300 mt-1">
                             <span className="mr-1 shrink-0">★</span>
                             <span>{item.userRating.toFixed(1)}</span>
                           </div>
@@ -1215,21 +1250,21 @@ export default function MALWrapped() {
                 )}
               </div>
               <div>
-                <h2 className="text-xl md:text-2xl font-semibold uppercase tracking-wider text-white/80 mb-4 animate-pop-in animation-delay-200">
+                <h2 className="text-xl md:text-2xl font-semibold uppercase tracking-wider text-white/80 mb-4">
                   Didn't Land
                 </h2>
                 {didntLand.length > 0 ? (
                   <div className="space-y-3">
                     {didntLand.map((item, idx) => (
-                      <div key={item.id} className="flex gap-3 animate-pop-in" style={{ animationDelay: `${(idx + 1) * 100}ms` }}>
-                        <div className="w-16 md:w-20 aspect-[2/3] bg-black/50 border border-white/10 rounded-lg overflow-visible group transition-all duration-300 hover:border-[#9EFF00] flex-shrink-0">
+                      <div key={item.id} className="flex gap-3">
+                        <div className="w-16 md:w-20 aspect-[2/3] bg-black/50 border border-white/10 rounded-lg overflow-hidden group transition-all duration-300 hover:border-[#9EFF00] flex-shrink-0">
                           {item.coverImage && (
                             <img src={item.coverImage} crossOrigin="anonymous" alt={item.title} className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-110" />
                           )}
                         </div>
                         <div className="flex-1 min-w-0 text-left">
-                          <h3 className="font-bold text-white text-sm md:text-base leading-tight truncate animate-pop-in">{item.title}</h3>
-                          <div className="flex items-center text-sm md:text-base text-yellow-300 mt-1 animate-pop-in">
+                          <h3 className="font-bold text-white text-sm md:text-base leading-tight truncate">{item.title}</h3>
+                          <div className="flex items-center text-sm md:text-base text-yellow-300 mt-1">
                             <span className="mr-1 shrink-0">★</span>
                             <span>{item.userRating.toFixed(1)}</span>
                           </div>
@@ -1260,7 +1295,7 @@ export default function MALWrapped() {
             </h2>
             {plannedAnimeItems.length > 0 ? (
               <div className="mt-6">
-                <ImageCarousel items={plannedAnimeItems} maxItems={10} showHover={false} showNames={true} />
+                <ImageCarousel items={plannedAnimeItems} maxItems={10} showHover={true} showNames={true} />
               </div>
             ) : (
               <div className="mt-8 text-center text-white/50">No planned anime found</div>
@@ -1306,7 +1341,7 @@ export default function MALWrapped() {
               </p>
               <p className="text-3xl font-medium uppercase text-[#9EFF00] mt-2">Manga Series</p>
             </div>
-            {allMangaItems.length > 0 && <ImageCarousel items={allMangaItems} maxItems={50} />}
+            {allMangaItems.length > 0 && <ImageCarousel items={allMangaItems} maxItems={50} showHover={true} showNames={true} />}
           </SlideLayout>
         );
 
@@ -1402,14 +1437,16 @@ export default function MALWrapped() {
             {topMangaGenre ? (
               <>
                 <div className="mt-4 text-center animate-pop-in animation-delay-200">
-                  <p className="text-4xl md:text-6xl font-bold text-[#9EFF00] uppercase animate-pop-in animation-delay-300">{topMangaGenre[0]}</p>
-                  <p className="text-xl text-white/70 mt-2 animate-pop-in animation-delay-400">{topMangaGenre[1]} manga</p>
+                  <p className="text-sm text-[#9EFF00] font-bold mb-2">#1</p>
+                  <p className="text-4xl md:text-6xl font-bold text-[#9EFF00] uppercase">{topMangaGenre[0]}</p>
+                  <p className="text-xl text-white/70 mt-2">{topMangaGenre[1]} manga</p>
                 </div>
-                {mangaGenreItems.length > 0 && <ImageCarousel items={mangaGenreItems} maxItems={30} />}
+                {mangaGenreItems.length > 0 && <ImageCarousel items={mangaGenreItems} maxItems={30} showHover={true} showNames={true} />}
                 {otherMangaGenres.length > 0 && (
-                  <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3 animate-pop-in animation-delay-500">
                     {otherMangaGenres.map(([genreName, count], idx) => (
-                      <div key={idx} className="text-center p-3 border border-white/10 rounded-lg animate-pop-in" style={{ animationDelay: `${(idx + 1) * 100}ms` }}>
+                      <div key={idx} className="text-center p-3 border border-white/10 rounded-lg">
+                        <p className="text-sm text-[#9EFF00] font-bold mb-1">#{idx + 2}</p>
                         <p className="text-lg md:text-xl font-bold text-[#9EFF00]">{genreName}</p>
                         <p className="text-sm text-white/70">{count} manga</p>
                       </div>
@@ -1469,7 +1506,7 @@ export default function MALWrapped() {
               <>
                 <div className="mt-4 flex items-center justify-center gap-4 animate-pop-in animation-delay-200">
                   {topAuthorRepresentation && (
-                    <div className="w-20 md:w-28 aspect-square bg-black/50 border-2 border-[#9EFF00] rounded-lg overflow-visible group transition-all duration-300 hover:border-[#9EFF00]">
+                    <div className="w-20 md:w-28 aspect-square bg-black/50 border-2 border-[#9EFF00] rounded-lg overflow-hidden group transition-all duration-300 hover:border-[#9EFF00]">
                       {topAuthorRepresentation.node?.main_picture?.large && (
                         <img 
                           src={topAuthorRepresentation.node.main_picture.large} 
@@ -1481,15 +1518,17 @@ export default function MALWrapped() {
                     </div>
                   )}
                   <div className="text-left">
-                    <p className="text-4xl md:text-6xl font-bold text-[#9EFF00] animate-pop-in animation-delay-300">{topAuthor}</p>
-                    <p className="text-xl text-white/70 mt-2 animate-pop-in animation-delay-400">{stats.topAuthors[0][1]} manga</p>
+                    <p className="text-sm text-[#9EFF00] font-bold mb-2">#1</p>
+                    <p className="text-4xl md:text-6xl font-bold text-[#9EFF00]">{topAuthor}</p>
+                    <p className="text-xl text-white/70 mt-2">{stats.topAuthors[0][1]} manga</p>
                   </div>
                 </div>
-                {authorManga.length > 0 && <ImageCarousel items={authorManga} maxItems={30} />}
+                {authorManga.length > 0 && <ImageCarousel items={authorManga} maxItems={30} showHover={true} showNames={true} />}
                 {otherAuthors.length > 0 && (
-                  <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3 animate-pop-in animation-delay-500">
                     {otherAuthors.map(([authorName, count], idx) => (
-                      <div key={idx} className="text-center p-3 border border-white/10 rounded-lg animate-pop-in" style={{ animationDelay: `${(idx + 1) * 100}ms` }}>
+                      <div key={idx} className="text-center p-3 border border-white/10 rounded-lg">
+                        <p className="text-sm text-[#9EFF00] font-bold mb-1">#{idx + 2}</p>
                         <p className="text-lg md:text-xl font-bold text-[#9EFF00] truncate">{authorName}</p>
                         <p className="text-sm text-white/70">{count} manga</p>
                       </div>
@@ -1549,23 +1588,23 @@ export default function MALWrapped() {
             <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block animate-pop-in animation-delay-100">
               Hidden Gems & Didn't Land
             </h1>
-            <div className="mt-6 grid grid-cols-2 gap-6">
+            <div className="mt-6 grid grid-cols-2 gap-6 animate-pop-in animation-delay-200">
               <div>
-                <h2 className="text-xl md:text-2xl font-semibold uppercase tracking-wider text-white/80 mb-4 animate-pop-in animation-delay-200">
+                <h2 className="text-xl md:text-2xl font-semibold uppercase tracking-wider text-white/80 mb-4">
                   Hidden Gems
                 </h2>
                 {mangaHiddenGems.length > 0 ? (
                   <div className="space-y-3">
                     {mangaHiddenGems.map((item, idx) => (
-                      <div key={item.id} className="flex gap-3 animate-pop-in" style={{ animationDelay: `${(idx + 1) * 100}ms` }}>
-                        <div className="w-16 md:w-20 aspect-[2/3] bg-black/50 border border-white/10 rounded-lg overflow-visible group transition-all duration-300 hover:border-[#9EFF00] flex-shrink-0">
+                      <div key={item.id} className="flex gap-3">
+                        <div className="w-16 md:w-20 aspect-[2/3] bg-black/50 border border-white/10 rounded-lg overflow-hidden group transition-all duration-300 hover:border-[#9EFF00] flex-shrink-0">
                           {item.coverImage && (
                             <img src={item.coverImage} crossOrigin="anonymous" alt={item.title} className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-110" />
                           )}
                         </div>
                         <div className="flex-1 min-w-0 text-left">
-                          <h3 className="font-bold text-white text-sm md:text-base leading-tight truncate animate-pop-in">{item.title}</h3>
-                          <div className="flex items-center text-sm md:text-base text-yellow-300 mt-1 animate-pop-in">
+                          <h3 className="font-bold text-white text-sm md:text-base leading-tight truncate">{item.title}</h3>
+                          <div className="flex items-center text-sm md:text-base text-yellow-300 mt-1">
                             <span className="mr-1 shrink-0">★</span>
                             <span>{item.userRating.toFixed(1)}</span>
                           </div>
@@ -1578,21 +1617,21 @@ export default function MALWrapped() {
                 )}
               </div>
               <div>
-                <h2 className="text-xl md:text-2xl font-semibold uppercase tracking-wider text-white/80 mb-4 animate-pop-in animation-delay-200">
+                <h2 className="text-xl md:text-2xl font-semibold uppercase tracking-wider text-white/80 mb-4">
                   Didn't Land
                 </h2>
                 {mangaDidntLand.length > 0 ? (
                   <div className="space-y-3">
                     {mangaDidntLand.map((item, idx) => (
-                      <div key={item.id} className="flex gap-3 animate-pop-in" style={{ animationDelay: `${(idx + 1) * 100}ms` }}>
-                        <div className="w-16 md:w-20 aspect-[2/3] bg-black/50 border border-white/10 rounded-lg overflow-visible group transition-all duration-300 hover:border-[#9EFF00] flex-shrink-0">
+                      <div key={item.id} className="flex gap-3">
+                        <div className="w-16 md:w-20 aspect-[2/3] bg-black/50 border border-white/10 rounded-lg overflow-hidden group transition-all duration-300 hover:border-[#9EFF00] flex-shrink-0">
                           {item.coverImage && (
                             <img src={item.coverImage} crossOrigin="anonymous" alt={item.title} className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-110" />
                           )}
                         </div>
                         <div className="flex-1 min-w-0 text-left">
-                          <h3 className="font-bold text-white text-sm md:text-base leading-tight truncate animate-pop-in">{item.title}</h3>
-                          <div className="flex items-center text-sm md:text-base text-yellow-300 mt-1 animate-pop-in">
+                          <h3 className="font-bold text-white text-sm md:text-base leading-tight truncate">{item.title}</h3>
+                          <div className="flex items-center text-sm md:text-base text-yellow-300 mt-1">
                             <span className="mr-1 shrink-0">★</span>
                             <span>{item.userRating.toFixed(1)}</span>
                           </div>
@@ -1623,7 +1662,7 @@ export default function MALWrapped() {
             </h2>
             {plannedMangaItems.length > 0 ? (
               <div className="mt-6">
-                <ImageCarousel items={plannedMangaItems} maxItems={10} showHover={false} showNames={true} />
+                <ImageCarousel items={plannedMangaItems} maxItems={10} showHover={true} showNames={true} />
               </div>
             ) : (
               <div className="mt-8 text-center text-white/50">No planned manga found</div>
@@ -1640,42 +1679,42 @@ export default function MALWrapped() {
             <h1 className="relative z-10 text-[2.5rem] md:text-[3.25rem] leading-tight font-bold uppercase tracking-widest text-[#9EFF00] border-b-2 border-[#9EFF00] pb-2 px-2 inline-block animate-pop-in animation-delay-100">
               {stats.selectedYear === 'all' ? 'All Time' : stats.selectedYear} In Review
             </h1>
-            <div className="mt-6 grid grid-cols-2 gap-3 md:gap-4 text-white">
-              <div className="border border-white/20 p-3 rounded-lg col-span-1 flex flex-col animate-pop-in animation-delay-100">
-                <h3 className="text-lg font-bold uppercase text-[#9EFF00] mb-3 shrink-0 animate-pop-in">Top 5 Anime</h3>
+            <div className="mt-6 grid grid-cols-2 gap-3 md:gap-4 text-white animate-pop-in animation-delay-200">
+              <div className="border border-white/20 p-3 rounded-lg col-span-1 flex flex-col">
+                <h3 className="text-lg font-bold uppercase text-[#9EFF00] mb-3 shrink-0">Top 5 Anime</h3>
                 <div className="space-y-2 min-h-0">
                   {stats.topRated.slice(0, 5).map((a, i) => (
-                    <p key={a.node.id} className="bg-white/5 py-2 px-3 rounded truncate text-sm animate-pop-in" style={{ animationDelay: `${i * 100}ms` }}>
+                    <p key={a.node.id} className="bg-white/5 py-2 px-3 rounded truncate text-sm">
                       <span className="font-bold text-[#9EFF00] w-6 inline-block">{i+1}.</span>{a.node.title}
                     </p>
                   ))}
                 </div>
               </div>
-              <div className="border border-white/20 p-3 rounded-lg col-span-1 flex flex-col animate-pop-in animation-delay-200">
-                <h3 className="text-lg font-bold uppercase text-[#9EFF00] mb-3 shrink-0 animate-pop-in">Top 5 Manga</h3>
+              <div className="border border-white/20 p-3 rounded-lg col-span-1 flex flex-col">
+                <h3 className="text-lg font-bold uppercase text-[#9EFF00] mb-3 shrink-0">Top 5 Manga</h3>
                 <div className="space-y-2 min-h-0">
                   {stats.topManga.slice(0, 5).map((m, i) => (
-                    <p key={m.node.id} className="bg-white/5 py-2 px-3 rounded truncate text-sm animate-pop-in" style={{ animationDelay: `${i * 100}ms` }}>
+                    <p key={m.node.id} className="bg-white/5 py-2 px-3 rounded truncate text-sm">
                       <span className="font-bold text-[#9EFF00] w-6 inline-block">{i+1}.</span>{m.node.title}
                     </p>
                   ))}
                 </div>
               </div>
-              <div className="border border-white/20 p-3 rounded-lg col-span-1 animate-pop-in animation-delay-300">
-                <p className="text-sm uppercase text-white/70 mb-2 animate-pop-in">Episodes Watched</p>
-                <p className="text-2xl md:text-3xl font-bold text-white animate-pop-in">
+              <div className="border border-white/20 p-3 rounded-lg col-span-1">
+                <p className="text-sm uppercase text-white/70 mb-2">Episodes Watched</p>
+                <p className="text-2xl md:text-3xl font-bold text-white">
                   <AnimatedNumber value={stats.totalEpisodes || 0} duration={1000} />
                 </p>
               </div>
-              <div className="border border-white/20 p-3 rounded-lg col-span-1 animate-pop-in animation-delay-400">
-                <p className="text-sm uppercase text-white/70 mb-2 animate-pop-in">Chapters Read</p>
-                <p className="text-2xl md:text-3xl font-bold text-white animate-pop-in">
+              <div className="border border-white/20 p-3 rounded-lg col-span-1">
+                <p className="text-sm uppercase text-white/70 mb-2">Chapters Read</p>
+                <p className="text-2xl md:text-3xl font-bold text-white">
                   <AnimatedNumber value={stats.totalChapters || 0} duration={1000} />
                 </p>
               </div>
-              <div className="border border-white/20 p-3 rounded-lg col-span-2 animate-pop-in animation-delay-500">
-                <p className="text-sm uppercase text-white/70 mb-2 animate-pop-in">Total Time Spent</p>
-                <p className="text-3xl md:text-4xl font-bold text-white animate-pop-in">
+              <div className="border border-white/20 p-3 rounded-lg col-span-2">
+                <p className="text-sm uppercase text-white/70 mb-2">Total Time Spent</p>
+                <p className="text-3xl md:text-4xl font-bold text-white">
                   {totalDays > 0 ? (
                     <>
                       <AnimatedNumber value={totalDays} duration={1000} /> Days
@@ -1688,13 +1727,13 @@ export default function MALWrapped() {
                   )}
                 </p>
               </div>
-              <div className="border border-white/20 p-3 rounded-lg col-span-1 animate-pop-in animation-delay-600">
-                <p className="text-sm uppercase text-white/70 mb-2 animate-pop-in">Top Studio</p>
-                <p className="text-xl md:text-2xl font-bold text-white truncate animate-pop-in">{stats.topStudios?.[0]?.[0] || 'N/A'}</p>
+              <div className="border border-white/20 p-3 rounded-lg col-span-1">
+                <p className="text-sm uppercase text-white/70 mb-2">Top Studio</p>
+                <p className="text-xl md:text-2xl font-bold text-white truncate">{stats.topStudios?.[0]?.[0] || 'N/A'}</p>
               </div>
-              <div className="border border-white/20 p-3 rounded-lg col-span-1 animate-pop-in animation-delay-700">
-                <p className="text-sm uppercase text-white/70 mb-2 animate-pop-in">Top Author</p>
-                <p className="text-xl md:text-2xl font-bold text-white truncate animate-pop-in">{stats.topAuthors?.[0]?.[0] || 'N/A'}</p>
+              <div className="border border-white/20 p-3 rounded-lg col-span-1">
+                <p className="text-sm uppercase text-white/70 mb-2">Top Author</p>
+                <p className="text-xl md:text-2xl font-bold text-white truncate">{stats.topAuthors?.[0]?.[0] || 'N/A'}</p>
               </div>
             </div>
           </SlideLayout>
@@ -1707,35 +1746,47 @@ export default function MALWrapped() {
 
   return (
     <main className="bg-[#0A0A0A] text-white h-screen flex items-center justify-center p-2 selection:bg-[#9EFF00] selection:text-black relative overflow-hidden moving-grid-bg">
-      {/* Background floating elements - outside the card on grid bg */}
+      {/* Background floating anime elements - outside the card on grid bg */}
       {stats && isAuthenticated && slides.length > 0 && (
-        <div className="absolute inset-0 pointer-events-none opacity-10 overflow-hidden" style={{ zIndex: 0 }}>
-          {Array.from({ length: 6 }).map((_, idx) => {
-            const positions = [
-              { top: '10%', left: '5%', rotate: -12 },
-              { top: '50%', right: '5%', rotate: 15 },
-              { bottom: '10%', left: '20%', rotate: -8 },
-              { bottom: '15%', right: '15%', rotate: 10 },
-              { top: '30%', left: '15%', rotate: 20 },
-              { bottom: '30%', right: '10%', rotate: -15 }
-            ];
-            const pos = positions[idx % positions.length];
-            const shapes = ['●', '◆', '▲', '■', '★', '✦'];
-            return (
-              <div
-                key={idx}
-                className="absolute text-[#9EFF00] text-4xl md:text-6xl"
-                style={{
-                  ...pos,
-                  transform: `rotate(${pos.rotate}deg)`,
-                  animation: `float 8s ease-in-out infinite`,
-                  animationDelay: `${idx * 0.8}s`
-                }}
-              >
-                {shapes[idx % shapes.length]}
-              </div>
-            );
-          })}
+        <div className="absolute inset-0 pointer-events-none opacity-5 overflow-hidden" style={{ zIndex: 0 }}>
+          {(() => {
+            const slideId = slides[currentSlide]?.id;
+            let bgItems = [];
+            if (slideId?.includes('anime') || slideId === 'top_genre' || slideId === 'top_studio' || slideId === 'seasonal_highlights') {
+              bgItems = stats.thisYearAnime?.slice(0, 6) || [];
+            } else if (slideId?.includes('manga') || slideId === 'top_manga_genre' || slideId === 'top_author') {
+              bgItems = (mangaList || []).slice(0, 6);
+            } else {
+              bgItems = [...(stats.thisYearAnime?.slice(0, 3) || []), ...(mangaList?.slice(0, 3) || [])];
+            }
+            return bgItems.map((item, idx) => {
+              const image = item.node?.main_picture?.large || item.node?.main_picture?.medium;
+              if (!image) return null;
+              const positions = [
+                { top: '10%', left: '5%', rotate: -12 },
+                { top: '50%', right: '5%', rotate: 15 },
+                { bottom: '10%', left: '20%', rotate: -8 },
+                { bottom: '15%', right: '15%', rotate: 10 },
+                { top: '30%', left: '15%', rotate: 20 },
+                { bottom: '30%', right: '10%', rotate: -15 }
+              ];
+              const pos = positions[idx % positions.length];
+              return (
+                <img
+                  key={idx}
+                  src={image}
+                  alt=""
+                  className="absolute w-24 h-36 md:w-32 md:h-48 object-cover rounded-lg blur-md"
+                  style={{
+                    ...pos,
+                    transform: `rotate(${pos.rotate}deg)`,
+                    animation: `float 8s ease-in-out infinite`,
+                    animationDelay: `${idx * 0.8}s`
+                  }}
+                />
+              );
+            });
+          })()}
         </div>
       )}
       <div ref={slideRef} className={`w-full max-w-5xl h-full bg-[#101010] border-2 border-white/10 rounded-xl shadow-2xl shadow-black/50 flex flex-col justify-center relative ${isCapturing ? 'capturing overflow-visible' : 'overflow-hidden'}`} style={{ zIndex: 10 }}>
