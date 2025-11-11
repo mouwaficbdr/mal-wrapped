@@ -788,17 +788,17 @@ export default function MALWrapped() {
             <h2 className="body-lg font-semibold uppercase text-white/80 mt-2 sm:mt-3 animate-fade-slide-up whitespace-nowrap">
               The {type === 'anime' ? 'series' : 'manga'} you rated the highest.
             </h2>
-            <div className="mt-2 flex flex-col gap-2 w-full justify-center">
+            <div className="mt-2 flex flex-col gap-3 w-full max-w-full overflow-hidden">
               {(() => {
                 const [featured, ...others] = top5Formatted;
                 return (
                   <>
-                    <div className="bg-white/5 border border-white/10 rounded-lg overflow-hidden group transition-all duration-300 hover:border-[#9EFF00]/50 flex flex-row relative">
-                      <div className="absolute top-2.5 right-2.5 z-10 w-9 h-9 bg-black text-white rounded-full flex items-center justify-center font-bold text-xl">1</div>
+                    <div className="bg-white/5 border border-white/10 rounded-lg overflow-hidden group transition-all duration-300 hover:border-[#9EFF00]/50 flex flex-row relative w-full">
+                      <div className="absolute top-2.5 right-2.5 z-10 w-7 h-7 sm:w-9 sm:h-9 bg-black text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-xl">1</div>
                       {(() => {
                         const featuredUrl = featured.malId ? `https://myanimelist.net/anime/${featured.malId}` : (featured.mangaId ? `https://myanimelist.net/manga/${featured.mangaId}` : null);
                         const featuredImage = (
-                          <div className="w-32 md:w-40 flex-shrink-0 aspect-[2/3] bg-transparent border border-white/10 rounded-lg overflow-hidden group transition-all duration-300 hover:border-[#9EFF00] hover:border-2" style={{ boxSizing: 'border-box' }}>
+                          <div className="w-24 sm:w-32 md:w-40 flex-shrink-0 aspect-[2/3] bg-transparent border border-white/10 rounded-lg overflow-hidden group transition-all duration-300 hover:border-[#9EFF00] hover:border-2" style={{ boxSizing: 'border-box' }}>
                             {featured.coverImage && (
                               <img src={featured.coverImage} crossOrigin="anonymous" alt={featured.title} className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-110" />
                             )}
@@ -810,37 +810,37 @@ export default function MALWrapped() {
                           </a>
                         ) : featuredImage;
                       })()}
-                      <div className="p-3 flex flex-col justify-center flex-grow min-w-0">
-                        <p className="text-base uppercase tracking-widest text-[#9EFF00] font-bold">#1 Favorite</p>
-                        <h3 className="font-bold text-white text-lg md:text-2xl mt-1 leading-tight truncate">{featured.title}</h3>
-                        {featured.studio && <p className="text-base md:text-lg text-[#9EFF00] truncate">{featured.studio}</p>}
-                        {featured.author && <p className="text-base md:text-lg text-[#9EFF00] truncate">{featured.author}</p>}
-                        <div className="flex items-center text-lg md:text-xl text-yellow-300 mt-2">
-                          <span className="mr-2">★</span>
+                      <div className="p-2 sm:p-3 flex flex-col justify-center flex-grow min-w-0 overflow-hidden">
+                        <p className="text-xs sm:text-base uppercase tracking-widest text-[#9EFF00] font-bold">#1 Favorite</p>
+                        <h3 className="font-bold text-white text-sm sm:text-lg md:text-2xl mt-1 leading-tight truncate">{featured.title}</h3>
+                        {featured.studio && <p className="text-xs sm:text-base md:text-lg text-[#9EFF00] truncate">{featured.studio}</p>}
+                        {featured.author && <p className="text-xs sm:text-base md:text-lg text-[#9EFF00] truncate">{featured.author}</p>}
+                        <div className="flex items-center text-sm sm:text-lg md:text-xl text-yellow-300 mt-1 sm:mt-2">
+                          <span className="mr-1 sm:mr-2">★</span>
                           <span>{featured.userRating.toFixed(1)} / 10</span>
                         </div>
                         {featured.genres.length > 0 && (
-                          <div className="mt-2 md:mt-3 flex flex-wrap gap-2">
+                          <div className="mt-1 sm:mt-2 md:mt-3 flex flex-wrap gap-1 sm:gap-2">
                             {featured.genres.slice(0, 2).map(g => (
-                              <span key={g} className="text-base uppercase tracking-wider bg-white/10 text-white/80 px-2 py-1 rounded">{g}</span>
+                              <span key={g} className="text-xs sm:text-base uppercase tracking-wider bg-white/10 text-white/80 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">{g}</span>
                             ))}
                           </div>
                         )}
                       </div>
                     </div>
                     {others.length > 0 && (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 w-full">
                         {others.map((item, index) => {
                           const malUrl = item.malId ? `https://myanimelist.net/anime/${item.malId}` : (item.mangaId ? `https://myanimelist.net/manga/${item.mangaId}` : null);
                           const itemContent = (
-                            <div className="flex flex-col">
-                              <div className="bg-transparent border border-white/10 rounded-lg overflow-hidden group aspect-[2/3] relative transition-all duration-300 hover:border-[#9EFF00] hover:border-2" style={{ boxSizing: 'border-box' }}>
-                                <div className="absolute top-1.5 right-1.5 z-10 w-7 h-7 bg-black text-white rounded-full flex items-center justify-center font-bold body-sm">{index + 2}</div>
+                            <div className="flex flex-col w-full">
+                              <div className="bg-transparent border border-white/10 rounded-lg overflow-hidden group aspect-[2/3] relative transition-all duration-300 hover:border-[#9EFF00] hover:border-2 w-full" style={{ boxSizing: 'border-box' }}>
+                                <div className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 z-10 w-5 h-5 sm:w-7 sm:h-7 bg-black text-white rounded-full flex items-center justify-center font-bold text-xs sm:text-sm">{index + 2}</div>
                                 {item.coverImage && (
                                   <img src={item.coverImage} alt={item.title} crossOrigin="anonymous" className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-110" />
                                 )}
                               </div>
-                              <div className="mt-2 text-left">
+                              <div className="mt-1.5 sm:mt-2 text-left w-full">
                                 <h3 className="body-sm font-bold text-white truncate leading-tight">{item.title}</h3>
                                 <div className="flex items-center body-sm text-yellow-300">
                                   <span className="mr-1 shrink-0">★</span>
@@ -850,7 +850,7 @@ export default function MALWrapped() {
                             </div>
                           );
                           return (
-                            <div key={item.id}>
+                            <div key={item.id} className="w-full">
                               {malUrl ? (
                                 <a href={malUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
                                   {itemContent}
@@ -891,7 +891,7 @@ export default function MALWrapped() {
       </div>
     );
 
-    // Image Carousel Component - Grid on mobile, carousel on desktop
+    // Image Carousel Component - Always carousel on all screen sizes
     const ImageCarousel = ({ items, maxItems = 20, showHover = true, showNames = false }) => {
       const [isHovered, setIsHovered] = useState(false);
       const [hoveredItem, setHoveredItem] = useState(null);
@@ -938,14 +938,26 @@ export default function MALWrapped() {
       if (visibleItems.length === 0) return null;
 
       return (
-        <>
-          {/* Mobile Grid */}
-          <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 md:hidden gap-3">
-            {visibleItems.map((item, idx) => {
+        <div 
+          className="mt-6 overflow-hidden relative"
+          onMouseEnter={() => showHover && setIsHovered(true)}
+          onMouseLeave={() => {
+            showHover && setIsHovered(false);
+            setHoveredItem(null);
+          }}
+        >
+          <div 
+            className="flex"
+            style={{ 
+              transform: `translateX(-${scrollPosition}%)`,
+              willChange: 'transform'
+            }}
+          >
+            {duplicatedItems.map((item, idx) => {
               const malUrl = getMALUrl(item);
-              const itemContent = (
-                <div className="flex flex-col">
-                  <div className="aspect-[2/3] bg-transparent border border-white/10 rounded-lg overflow-hidden transition-all duration-300 relative group-hover:border-[#9EFF00] group-hover:border-2">
+              const content = (
+                <div className="flex flex-col flex-shrink-0 mx-1">
+                  <div className="aspect-[2/3] w-20 sm:w-24 md:w-32 bg-transparent border border-white/10 rounded-lg overflow-hidden transition-all duration-300 relative group-hover:border-[#9EFF00] group-hover:border-2">
                     {item.coverImage && (
                       <img 
                         src={item.coverImage} 
@@ -953,6 +965,16 @@ export default function MALWrapped() {
                         crossOrigin="anonymous" 
                         className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-110"
                       />
+                    )}
+                    {showHover && hoveredItem === (idx % visibleItems.length) && item.title && (
+                      <div className="absolute inset-0 bg-black/70 flex items-center justify-center p-2 z-10 transition-opacity duration-300 rounded-lg">
+                        <p className="text-white body-sm font-bold text-center leading-tight">{item.title}</p>
+                        {item.userRating && (
+                          <div className="absolute bottom-2 right-2 text-yellow-300 body-sm font-bold">
+                            ★ {item.userRating.toFixed(1)}
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
                   {showNames && item.title && (
@@ -967,91 +989,25 @@ export default function MALWrapped() {
               );
               
               return (
-                <div key={idx} className="group">
+                <div 
+                  key={idx} 
+                  className="relative group flex-shrink-0" 
+                  style={{ width: `${itemWidth}%` }}
+                  onMouseEnter={() => showHover && setHoveredItem(idx % visibleItems.length)}
+                  onMouseLeave={() => showHover && setHoveredItem(null)}
+                >
                   {malUrl ? (
                     <a href={malUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
-                      {itemContent}
+                      {content}
                     </a>
                   ) : (
-                    itemContent
+                    content
                   )}
                 </div>
               );
             })}
           </div>
-          
-          {/* Desktop Carousel */}
-          <div 
-            className="mt-6 overflow-hidden relative hidden md:block"
-            onMouseEnter={() => showHover && setIsHovered(true)}
-            onMouseLeave={() => {
-              showHover && setIsHovered(false);
-              setHoveredItem(null);
-            }}
-          >
-            <div 
-              className="flex"
-              style={{ 
-                transform: `translateX(-${scrollPosition}%)`,
-                willChange: 'transform'
-              }}
-            >
-              {duplicatedItems.map((item, idx) => {
-                const malUrl = getMALUrl(item);
-                const content = (
-                  <div className="flex flex-col mx-1">
-                    <div className="aspect-[2/3] w-32 bg-transparent border border-white/10 rounded-lg overflow-hidden transition-all duration-300 relative group-hover:border-[#9EFF00] group-hover:border-2">
-                      {item.coverImage && (
-                        <img 
-                          src={item.coverImage} 
-                          alt={item.title || ''} 
-                          crossOrigin="anonymous" 
-                          className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-110"
-                        />
-                      )}
-                      {showHover && hoveredItem === (idx % visibleItems.length) && item.title && (
-                        <div className="absolute inset-0 bg-black/70 flex items-center justify-center p-2 z-10 transition-opacity duration-300 rounded-lg">
-                          <p className="text-white body-sm font-bold text-center leading-tight">{item.title}</p>
-                          {item.userRating && (
-                            <div className="absolute bottom-2 right-2 text-yellow-300 body-sm font-bold">
-                              ★ {item.userRating.toFixed(1)}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                    {showNames && item.title && (
-                      <div className="mt-2 text-left">
-                        <p className="body-sm font-bold text-white truncate">{item.title}</p>
-                        {item.userRating && (
-                          <p className="body-sm text-yellow-300">★ {item.userRating.toFixed(1)}</p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-                
-                return (
-                  <div 
-                    key={idx} 
-                    className="flex-shrink-0 relative group" 
-                    style={{ width: `${itemWidth}%` }}
-                    onMouseEnter={() => showHover && setHoveredItem(idx % visibleItems.length)}
-                    onMouseLeave={() => showHover && setHoveredItem(null)}
-                  >
-                    {malUrl ? (
-                      <a href={malUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
-                        {content}
-                      </a>
-                    ) : (
-                      content
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </>
+        </div>
       );
     };
 
@@ -1316,26 +1272,7 @@ export default function MALWrapped() {
                   </div>
                 </div>
                 {studioAnime.length > 0 && (
-                  studioAnime.length < 4 ? (
-                    <div className="mt-4 sm:mt-6 flex justify-center gap-3 sm:gap-4 animate-fade-slide-up">
-                      {studioAnime.map((item, idx) => (
-                        <div key={idx} className="flex flex-col items-center">
-                          <div className="w-24 md:w-32 aspect-[2/3] bg-transparent border border-white/10 rounded-lg overflow-hidden group transition-all duration-300 hover:border-[#9EFF00] hover:border-2" style={{ boxSizing: 'border-box' }}>
-                            {item.coverImage && (
-                              <img src={item.coverImage} crossOrigin="anonymous" alt={item.title} className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-110" />
-                            )}
-                          </div>
-                          {item.title && (
-                            <div className="mt-2 text-center max-w-[100px] md:max-w-[128px]">
-                              <p className="text-xs text-white font-bold truncate">{item.title}</p>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <ImageCarousel items={studioAnime} maxItems={30} showHover={true} showNames={false} />
-                  )
+                  <ImageCarousel items={studioAnime} maxItems={30} showHover={true} showNames={false} />
                 )}
                 {otherStudios.length > 0 && (
                   <div className="mt-4 sm:mt-6 grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
@@ -1694,42 +1631,7 @@ export default function MALWrapped() {
                   </div>
                 </div>
                 {authorManga.length > 0 && (
-                  authorManga.length < 4 ? (
-                    <div className="mt-4 sm:mt-6 flex justify-center gap-3 sm:gap-4 animate-fade-slide-up">
-                      {authorManga.map((item, idx) => {
-                        const malUrl = item.mangaId ? `https://myanimelist.net/manga/${item.mangaId}` : null;
-                        return (
-                          <div key={idx} className="flex flex-col items-center group">
-                            {malUrl ? (
-                              <a href={malUrl} target="_blank" rel="noopener noreferrer" className="w-24 md:w-32 aspect-[2/3] bg-transparent border border-white/10 rounded-lg overflow-hidden transition-all duration-300 hover:border-[#9EFF00] hover:border-2 cursor-pointer relative" style={{ boxSizing: 'border-box' }}>
-                                {item.coverImage && (
-                                  <img src={item.coverImage} crossOrigin="anonymous" alt={item.title} className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-110" />
-                                )}
-                                {item.title && (
-                                  <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-2 rounded-lg">
-                                    <p className="text-white body-sm font-bold text-center leading-tight">{item.title}</p>
-                                  </div>
-                                )}
-                              </a>
-                            ) : (
-                              <div className="w-24 md:w-32 aspect-[2/3] bg-transparent border border-white/10 rounded-lg overflow-hidden transition-all duration-300 hover:border-[#9EFF00] hover:border-2 relative" style={{ boxSizing: 'border-box' }}>
-                                {item.coverImage && (
-                                  <img src={item.coverImage} crossOrigin="anonymous" alt={item.title} className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-110" />
-                                )}
-                                {item.title && (
-                                  <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-2 rounded-lg">
-                                    <p className="text-white body-sm font-bold text-center leading-tight">{item.title}</p>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <ImageCarousel items={authorManga} maxItems={30} showHover={true} showNames={false} />
-                  )
+                  <ImageCarousel items={authorManga} maxItems={30} showHover={true} showNames={false} />
                 )}
                 {otherAuthors.length > 0 && (
                   <div className="mt-4 sm:mt-6 grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
