@@ -54,7 +54,7 @@
   /* Body Styles - Hanken Grotesk */
   .body-lg {
     font-family: 'Hanken Grotesk', sans-serif;
-    font-size: 1.125rem;
+    font-size: 1rem;
     font-weight: 500;
     line-height: 1.6;
   }
@@ -172,12 +172,74 @@
     }
   }
 
+  @keyframes fade-slide-up {
+    0% {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fade-slide-down {
+    0% {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   .animate-slide-in {
     animation: slide-in 0.6s ease-out;
   }
 
   .animate-fade-in {
-    animation: fade-in 0.8s ease-out;
+    animation: fade-in 0.6s ease-out;
+    animation-fill-mode: both;
+  }
+
+  .animate-fade-slide-up {
+    animation: fade-slide-up 0.6s ease-out;
+    animation-fill-mode: both;
+  }
+
+  .animate-fade-slide-down {
+    animation: fade-slide-down 0.6s ease-out;
+    animation-fill-mode: both;
+  }
+  
+  /* Elements are in final position by default - animation only plays on mount when not capturing */
+  .animate-fade-slide-up {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  .animate-fade-slide-down {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  /* Only animate when not capturing - use animation to override default */
+  .slide-card:not(.capturing) .animate-fade-slide-up {
+    animation: fade-slide-up 0.6s ease-out forwards;
+  }
+  
+  .slide-card:not(.capturing) .animate-fade-slide-down {
+    animation: fade-slide-down 0.6s ease-out forwards;
+  }
+  
+  /* Stop all animations when capturing - ensure final state */
+  .slide-card.capturing .animate-fade-slide-up,
+  .slide-card.capturing .animate-fade-slide-down,
+  .slide-card.capturing .animate-fade-in {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: translateY(0) !important;
   }
 
   @keyframes float {
