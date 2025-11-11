@@ -841,9 +841,9 @@ export default function MALWrapped() {
                                 )}
                               </div>
                               <div className="mt-1 text-left w-full min-w-0">
-                                <h3 className="text-[10px] sm:text-xs font-bold text-white truncate leading-tight">{item.title}</h3>
-                                <div className="flex items-center text-[10px] sm:text-xs text-yellow-300">
-                                  <span className="mr-0.5 shrink-0">★</span>
+                                <h3 className="font-bold text-white text-xs sm:text-sm md:text-base truncate leading-tight">{item.title}</h3>
+                                <div className="flex items-center text-xs sm:text-sm md:text-base text-yellow-300">
+                                  <span className="mr-0.5 sm:mr-1 shrink-0">★</span>
                                   <span>{item.userRating.toFixed(1)}</span>
                                 </div>
                               </div>
