@@ -1349,10 +1349,7 @@ export default function MALWrapped() {
                             <p className="font-bold text-white text-xs sm:text-sm md:text-base truncate">{highlight.node?.title}</p>
                             <p className="text-xs text-[#9EFF00] truncate">{highlight.node?.studios?.[0]?.name || ''}</p>
                             <p className="text-xs sm:text-sm md:text-base text-yellow-300 mt-1">★ {highlight.list_status?.score || 'N/A'}</p>
-                            <div className="body-sm text-white/70 space-y-0.5 mt-1">
-                              <p>{seasonData.totalEpisodes} episodes</p>
-                              <p>{seasonData.totalHours} hours</p>
-                            </div>
+                            <p className="body-sm text-white/70 mt-1">{seasonData.totalAnime} anime</p>
                           </div>
                         </div>
                       </>
