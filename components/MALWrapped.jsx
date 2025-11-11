@@ -1834,7 +1834,7 @@ export default function MALWrapped() {
   }
 
   return (
-    <main className="bg-[#0A0A0A] text-white h-screen w-screen flex items-center justify-center p-2 selection:bg-[#9EFF00] selection:text-black relative overflow-hidden moving-grid-bg">
+    <main className="bg-[#0A0A0A] text-white w-screen flex items-center justify-center p-2 selection:bg-[#9EFF00] selection:text-black relative overflow-hidden moving-grid-bg" style={{ height: '100dvh' }}>
       {/* Background floating anime elements - outside the card on grid bg */}
       {stats && isAuthenticated && slides.length > 0 && (
         <div className="absolute inset-0 pointer-events-none opacity-5 overflow-hidden" style={{ zIndex: 0 }}>
@@ -1877,7 +1877,7 @@ export default function MALWrapped() {
           })()}
         </div>
       )}
-      <div ref={slideRef} className={`w-full max-w-5xl h-full max-h-full bg-[#101010] border-2 border-white/10 rounded-xl shadow-2xl shadow-black/50 flex flex-col justify-center relative overflow-hidden ${isCapturing ? 'capturing' : ''}`} style={{ zIndex: 10 }}>
+      <div ref={slideRef} className={`w-full max-w-5xl bg-[#101010] border-2 border-white/10 rounded-xl shadow-2xl shadow-black/50 flex flex-col justify-center relative overflow-hidden ${isCapturing ? 'capturing' : ''}`} style={{ zIndex: 10, height: '100dvh' }}>
         <div className="z-10 w-full h-full flex flex-col items-center justify-center">
           {error && (
             <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500/90 text-white px-6 py-3 rounded-lg z-50">
