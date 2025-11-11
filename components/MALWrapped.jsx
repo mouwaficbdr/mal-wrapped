@@ -568,14 +568,13 @@ export default function MALWrapped() {
     setIsCapturing(true);
     try {
       // Wait for all animations to complete and settle
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Dynamically import html2canvas
       const html2canvas = (await import('html2canvas')).default;
       
       // Get the main card container
       const cardElement = slideRef.current;
-      const rect = cardElement.getBoundingClientRect();
       
       // Capture the entire card with final positions
       const canvas = await html2canvas(cardElement, {
@@ -583,31 +582,43 @@ export default function MALWrapped() {
         scale: 2,
         logging: false,
         useCORS: true,
-        allowTaint: true,
-        width: rect.width,
-        height: rect.height,
-        x: 0,
-        y: 0,
-        scrollX: 0,
-        scrollY: 0,
-        windowWidth: window.innerWidth,
-        windowHeight: window.innerHeight,
-        onclone: (clonedDoc) => {
+        allowTaint: false,
+        removeContainer: false,
+        onclone: (clonedDoc, element) => {
           // Stop all animations and transitions in cloned document
           const style = clonedDoc.createElement('style');
           style.textContent = `
             * {
               animation: none !important;
               transition: none !important;
+              transform: none !important;
             }
             .slide-card {
               transform: none !important;
               position: relative !important;
               top: 0 !important;
               left: 0 !important;
+              margin: 0 !important;
+              padding: 0 !important;
+            }
+            body, html {
+              margin: 0 !important;
+              padding: 0 !important;
+              overflow: visible !important;
             }
           `;
           clonedDoc.head.appendChild(style);
+          
+          // Reset all transforms and positions
+          const allElements = clonedDoc.querySelectorAll('*');
+          allElements.forEach(el => {
+            if (el.style) {
+              el.style.transform = 'none';
+              el.style.position = 'static';
+              el.style.top = 'auto';
+              el.style.left = 'auto';
+            }
+          });
           
           // Ensure all images are loaded
           const images = clonedDoc.querySelectorAll('img');
@@ -726,7 +737,7 @@ export default function MALWrapped() {
           <div className="text-center relative overflow-hidden animate-pop-in">
             <h1 className="text-3xl md:text-4xl font-bold uppercase text-[#9EFF00] mb-6">Your #1 Favorite</h1>
             <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8">
-              <div className="w-32 md:w-48 aspect-[2/3] bg-black/50 border-2 border-[#9EFF00] rounded-lg overflow-hidden group transition-all duration-300 hover:border-[#9EFF00]">
+              <div className="w-32 md:w-48 aspect-[2/3] bg-black/50 border-2 border-[#9EFF00] rounded-lg overflow-hidden group transition-all duration-300" style={{ boxSizing: 'border-box' }}>
                 {topItem.node?.main_picture?.large && (
                   <img 
                     src={topItem.node.main_picture.large} 
@@ -768,7 +779,7 @@ export default function MALWrapped() {
                   <>
                     <div className="bg-white/5 border border-white/10 rounded-lg overflow-hidden group transition-all duration-300 hover:border-[#9EFF00]/50 flex flex-row relative">
                       <div className="absolute top-2.5 right-2.5 z-10 w-9 h-9 bg-black text-white rounded-full flex items-center justify-center font-bold text-xl">1</div>
-                      <div className="w-32 md:w-40 flex-shrink-0 aspect-[2/3] bg-black/50 border border-white/10 rounded-lg overflow-hidden group transition-all duration-300 hover:border-[#9EFF00]">
+                      <div className="w-32 md:w-40 flex-shrink-0 aspect-[2/3] bg-black/50 border border-white/10 rounded-lg overflow-hidden group transition-all duration-300 hover:border-[#9EFF00] hover:border-2" style={{ boxSizing: 'border-box' }}>
                         {featured.coverImage && (
                           <img src={featured.coverImage} crossOrigin="anonymous" alt={featured.title} className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-110" />
                         )}
@@ -795,7 +806,7 @@ export default function MALWrapped() {
                       <div className="grid grid-cols-4 gap-2 md:gap-3">
                         {others.map((item, index) => (
                           <div key={item.id}>
-                            <div className="bg-black/50 border border-white/10 rounded-lg overflow-hidden group aspect-[4/5] relative transition-all duration-300 hover:border-[#9EFF00]">
+                            <div className="bg-black/50 border border-white/10 rounded-lg overflow-hidden group aspect-[4/5] relative transition-all duration-300 hover:border-[#9EFF00] hover:border-2" style={{ boxSizing: 'border-box' }}>
                                 <div className="absolute top-1.5 right-1.5 z-10 w-7 h-7 bg-black text-white rounded-full flex items-center justify-center font-bold text-base">{index + 2}</div>
                                 {item.coverImage && (
                                   <img src={item.coverImage} alt={item.title} crossOrigin="anonymous" className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-110" />
@@ -901,7 +912,7 @@ export default function MALWrapped() {
                 onMouseEnter={() => showHover && setHoveredItem(idx % visibleItems.length)}
                 onMouseLeave={() => showHover && setHoveredItem(null)}
               >
-                <div className={`mx-1 aspect-[2/3] bg-black/50 border border-white/10 rounded-lg overflow-hidden transition-all duration-300 ${showHover ? 'group-hover:border-[#9EFF00]' : ''}`}>
+                <div className={`mx-1 aspect-[2/3] bg-black/50 border border-white/10 rounded-lg overflow-hidden transition-all duration-300 ${showHover ? 'group-hover:border-[#9EFF00] group-hover:border-2' : ''}`} style={{ boxSizing: 'border-box' }}>
                   {item.coverImage && (
                     <img 
                       src={item.coverImage} 
@@ -954,7 +965,7 @@ export default function MALWrapped() {
 
     const MediaCard = ({ item, rank }) => (
       <div className="flex flex-col group">
-        <div className="bg-black/50 border border-white/10 rounded-lg overflow-hidden group aspect-[2/3] relative transition-all duration-300 hover:border-[#9EFF00]">
+        <div className="bg-black/50 border border-white/10 rounded-lg overflow-hidden group aspect-[2/3] relative transition-all duration-300 hover:border-[#9EFF00] hover:border-2" style={{ boxSizing: 'border-box' }}>
           {rank && (
             <div className="absolute top-2 right-2 z-10 w-8 h-8 bg-black text-white rounded-full flex items-center justify-center font-bold text-lg">
               {rank}
@@ -1119,18 +1130,6 @@ export default function MALWrapped() {
             {topStudio ? (
               <>
                 <div className="mt-4 flex items-center justify-center gap-4 animate-pop-in animation-delay-200">
-                  {topStudioRepresentation && (
-                    <div className="w-20 md:w-28 aspect-square bg-black/50 border-2 border-[#9EFF00] rounded-lg overflow-hidden group transition-all duration-300 hover:border-[#9EFF00]">
-                      {topStudioRepresentation.node?.main_picture?.large && (
-                        <img 
-                          src={topStudioRepresentation.node.main_picture.large} 
-                          alt={topStudio} 
-                          crossOrigin="anonymous" 
-                          className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-110" 
-                        />
-                      )}
-                    </div>
-                  )}
                   <div className="text-left">
                     <p className="text-sm text-[#9EFF00] font-bold mb-2">#1</p>
                     <p className="text-4xl md:text-6xl font-bold text-[#9EFF00]">{topStudio}</p>
@@ -1174,7 +1173,7 @@ export default function MALWrapped() {
                     {highlight && (
                       <>
                         <div className="flex gap-3 mb-3">
-                          <div className="w-16 aspect-[2/3] bg-black/50 border border-white/10 rounded overflow-hidden flex-shrink-0 group transition-all duration-300 hover:border-[#9EFF00]">
+                          <div className="w-16 aspect-[2/3] bg-black/50 border border-white/10 rounded overflow-hidden flex-shrink-0 group transition-all duration-300 hover:border-[#9EFF00] hover:border-2" style={{ boxSizing: 'border-box' }}>
                             {highlight.node?.main_picture?.large && (
                               <img src={highlight.node.main_picture.large} alt={highlight.node.title} crossOrigin="anonymous" className="w-full h-full object-cover rounded transition-transform duration-300 group-hover:scale-110" />
                             )}
@@ -1230,7 +1229,7 @@ export default function MALWrapped() {
                   <div className="space-y-3">
                     {gems.map((item, idx) => (
                       <div key={item.id} className="flex gap-3">
-                        <div className="w-16 md:w-20 aspect-[2/3] bg-black/50 border border-white/10 rounded-lg overflow-hidden group transition-all duration-300 hover:border-[#9EFF00] flex-shrink-0">
+                        <div className="w-16 md:w-20 aspect-[2/3] bg-black/50 border border-white/10 rounded-lg overflow-hidden group transition-all duration-300 hover:border-[#9EFF00] hover:border-2 flex-shrink-0" style={{ boxSizing: 'border-box' }}>
                           {item.coverImage && (
                             <img src={item.coverImage} crossOrigin="anonymous" alt={item.title} className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-110" />
                           )}
@@ -1257,7 +1256,7 @@ export default function MALWrapped() {
                   <div className="space-y-3">
                     {didntLand.map((item, idx) => (
                       <div key={item.id} className="flex gap-3">
-                        <div className="w-16 md:w-20 aspect-[2/3] bg-black/50 border border-white/10 rounded-lg overflow-hidden group transition-all duration-300 hover:border-[#9EFF00] flex-shrink-0">
+                        <div className="w-16 md:w-20 aspect-[2/3] bg-black/50 border border-white/10 rounded-lg overflow-hidden group transition-all duration-300 hover:border-[#9EFF00] hover:border-2 flex-shrink-0" style={{ boxSizing: 'border-box' }}>
                           {item.coverImage && (
                             <img src={item.coverImage} crossOrigin="anonymous" alt={item.title} className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-110" />
                           )}
@@ -1505,18 +1504,6 @@ export default function MALWrapped() {
             {topAuthor ? (
               <>
                 <div className="mt-4 flex items-center justify-center gap-4 animate-pop-in animation-delay-200">
-                  {topAuthorRepresentation && (
-                    <div className="w-20 md:w-28 aspect-square bg-black/50 border-2 border-[#9EFF00] rounded-lg overflow-hidden group transition-all duration-300 hover:border-[#9EFF00]">
-                      {topAuthorRepresentation.node?.main_picture?.large && (
-                        <img 
-                          src={topAuthorRepresentation.node.main_picture.large} 
-                          alt={topAuthor} 
-                          crossOrigin="anonymous" 
-                          className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-110" 
-                        />
-                      )}
-                    </div>
-                  )}
                   <div className="text-left">
                     <p className="text-sm text-[#9EFF00] font-bold mb-2">#1</p>
                     <p className="text-4xl md:text-6xl font-bold text-[#9EFF00]">{topAuthor}</p>
@@ -1597,7 +1584,7 @@ export default function MALWrapped() {
                   <div className="space-y-3">
                     {mangaHiddenGems.map((item, idx) => (
                       <div key={item.id} className="flex gap-3">
-                        <div className="w-16 md:w-20 aspect-[2/3] bg-black/50 border border-white/10 rounded-lg overflow-hidden group transition-all duration-300 hover:border-[#9EFF00] flex-shrink-0">
+                        <div className="w-16 md:w-20 aspect-[2/3] bg-black/50 border border-white/10 rounded-lg overflow-hidden group transition-all duration-300 hover:border-[#9EFF00] hover:border-2 flex-shrink-0" style={{ boxSizing: 'border-box' }}>
                           {item.coverImage && (
                             <img src={item.coverImage} crossOrigin="anonymous" alt={item.title} className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-110" />
                           )}
@@ -1624,7 +1611,7 @@ export default function MALWrapped() {
                   <div className="space-y-3">
                     {mangaDidntLand.map((item, idx) => (
                       <div key={item.id} className="flex gap-3">
-                        <div className="w-16 md:w-20 aspect-[2/3] bg-black/50 border border-white/10 rounded-lg overflow-hidden group transition-all duration-300 hover:border-[#9EFF00] flex-shrink-0">
+                        <div className="w-16 md:w-20 aspect-[2/3] bg-black/50 border border-white/10 rounded-lg overflow-hidden group transition-all duration-300 hover:border-[#9EFF00] hover:border-2 flex-shrink-0" style={{ boxSizing: 'border-box' }}>
                           {item.coverImage && (
                             <img src={item.coverImage} crossOrigin="anonymous" alt={item.title} className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-110" />
                           )}
