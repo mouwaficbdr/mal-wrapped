@@ -35,6 +35,7 @@ export default async function handler(req, res) {
   }
 
   const CLIENT_ID = process.env.NEXT_PUBLIC_MAL_CLIENT_ID;
+  const CLIENT_SECRET = process.env.MAL_CLIENT_SECRET;
 
   if (!CLIENT_ID) {
     console.error('CLIENT_ID is not set in environment variables');
@@ -45,11 +46,21 @@ export default async function handler(req, res) {
     });
   }
 
+  if (!CLIENT_SECRET) {
+    console.error('CLIENT_SECRET is not set in environment variables');
+    return res.status(500).json({ 
+      error: 'Server configuration error',
+      error_description: 'CLIENT_SECRET is not configured. Please set MAL_CLIENT_SECRET in Vercel environment variables. Web apps require a client secret.',
+      message: 'CLIENT_SECRET is not configured'
+    });
+  }
+
   try {
     console.log('Exchanging code for token...');
     
     const formData = new URLSearchParams({
       client_id: CLIENT_ID,
+      client_secret: CLIENT_SECRET,
       code: code,
       code_verifier: code_verifier,
       grant_type: 'authorization_code',
@@ -60,7 +71,8 @@ export default async function handler(req, res) {
       redirect_uri: normalizedRedirectUri,
       code_length: code.length,
       verifier_length: code_verifier.length,
-      client_id_set: !!CLIENT_ID
+      client_id_set: !!CLIENT_ID,
+      client_secret_set: !!CLIENT_SECRET
     });
 
     const response = await fetch('https://myanimelist.net/v1/oauth2/token', {
