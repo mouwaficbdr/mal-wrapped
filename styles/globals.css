@@ -119,25 +119,12 @@
 }
 
 @layer utilities {
-  .text-shadow {
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-  }
-  
-  .text-shadow-lg {
-    text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.7);
-  }
-  
-  .gradient-text {
-    @apply bg-gradient-to-r from-pink-400 via-violet-400 to-blue-400 bg-clip-text text-transparent;
-  }
-
   .moving-grid-bg {
     background-image: 
       linear-gradient(to right, rgba(158, 255, 0, 0.1) 1px, transparent 1px),
       linear-gradient(to bottom, rgba(158, 255, 0, 0.1) 1px, transparent 1px);
     background-size: 40px 40px;
     animation: move-grid 60s linear infinite;
-    position: relative;
   }
 
   @keyframes move-grid {
@@ -145,262 +132,43 @@
     100% { background-position: 480px 480px; }
   }
 
-  @keyframes pop-in {
-    from {
-      opacity: 0;
-      transform: scale(0.95) translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1) translateY(0);
-    }
-  }
-
-  @keyframes slide-in {
-    from {
-      opacity: 0;
-      transform: translateX(30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-
   @keyframes fade-in {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
   @keyframes fade-slide-up {
-    0% {
+    from {
       opacity: 0;
       transform: translateY(20px);
     }
-    100% {
+    to {
       opacity: 1;
       transform: translateY(0);
     }
-  }
-
-  @keyframes fade-slide-down {
-    0% {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  /* Staggered animation delays for left-to-right, top-to-bottom effect */
-  .stagger-1 { 
-    animation: fade-slide-up 0.6s ease-out 0.1s forwards;
-    opacity: 0;
-  }
-  .stagger-2 { 
-    animation: fade-slide-up 0.6s ease-out 0.2s forwards;
-    opacity: 0;
-  }
-  .stagger-3 { 
-    animation: fade-slide-up 0.6s ease-out 0.3s forwards;
-    opacity: 0;
-  }
-  .stagger-4 { 
-    animation: fade-slide-up 0.6s ease-out 0.4s forwards;
-    opacity: 0;
-  }
-  .stagger-5 { 
-    animation: fade-slide-up 0.6s ease-out 0.5s forwards;
-    opacity: 0;
-  }
-  .stagger-6 { 
-    animation: fade-slide-up 0.6s ease-out 0.6s forwards;
-    opacity: 0;
-  }
-  .stagger-7 { 
-    animation: fade-slide-up 0.6s ease-out 0.7s forwards;
-    opacity: 0;
-  }
-  .stagger-8 { 
-    animation: fade-slide-up 0.6s ease-out 0.8s forwards;
-    opacity: 0;
-  }
-  
-  /* When capturing, remove stagger delays and show all */
-  .slide-card.capturing .stagger-1,
-  .slide-card.capturing .stagger-2,
-  .slide-card.capturing .stagger-3,
-  .slide-card.capturing .stagger-4,
-  .slide-card.capturing .stagger-5,
-  .slide-card.capturing .stagger-6,
-  .slide-card.capturing .stagger-7,
-  .slide-card.capturing .stagger-8 {
-    animation: none !important;
-    opacity: 1 !important;
-    transform: translateY(0) !important;
-  }
-
-  .animate-slide-in {
-    animation: slide-in 0.6s ease-out;
-  }
-
-  .animate-fade-in {
-    animation: fade-in 0.6s ease-out;
-    animation-fill-mode: both;
-  }
-
-  .animate-fade-slide-up {
-    animation: fade-slide-up 0.6s ease-out;
-    animation-fill-mode: both;
-  }
-
-  .animate-fade-slide-down {
-    animation: fade-slide-down 0.6s ease-out;
-    animation-fill-mode: both;
-  }
-  
-  /* Elements are in final position by default - animation only plays on mount when not capturing */
-  .animate-fade-slide-up,
-  .animate-fade-slide-down {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  
-  /* Only animate when not capturing - use animation to override default */
-  .slide-card:not(.capturing) .animate-fade-slide-up,
-  .slide-card:not(.capturing) .animate-fade-slide-down {
-    animation: fade-slide-up 0.6s ease-out forwards;
-  }
-  
-  /* Stop all animations when capturing - ensure final state */
-  .slide-card.capturing .animate-fade-slide-up,
-  .slide-card.capturing .animate-fade-slide-down,
-  .slide-card.capturing .animate-fade-in {
-    animation: none !important;
-    opacity: 1 !important;
-    transform: translateY(0) !important;
   }
 
   @keyframes float {
-    0%, 100% {
-      transform: translateY(0) rotate(var(--rotate, 0deg));
-    }
-    50% {
-      transform: translateY(-20px) rotate(var(--rotate, 0deg));
-    }
+    0%, 100% { transform: translateY(0) rotate(var(--rotate, 0deg)); }
+    50% { transform: translateY(-20px) rotate(var(--rotate, 0deg)); }
   }
 
-
-  .animate-pulse-fast {
-    animation: pulse 1.5s ease-in-out infinite;
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-out;
   }
 
-  @keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.02); }
+  .animate-fade-slide-up {
+    animation: fade-slide-up 0.5s ease-out;
   }
 
-  .capturing .animate-pop-in,
-  .capturing .stagger-children > *,
-  .capturing [class*="animate-"] {
+  .animate-float {
+    animation: float 8s ease-in-out infinite;
+  }
+
+  /* Stop animations when capturing */
+  .slide-card.capturing [class*="animate-"] {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
-  }
-
-  @keyframes glitch {
-    0%, 100% { transform: translate(0); }
-    20% { transform: translate(-2px, 2px); }
-    40% { transform: translate(-2px, -2px); }
-    60% { transform: translate(2px, 2px); }
-    80% { transform: translate(2px, -2px); }
-  }
-
-  @keyframes flicker {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.8; }
-  }
-
-  @keyframes neon-pulse {
-    0%, 100% { 
-      text-shadow: 0 0 10px rgba(158, 255, 0, 0.5),
-                   0 0 20px rgba(158, 255, 0, 0.3),
-                   0 0 30px rgba(158, 255, 0, 0.2);
-    }
-    50% { 
-      text-shadow: 0 0 20px rgba(158, 255, 0, 0.8),
-                   0 0 30px rgba(158, 255, 0, 0.6),
-                   0 0 40px rgba(158, 255, 0, 0.4);
-    }
-  }
-
-  .animate-glitch {
-    animation: glitch 0.3s infinite;
-  }
-
-  .animate-flicker {
-    animation: flicker 2s infinite;
-  }
-
-  .animate-neon-pulse {
-    animation: neon-pulse 2s ease-in-out infinite;
-  }
-
-  .retro-scan {
-    position: relative;
-    overflow: hidden;
-  }
-
-  .retro-scan::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(158, 255, 0, 0.1), transparent);
-    animation: scan 3s linear infinite;
-  }
-
-  @keyframes scan {
-    0% { left: -100%; }
-    100% { left: 100%; }
-  }
-
-
-  @keyframes slide-in-right {
-    from {
-      opacity: 0;
-      transform: translateX(50px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-
-  .animate-slide-in-right {
-    animation: slide-in-right 0.6s ease-out;
-  }
-
-  @keyframes slide-in-left {
-    from {
-      opacity: 0;
-      transform: translateX(-50px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-
-  .animate-slide-in-left {
-    animation: slide-in-left 0.6s ease-out;
   }
 }

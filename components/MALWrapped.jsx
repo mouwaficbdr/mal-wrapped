@@ -716,16 +716,14 @@ export default function MALWrapped() {
     }, []);
 
     const SlideLayout = ({ children, verticalText }) => (
-      <div className="w-full h-full relative px-2 sm:px-3 md:px-4 lg:px-6 flex flex-col items-center justify-center slide-card overflow-hidden" style={{ transform: 'translateZ(0)', minHeight: 0, maxHeight: '100%' }}>
+      <div className="w-full h-full relative px-3 sm:px-4 md:p-6 lg:p-8 flex flex-col items-center justify-center slide-card overflow-hidden">
         {verticalText && (
-          <p className="absolute top-1/2 -left-2 md:-left-2 -translate-y-1/2 text-[#9EFF00]/50 font-bold uppercase tracking-[.3em] [writing-mode:vertical-lr] text-xs sm:text-sm md:text-base z-10 pointer-events-none overflow-hidden">
+          <p className="absolute top-1/2 -left-2 md:-left-2 -translate-y-1/2 text-[#9EFF00]/50 font-bold uppercase tracking-[.3em] [writing-mode:vertical-lr] text-xs sm:text-sm md:text-base z-10 pointer-events-none">
             {verticalText}
           </p>
         )}
-        <div className="w-full h-full relative z-10 overflow-hidden flex flex-col items-center justify-center" style={{ minHeight: 0, maxHeight: '100%' }}>
-          <div className="w-full flex flex-col items-center justify-center" style={{ maxWidth: '100%', maxHeight: '100%', overflow: 'hidden' }}>
-            {children}
-          </div>
+        <div className="w-full relative z-10">
+          {children}
         </div>
       </div>
     );
@@ -784,10 +782,10 @@ export default function MALWrapped() {
           </div>
         ) : phase === 2 && top5Formatted.length > 0 ? (
           <div className="animate-fade-slide-up">
-            <h1 className="relative z-10 heading-lg uppercase text-[#9EFF00] border-b-2 border-[#9EFF00] pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap stagger-1">
+            <h1 className="relative z-10 heading-lg uppercase text-[#9EFF00] border-b-2 border-[#9EFF00] pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap animate-fade-slide-up">
               Your Favorite {type === 'anime' ? 'Anime' : 'Manga'}
             </h1>
-            <h2 className="body-lg font-semibold uppercase text-white/80 mt-2 sm:mt-3 stagger-2 whitespace-nowrap">
+            <h2 className="body-lg font-semibold uppercase text-white/80 mt-2 sm:mt-3 animate-fade-slide-up whitespace-nowrap">
               The {type === 'anime' ? 'series' : 'manga'} you rated the highest.
             </h2>
             <div className="mt-2 flex flex-col gap-2 w-full justify-center">
@@ -881,46 +879,26 @@ export default function MALWrapped() {
     if (!slide || !stats) return null;
 
     const SlideLayout = ({ children, verticalText }) => (
-      <div className="w-full h-full relative px-2 sm:px-3 md:px-4 lg:px-6 flex flex-col items-center justify-center slide-card overflow-hidden" style={{ transform: 'translateZ(0)', minHeight: 0, maxHeight: '100%' }}>
+      <div className="w-full h-full relative px-3 sm:px-4 md:p-6 lg:p-8 flex flex-col items-center justify-center slide-card overflow-hidden">
         {verticalText && (
-          <p className="absolute top-1/2 -left-2 md:-left-2 -translate-y-1/2 text-[#9EFF00]/50 font-bold uppercase tracking-[.3em] [writing-mode:vertical-lr] text-xs sm:text-sm md:text-base z-10 pointer-events-none overflow-hidden">
+          <p className="absolute top-1/2 -left-2 md:-left-2 -translate-y-1/2 text-[#9EFF00]/50 font-bold uppercase tracking-[.3em] [writing-mode:vertical-lr] text-xs sm:text-sm md:text-base z-10 pointer-events-none">
             {verticalText}
           </p>
         )}
-        <div className="w-full h-full relative z-10 overflow-hidden flex flex-col items-center justify-center" style={{ minHeight: 0, maxHeight: '100%' }}>
-          <div className="w-full flex flex-col items-center justify-center" style={{ maxWidth: '100%', maxHeight: '100%', overflow: 'hidden' }}>
-            {children}
-          </div>
+        <div className="w-full relative z-10">
+          {children}
         </div>
       </div>
     );
 
-    // Image Carousel Component - Always carousel, responsive items per view
-    const ImageCarousel = ({ items, maxItems = 20, showHover = true, showNames = false, imageSize = 'md' }) => {
+    // Image Carousel Component - Grid on mobile, carousel on desktop
+    const ImageCarousel = ({ items, maxItems = 20, showHover = true, showNames = false }) => {
       const [isHovered, setIsHovered] = useState(false);
       const [hoveredItem, setHoveredItem] = useState(null);
       const [scrollPosition, setScrollPosition] = useState(0);
-      const [itemsPerView, setItemsPerView] = useState(5);
       const visibleItems = items.slice(0, maxItems);
+      const itemsPerView = 5;
       const itemWidth = 100 / itemsPerView;
-      
-      // Update items per view on resize
-      useEffect(() => {
-        const updateItemsPerView = () => {
-          setItemsPerView(window.innerWidth < 768 ? 3 : 5);
-        };
-        updateItemsPerView();
-        window.addEventListener('resize', updateItemsPerView);
-        return () => window.removeEventListener('resize', updateItemsPerView);
-      }, []);
-      
-      // Image size classes - consistent sizing with aspect ratio 2:3
-      const imageSizeClasses = {
-        sm: 'w-16 aspect-[2/3] sm:w-20',
-        md: 'w-20 aspect-[2/3] sm:w-24 md:w-28',
-        lg: 'w-20 aspect-[2/3] sm:w-24 md:w-28 lg:w-32'
-      };
-      const imageClass = imageSizeClasses[imageSize] || imageSizeClasses.md;
       
       // Duplicate items for infinite loop
       const duplicatedItems = [...visibleItems, ...visibleItems, ...visibleItems];
@@ -959,16 +937,58 @@ export default function MALWrapped() {
 
       if (visibleItems.length === 0) return null;
 
-      // Always use carousel (no mobile grid)
       return (
-        <div 
-          className="mt-4 sm:mt-6 overflow-hidden relative"
-          onMouseEnter={() => showHover && setIsHovered(true)}
-          onMouseLeave={() => {
-            showHover && setIsHovered(false);
-            setHoveredItem(null);
-          }}
-        >
+        <>
+          {/* Mobile Grid */}
+          <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 md:hidden gap-3">
+            {visibleItems.map((item, idx) => {
+              const malUrl = getMALUrl(item);
+              const itemContent = (
+                <div className="flex flex-col">
+                  <div className="aspect-[2/3] bg-transparent border border-white/10 rounded-lg overflow-hidden transition-all duration-300 relative group-hover:border-[#9EFF00] group-hover:border-2">
+                    {item.coverImage && (
+                      <img 
+                        src={item.coverImage} 
+                        alt={item.title || ''} 
+                        crossOrigin="anonymous" 
+                        className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-110"
+                      />
+                    )}
+                  </div>
+                  {showNames && item.title && (
+                    <div className="mt-2 text-left">
+                      <p className="body-sm font-bold text-white truncate">{item.title}</p>
+                      {item.userRating && (
+                        <p className="body-sm text-yellow-300">★ {item.userRating.toFixed(1)}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+              
+              return (
+                <div key={idx} className="group">
+                  {malUrl ? (
+                    <a href={malUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+                      {itemContent}
+                    </a>
+                  ) : (
+                    itemContent
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          
+          {/* Desktop Carousel */}
+          <div 
+            className="mt-6 overflow-hidden relative hidden md:block"
+            onMouseEnter={() => showHover && setIsHovered(true)}
+            onMouseLeave={() => {
+              showHover && setIsHovered(false);
+              setHoveredItem(null);
+            }}
+          >
             <div 
               className="flex"
               style={{ 
@@ -979,18 +999,18 @@ export default function MALWrapped() {
               {duplicatedItems.map((item, idx) => {
                 const malUrl = getMALUrl(item);
                 const content = (
-                  <div className="flex flex-col mx-0.5 sm:mx-1">
-                    <div className={`${imageClass} bg-transparent border border-white/10 rounded-lg overflow-hidden transition-all duration-300 relative ${showHover ? 'group-hover:border-[#9EFF00] group-hover:border-2' : ''} ${malUrl ? 'cursor-pointer' : ''}`} style={{ boxSizing: 'border-box' }}>
+                  <div className="flex flex-col mx-1">
+                    <div className="aspect-[2/3] w-32 bg-transparent border border-white/10 rounded-lg overflow-hidden transition-all duration-300 relative group-hover:border-[#9EFF00] group-hover:border-2">
                       {item.coverImage && (
                         <img 
                           src={item.coverImage} 
                           alt={item.title || ''} 
                           crossOrigin="anonymous" 
-                          className={`w-full h-full object-cover rounded-lg transition-transform duration-300 ${showHover ? 'group-hover:scale-110' : ''}`}
+                          className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-110"
                         />
                       )}
                       {showHover && hoveredItem === (idx % visibleItems.length) && item.title && (
-                        <div className="absolute inset-0 bg-black/70 flex items-center justify-center p-2 z-10 transition-opacity duration-300 rounded-lg overflow-hidden">
+                        <div className="absolute inset-0 bg-black/70 flex items-center justify-center p-2 z-10 transition-opacity duration-300 rounded-lg">
                           <p className="text-white body-sm font-bold text-center leading-tight">{item.title}</p>
                           {item.userRating && (
                             <div className="absolute bottom-2 right-2 text-yellow-300 body-sm font-bold">
@@ -1001,7 +1021,7 @@ export default function MALWrapped() {
                       )}
                     </div>
                     {showNames && item.title && (
-                      <div className="mt-1.5 sm:mt-2 text-left">
+                      <div className="mt-2 text-left">
                         <p className="body-sm font-bold text-white truncate">{item.title}</p>
                         {item.userRating && (
                           <p className="body-sm text-yellow-300">★ {item.userRating.toFixed(1)}</p>
@@ -1031,18 +1051,13 @@ export default function MALWrapped() {
               })}
             </div>
           </div>
+        </>
       );
     };
 
     // Grid Image Component for hidden gems, didn't land, and planned sections
-    const GridImages = ({ items, maxItems = 5, imageSize = 'sm' }) => {
+    const GridImages = ({ items, maxItems = 5 }) => {
       const visibleItems = items.slice(0, maxItems);
-      const imageSizeClasses = {
-        sm: 'w-16 aspect-[2/3] sm:w-20 md:w-24',
-        md: 'w-20 aspect-[2/3] sm:w-24 md:w-28',
-        lg: 'w-24 aspect-[2/3] sm:w-28 md:w-32'
-      };
-      const imageClass = imageSizeClasses[imageSize] || imageSizeClasses.sm;
 
       const getMALUrl = (item) => {
         if (item.malId) {
@@ -1057,12 +1072,12 @@ export default function MALWrapped() {
       if (visibleItems.length === 0) return null;
 
       return (
-        <div className="mt-4 sm:mt-6 grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-3">
+        <div className="mt-6 grid grid-cols-3 sm:grid-cols-5 gap-3">
           {visibleItems.map((item, idx) => {
             const malUrl = getMALUrl(item);
             const itemContent = (
               <div className="flex flex-col">
-                <div className={`${imageClass} bg-transparent border border-white/10 rounded-lg overflow-hidden transition-all duration-300 relative group-hover:border-[#9EFF00] group-hover:border-2 ${malUrl ? 'cursor-pointer' : ''}`} style={{ boxSizing: 'border-box' }}>
+                <div className="aspect-[2/3] bg-transparent border border-white/10 rounded-lg overflow-hidden transition-all duration-300 relative group-hover:border-[#9EFF00] group-hover:border-2">
                   {item.coverImage && (
                     <img 
                       src={item.coverImage} 
@@ -1073,7 +1088,7 @@ export default function MALWrapped() {
                   )}
                 </div>
                 {item.title && (
-                  <div className="mt-1.5 sm:mt-2 text-left">
+                  <div className="mt-2 text-left">
                     <p className="body-sm font-bold text-white truncate">{item.title}</p>
                     {item.userRating && (
                       <p className="body-sm text-yellow-300">★ {item.userRating.toFixed(1)}</p>
@@ -1159,26 +1174,26 @@ export default function MALWrapped() {
         }));
         return (
           <SlideLayout verticalText="ANIME-LOG">
-            <h1 className="relative z-10 heading-lg uppercase text-[#9EFF00] border-b-2 border-[#9EFF00] pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap stagger-1">
+            <h1 className="relative z-10 heading-lg uppercase text-[#9EFF00] border-b-2 border-[#9EFF00] pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap animate-fade-slide-up">
               {stats.selectedYear === 'all' ? 'All Time' : stats.selectedYear} Anime Watched
             </h1>
-            <div className="mt-4 sm:mt-6 text-center stagger-3">
+            <div className="mt-4 sm:mt-6 text-center animate-fade-slide-up">
               <p className="number-xl text-white">
                 <AnimatedNumber value={stats.thisYearAnime.length} />
               </p>
               <p className="heading-sm uppercase text-[#9EFF00] mt-1 sm:mt-2">Anime Series</p>
             </div>
-            {animeCarouselItems.length > 0 && <div className="stagger-4"><ImageCarousel items={animeCarouselItems} maxItems={50} showHover={true} showNames={false} imageSize="lg" /></div>}
+            {animeCarouselItems.length > 0 && <ImageCarousel items={animeCarouselItems} maxItems={50} showHover={true} showNames={false} />}
           </SlideLayout>
         );
 
       case 'anime_time':
         return (
           <SlideLayout verticalText="TIME-ANALYSIS">
-            <h1 className="relative z-10 heading-lg uppercase text-[#9EFF00] border-b-2 border-[#9EFF00] pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap stagger-1">
+            <h1 className="relative z-10 heading-lg uppercase text-[#9EFF00] border-b-2 border-[#9EFF00] pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap animate-fade-slide-up">
               Anime Stats
             </h1>
-            <div className="mt-4 sm:mt-6 space-y-4 sm:space-y-6 stagger-3">
+            <div className="mt-4 sm:mt-6 space-y-4 sm:space-y-6 animate-fade-slide-up">
               <div className="text-center">
                 <p className="number-lg text-white">
                   <AnimatedNumber value={stats.totalEpisodes || 0} />
@@ -1235,21 +1250,21 @@ export default function MALWrapped() {
         const otherGenres = stats.topGenres?.slice(1, 5) || [];
         return (
           <SlideLayout verticalText="GENRE-MATRIX">
-            <h1 className="relative z-10 heading-lg uppercase text-[#9EFF00] border-b-2 border-[#9EFF00] pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap stagger-1">
+            <h1 className="relative z-10 heading-lg uppercase text-[#9EFF00] border-b-2 border-[#9EFF00] pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap animate-fade-slide-up">
               Most Watched Genre
             </h1>
             {topGenre ? (
               <>
-                <div className="mt-4 sm:mt-6 text-center stagger-3">
+                <div className="mt-4 sm:mt-6 text-center animate-fade-slide-up">
                   <p className="body-sm text-[#9EFF00] font-bold mb-1 sm:mb-2">#1</p>
                   <p className="heading-xl font-bold text-[#9EFF00] uppercase">{topGenre}</p>
                   <p className="body-md text-white/70 mt-1 sm:mt-2">{stats.topGenres[0][1]} anime</p>
                 </div>
-                {genreAnime.length > 0 && <div className="stagger-4"><ImageCarousel items={genreAnime} maxItems={30} showHover={true} showNames={false} imageSize="lg" /></div>}
+                {genreAnime.length > 0 && <ImageCarousel items={genreAnime} maxItems={30} showHover={true} showNames={false} />}
                 {otherGenres.length > 0 && (
                   <div className="mt-4 sm:mt-6 grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
                     {otherGenres.map(([genreName, count], idx) => (
-                      <div key={idx} className={`text-center p-2 sm:p-3 border border-white/10 rounded-lg stagger-${Math.min(idx + 5, 8)}`}>
+                      <div key={idx} className="text-center p-2 sm:p-3 border border-white/10 rounded-lg animate-fade-slide-up">
                         <p className="body-sm text-[#9EFF00] font-bold mb-1">#{idx + 2}</p>
                         <p className="heading-sm font-bold text-[#9EFF00]">{genreName}</p>
                         <p className="body-sm text-white/70">{count} anime</p>
@@ -1288,12 +1303,12 @@ export default function MALWrapped() {
         const otherStudios = stats.topStudios?.slice(1, 5) || [];
         return (
           <SlideLayout verticalText="PRODUCTION">
-            <h1 className="relative z-10 heading-lg uppercase text-[#9EFF00] border-b-2 border-[#9EFF00] pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap stagger-1">
+            <h1 className="relative z-10 heading-lg uppercase text-[#9EFF00] border-b-2 border-[#9EFF00] pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap animate-fade-slide-up">
               Favorite Studio
             </h1>
             {topStudio ? (
               <>
-                <div className="mt-4 sm:mt-6 flex items-center justify-center gap-3 sm:gap-4 stagger-3">
+                <div className="mt-4 sm:mt-6 flex items-center justify-center gap-3 sm:gap-4 animate-fade-slide-up">
                   <div className="text-left">
                     <p className="text-sm text-[#9EFF00] font-bold mb-2">#1</p>
                     <p className="text-4xl md:text-6xl font-bold text-[#9EFF00]">{topStudio}</p>
@@ -1302,7 +1317,7 @@ export default function MALWrapped() {
                 </div>
                 {studioAnime.length > 0 && (
                   studioAnime.length < 4 ? (
-                    <div className="mt-4 sm:mt-6 flex justify-center gap-3 sm:gap-4 stagger-4">
+                    <div className="mt-4 sm:mt-6 flex justify-center gap-3 sm:gap-4 animate-fade-slide-up">
                       {studioAnime.map((item, idx) => (
                         <div key={idx} className="flex flex-col items-center">
                           <div className="w-24 md:w-32 aspect-[2/3] bg-transparent border border-white/10 rounded-lg overflow-hidden group transition-all duration-300 hover:border-[#9EFF00] hover:border-2" style={{ boxSizing: 'border-box' }}>
@@ -1319,13 +1334,13 @@ export default function MALWrapped() {
                       ))}
                     </div>
                   ) : (
-                    <ImageCarousel items={studioAnime} maxItems={30} showHover={true} showNames={false} imageSize="lg" />
+                    <ImageCarousel items={studioAnime} maxItems={30} showHover={true} showNames={false} />
                   )
                 )}
                 {otherStudios.length > 0 && (
                   <div className="mt-4 sm:mt-6 grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
                     {otherStudios.map(([studioName, count], idx) => (
-                      <div key={idx} className={`text-center p-2 sm:p-3 border border-white/10 rounded-lg stagger-${Math.min(idx + 5, 8)}`}>
+                      <div key={idx} className="text-center p-2 sm:p-3 border border-white/10 rounded-lg animate-fade-slide-up">
                         <p className="body-sm text-[#9EFF00] font-bold mb-1">#{idx + 2}</p>
                         <p className="heading-sm font-bold text-[#9EFF00] truncate">{studioName}</p>
                         <p className="body-sm text-white/70">{count} anime</p>
@@ -1335,7 +1350,7 @@ export default function MALWrapped() {
                 )}
               </>
             ) : (
-              <div className="mt-6 sm:mt-8 text-center text-white/50 stagger-3">No studio data available</div>
+              <div className="mt-6 sm:mt-8 text-center text-white/50 animate-fade-slide-up">No studio data available</div>
             )}
           </SlideLayout>
         );
@@ -1344,7 +1359,7 @@ export default function MALWrapped() {
         const seasons = ['Winter', 'Spring', 'Summer', 'Fall'];
         return (
           <SlideLayout verticalText="SEASONAL">
-            <h1 className="relative z-10 heading-lg uppercase text-[#9EFF00] border-b-2 border-[#9EFF00] pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap stagger-1">
+            <h1 className="relative z-10 heading-lg uppercase text-[#9EFF00] border-b-2 border-[#9EFF00] pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap animate-fade-slide-up">
               Seasonal Highlights
             </h1>
             <div className="mt-4 sm:mt-6 grid grid-cols-2 gap-2 sm:gap-3">
@@ -1354,7 +1369,7 @@ export default function MALWrapped() {
                 const highlight = seasonData.highlight;
                 const seasonIndex = seasons.indexOf(season);
                 return (
-                  <div key={season} className={`bg-white/5 border border-white/10 rounded-lg p-2 sm:p-3 stagger-${Math.min(seasonIndex + 3, 8)}`}>
+                  <div key={season} className="bg-white/5 border border-white/10 rounded-lg p-2 sm:p-3 animate-fade-slide-up">
                     <h3 className="heading-md font-bold text-[#9EFF00] mb-2">{season}</h3>
                     {highlight && (
                       <>
@@ -1393,18 +1408,18 @@ export default function MALWrapped() {
         }));
         return (
           <SlideLayout verticalText="HIDDEN-GEMS">
-            <h1 className="relative z-10 heading-lg uppercase text-[#9EFF00] border-b-2 border-[#9EFF00] pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap stagger-1">
+            <h1 className="relative z-10 heading-lg uppercase text-[#9EFF00] border-b-2 border-[#9EFF00] pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap animate-fade-slide-up">
               Hidden Gems
             </h1>
-            <h2 className="body-lg font-semibold uppercase text-white/80 mt-2 sm:mt-3 stagger-2 whitespace-nowrap">
+            <h2 className="body-lg font-semibold uppercase text-white/80 mt-2 sm:mt-3 animate-fade-slide-up whitespace-nowrap">
               High-rated anime with low popularity
             </h2>
             {gems.length > 0 ? (
-              <div className="stagger-3">
-                <GridImages items={gems} maxItems={5} imageSize="sm" />
+              <div className="animate-fade-slide-up">
+                <GridImages items={gems} maxItems={5} />
               </div>
             ) : (
-              <div className="mt-6 sm:mt-8 text-center text-white/50 stagger-3">No hidden gems found</div>
+              <div className="mt-6 sm:mt-8 text-center text-white/50 animate-fade-slide-up">No hidden gems found</div>
             )}
           </SlideLayout>
         );
@@ -1418,18 +1433,18 @@ export default function MALWrapped() {
         }));
         return (
           <SlideLayout verticalText="DIDNT-LAND">
-            <h1 className="relative z-10 heading-lg uppercase text-[#9EFF00] border-b-2 border-[#9EFF00] pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap stagger-1">
+            <h1 className="relative z-10 heading-lg uppercase text-[#9EFF00] border-b-2 border-[#9EFF00] pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap animate-fade-slide-up">
               Didn't Land
             </h1>
-            <h2 className="body-lg font-semibold uppercase text-white/80 mt-2 sm:mt-3 stagger-2 whitespace-nowrap">
+            <h2 className="body-lg font-semibold uppercase text-white/80 mt-2 sm:mt-3 animate-fade-slide-up whitespace-nowrap">
               5 shows you rated the lowest
             </h2>
             {didntLand.length > 0 ? (
-              <div className="stagger-3">
-                <GridImages items={didntLand} maxItems={5} imageSize="sm" />
+              <div className="animate-fade-slide-up">
+                <GridImages items={didntLand} maxItems={5} />
               </div>
             ) : (
-              <div className="mt-6 sm:mt-8 text-center text-white/50 stagger-3">No data available</div>
+              <div className="mt-6 sm:mt-8 text-center text-white/50 animate-fade-slide-up">No data available</div>
             )}
           </SlideLayout>
         );
@@ -1442,18 +1457,18 @@ export default function MALWrapped() {
         }));
         return (
           <SlideLayout verticalText="PLANNED">
-            <h1 className="relative z-10 heading-lg uppercase text-[#9EFF00] border-b-2 border-[#9EFF00] pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap stagger-1">
+            <h1 className="relative z-10 heading-lg uppercase text-[#9EFF00] border-b-2 border-[#9EFF00] pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap animate-fade-slide-up">
               Planned to Watch
             </h1>
-            <h2 className="body-lg font-semibold uppercase text-white/80 mt-2 sm:mt-3 stagger-2 whitespace-nowrap">
+            <h2 className="body-lg font-semibold uppercase text-white/80 mt-2 sm:mt-3 animate-fade-slide-up whitespace-nowrap">
               5 shows you plan to watch {stats.selectedYear === 'all' ? '' : 'this year'}.
             </h2>
             {plannedAnimeItems.length > 0 ? (
-              <div className="stagger-3">
-                <GridImages items={plannedAnimeItems} maxItems={5} imageSize="sm" />
+              <div className="animate-fade-slide-up">
+                <GridImages items={plannedAnimeItems} maxItems={5} />
               </div>
             ) : (
-              <div className="mt-6 sm:mt-8 text-center text-white/50 stagger-3">No planned anime found</div>
+              <div className="mt-6 sm:mt-8 text-center text-white/50 animate-fade-slide-up">No planned anime found</div>
             )}
           </SlideLayout>
         );
@@ -1488,26 +1503,26 @@ export default function MALWrapped() {
         }));
         return (
           <SlideLayout verticalText="MANGA-LOG">
-            <h1 className="relative z-10 heading-lg uppercase text-[#9EFF00] border-b-2 border-[#9EFF00] pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap stagger-1">
+            <h1 className="relative z-10 heading-lg uppercase text-[#9EFF00] border-b-2 border-[#9EFF00] pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap animate-fade-slide-up">
               {stats.selectedYear === 'all' ? 'All Time' : stats.selectedYear} Manga Read
             </h1>
-            <div className="mt-4 sm:mt-6 text-center stagger-3">
+            <div className="mt-4 sm:mt-6 text-center animate-fade-slide-up">
               <p className="number-xl text-white">
                 <AnimatedNumber value={stats.totalManga} />
               </p>
               <p className="heading-sm uppercase text-[#9EFF00] mt-2">Manga Series</p>
             </div>
-            {allMangaItems.length > 0 && <ImageCarousel items={allMangaItems} maxItems={50} showHover={true} showNames={false} imageSize="lg" />}
+            {allMangaItems.length > 0 && <ImageCarousel items={allMangaItems} maxItems={50} showHover={true} showNames={false} />}
           </SlideLayout>
         );
 
       case 'manga_time':
         return (
           <SlideLayout verticalText="READING-TIME">
-            <h1 className="relative z-10 heading-lg uppercase text-[#9EFF00] border-b-2 border-[#9EFF00] pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap stagger-1">
+            <h1 className="relative z-10 heading-lg uppercase text-[#9EFF00] border-b-2 border-[#9EFF00] pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap animate-fade-slide-up">
               Reading Stats
             </h1>
-            <div className="mt-4 sm:mt-6 text-center stagger-3">
+            <div className="mt-4 sm:mt-6 text-center animate-fade-slide-up">
               <div className="space-y-4 sm:space-y-6">
                 <div>
                   <p className="number-lg text-white">
@@ -1597,17 +1612,17 @@ export default function MALWrapped() {
         const otherMangaGenres = topMangaGenreList.slice(1, 5);
         return (
           <SlideLayout verticalText="GENRE-MATRIX">
-            <h1 className="relative z-10 heading-lg uppercase text-[#9EFF00] border-b-2 border-[#9EFF00] pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap stagger-1">
+            <h1 className="relative z-10 heading-lg uppercase text-[#9EFF00] border-b-2 border-[#9EFF00] pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap animate-fade-slide-up">
               Most Read Genre
             </h1>
             {topMangaGenre ? (
               <>
-                <div className="mt-4 sm:mt-6 text-center stagger-3">
+                <div className="mt-4 sm:mt-6 text-center animate-fade-slide-up">
                   <p className="body-sm text-[#9EFF00] font-bold mb-1 sm:mb-2">#1</p>
                   <p className="heading-xl font-bold text-[#9EFF00] uppercase">{topMangaGenre[0]}</p>
                   <p className="body-md text-white/70 mt-1 sm:mt-2">{topMangaGenre[1]} manga</p>
                 </div>
-                {mangaGenreItems.length > 0 && <div className="stagger-4"><ImageCarousel items={mangaGenreItems} maxItems={30} showHover={true} showNames={false} imageSize="lg" /></div>}
+                {mangaGenreItems.length > 0 && <ImageCarousel items={mangaGenreItems} maxItems={30} showHover={true} showNames={false} />}
                 {otherMangaGenres.length > 0 && (
                   <div className="mt-4 sm:mt-6 grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
                     {otherMangaGenres.map(([genreName, count], idx) => (
@@ -1666,12 +1681,12 @@ export default function MALWrapped() {
         const otherAuthors = stats.topAuthors?.slice(1, 5) || [];
         return (
           <SlideLayout verticalText="CREATORS">
-            <h1 className="relative z-10 heading-lg uppercase text-[#9EFF00] border-b-2 border-[#9EFF00] pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap stagger-1">
+            <h1 className="relative z-10 heading-lg uppercase text-[#9EFF00] border-b-2 border-[#9EFF00] pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap animate-fade-slide-up">
               Favorite Author
             </h1>
             {topAuthor ? (
               <>
-                <div className="mt-4 sm:mt-6 flex items-center justify-center gap-3 sm:gap-4 stagger-3">
+                <div className="mt-4 sm:mt-6 flex items-center justify-center gap-3 sm:gap-4 animate-fade-slide-up">
                   <div className="text-left">
                     <p className="text-sm text-[#9EFF00] font-bold mb-2">#1</p>
                     <p className="text-4xl md:text-6xl font-bold text-[#9EFF00]">{topAuthor}</p>
@@ -1680,7 +1695,7 @@ export default function MALWrapped() {
                 </div>
                 {authorManga.length > 0 && (
                   authorManga.length < 4 ? (
-                    <div className="mt-4 sm:mt-6 flex justify-center gap-3 sm:gap-4 stagger-4">
+                    <div className="mt-4 sm:mt-6 flex justify-center gap-3 sm:gap-4 animate-fade-slide-up">
                       {authorManga.map((item, idx) => {
                         const malUrl = item.mangaId ? `https://myanimelist.net/manga/${item.mangaId}` : null;
                         return (
@@ -1713,13 +1728,13 @@ export default function MALWrapped() {
                       })}
                     </div>
                   ) : (
-                    <ImageCarousel items={authorManga} maxItems={30} showHover={true} showNames={false} imageSize="lg" />
+                    <ImageCarousel items={authorManga} maxItems={30} showHover={true} showNames={false} />
                   )
                 )}
                 {otherAuthors.length > 0 && (
                   <div className="mt-4 sm:mt-6 grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
                     {otherAuthors.map(([authorName, count], idx) => (
-                      <div key={idx} className={`text-center p-2 sm:p-3 border border-white/10 rounded-lg stagger-${Math.min(idx + 5, 8)}`}>
+                      <div key={idx} className="text-center p-2 sm:p-3 border border-white/10 rounded-lg animate-fade-slide-up">
                         <p className="body-sm text-[#9EFF00] font-bold mb-1">#{idx + 2}</p>
                         <p className="heading-sm font-bold text-[#9EFF00] truncate">{authorName}</p>
                         <p className="body-sm text-white/70">{count} manga</p>
@@ -1743,18 +1758,18 @@ export default function MALWrapped() {
         }));
         return (
           <SlideLayout verticalText="HIDDEN-GEMS">
-            <h1 className="relative z-10 heading-lg uppercase text-[#9EFF00] border-b-2 border-[#9EFF00] pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap stagger-1">
+            <h1 className="relative z-10 heading-lg uppercase text-[#9EFF00] border-b-2 border-[#9EFF00] pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap animate-fade-slide-up">
               Hidden Gems
             </h1>
-            <h2 className="body-lg font-semibold uppercase text-white/80 mt-2 sm:mt-3 stagger-2 whitespace-nowrap">
+            <h2 className="body-lg font-semibold uppercase text-white/80 mt-2 sm:mt-3 animate-fade-slide-up whitespace-nowrap">
               High-rated manga with low popularity
             </h2>
             {mangaGems.length > 0 ? (
-              <div className="stagger-3">
-                <GridImages items={mangaGems} maxItems={5} imageSize="sm" />
+              <div className="animate-fade-slide-up">
+                <GridImages items={mangaGems} maxItems={5} />
               </div>
             ) : (
-              <div className="mt-6 sm:mt-8 text-center text-white/50 stagger-3">No hidden gems found</div>
+              <div className="mt-6 sm:mt-8 text-center text-white/50 animate-fade-slide-up">No hidden gems found</div>
             )}
           </SlideLayout>
         );
@@ -1768,18 +1783,18 @@ export default function MALWrapped() {
         }));
         return (
           <SlideLayout verticalText="DIDNT-LAND">
-            <h1 className="relative z-10 heading-lg uppercase text-[#9EFF00] border-b-2 border-[#9EFF00] pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap stagger-1">
+            <h1 className="relative z-10 heading-lg uppercase text-[#9EFF00] border-b-2 border-[#9EFF00] pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap animate-fade-slide-up">
               Didn't Land
             </h1>
-            <h2 className="body-lg font-semibold uppercase text-white/80 mt-2 sm:mt-3 stagger-2 whitespace-nowrap">
+            <h2 className="body-lg font-semibold uppercase text-white/80 mt-2 sm:mt-3 animate-fade-slide-up whitespace-nowrap">
               5 manga you rated the lowest
             </h2>
             {mangaDidntLand.length > 0 ? (
-              <div className="stagger-3">
-                <GridImages items={mangaDidntLand} maxItems={5} imageSize="sm" />
+              <div className="animate-fade-slide-up">
+                <GridImages items={mangaDidntLand} maxItems={5} />
               </div>
             ) : (
-              <div className="mt-6 sm:mt-8 text-center text-white/50 stagger-3">No data available</div>
+              <div className="mt-6 sm:mt-8 text-center text-white/50 animate-fade-slide-up">No data available</div>
             )}
           </SlideLayout>
         );
@@ -1792,18 +1807,18 @@ export default function MALWrapped() {
         }));
         return (
           <SlideLayout verticalText="PLANNED">
-            <h1 className="relative z-10 heading-lg uppercase text-[#9EFF00] border-b-2 border-[#9EFF00] pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap stagger-1">
+            <h1 className="relative z-10 heading-lg uppercase text-[#9EFF00] border-b-2 border-[#9EFF00] pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap animate-fade-slide-up">
               Planned to Read
             </h1>
-            <h2 className="body-lg font-semibold uppercase text-white/80 mt-2 sm:mt-3 stagger-2 whitespace-nowrap">
+            <h2 className="body-lg font-semibold uppercase text-white/80 mt-2 sm:mt-3 animate-fade-slide-up whitespace-nowrap">
               5 manga you plan to read {stats.selectedYear === 'all' ? '' : 'this year'}.
             </h2>
             {plannedMangaItems.length > 0 ? (
-              <div className="stagger-3">
-                <GridImages items={plannedMangaItems} maxItems={5} imageSize="sm" />
+              <div className="animate-fade-slide-up">
+                <GridImages items={plannedMangaItems} maxItems={5} />
               </div>
             ) : (
-              <div className="mt-6 sm:mt-8 text-center text-white/50 stagger-3">No planned manga found</div>
+              <div className="mt-6 sm:mt-8 text-center text-white/50 animate-fade-slide-up">No planned manga found</div>
             )}
           </SlideLayout>
         );
@@ -1814,61 +1829,49 @@ export default function MALWrapped() {
         const totalDays = Math.floor(totalTimeSpent / 24);
         return (
           <SlideLayout verticalText="FINAL-REPORT">
-            <h1 className="relative z-10 heading-lg uppercase text-[#9EFF00] border-b-2 border-[#9EFF00] pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap stagger-1">
+            <h1 className="relative z-10 heading-lg uppercase text-[#9EFF00] border-b-2 border-[#9EFF00] pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap animate-fade-slide-up">
               {stats.selectedYear === 'all' ? 'All Time' : stats.selectedYear} In Review
             </h1>
-            <div className="mt-2 sm:mt-3 flex flex-col gap-2 text-white" style={{ maxHeight: 'calc(100vh - 200px)', overflow: 'hidden' }}>
-              <div className="flex flex-col sm:flex-row gap-2 flex-shrink-0">
-                <div className="border border-white/20 p-2 rounded-lg flex flex-col flex-1 stagger-3" style={{ minHeight: 0 }}>
-                  <h3 className="heading-sm text-[#9EFF00] mb-1">Top 5 Anime</h3>
-                  <div className="space-y-0.5 flex-grow overflow-hidden">
-                    {stats.topRated.slice(0, 5).map((a, i) => (
-                      <p key={a.node.id} className="body-sm truncate bg-white/5 py-0.5 px-1.5 rounded">
-                        <span className="font-bold text-[#9EFF00] w-5 inline-block">{i+1}.</span>{a.node.title}
-                      </p>
-                    ))}
-                  </div>
-                </div>
-                <div className="border border-white/20 p-2 rounded-lg flex flex-col flex-1 stagger-4" style={{ minHeight: 0 }}>
-                  <h3 className="heading-sm text-[#9EFF00] mb-1">Top 5 Manga</h3>
-                  <div className="space-y-0.5 flex-grow overflow-hidden">
-                    {stats.topManga.slice(0, 5).map((m, i) => (
-                      <p key={m.node.id} className="body-sm truncate bg-white/5 py-0.5 px-1.5 rounded">
-                        <span className="font-bold text-[#9EFF00] w-5 inline-block">{i+1}.</span>{m.node.title}
-                      </p>
-                    ))}
-                  </div>
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 text-white animate-fade-slide-up">
+              <div className="border border-white/20 p-3 md:p-4 rounded-lg flex flex-col">
+                <h3 className="heading-sm text-[#9EFF00] mb-3">Top 5 Anime</h3>
+                <div className="space-y-2 flex-grow">
+                  {stats.topRated.slice(0, 5).map((a, i) => (
+                    <p key={a.node.id} className="body-sm truncate bg-white/5 py-1.5 px-2 rounded">
+                      <span className="font-bold text-[#9EFF00] w-6 inline-block">{i+1}.</span>{a.node.title}
+                    </p>
+                  ))}
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-2 flex-shrink-0">
-                <div className="border border-white/20 p-2 rounded-lg stagger-5">
-                  <p className="body-sm text-white/70 mb-0.5">Episodes</p>
-                  <p className="number-md text-white">
-                    <AnimatedNumber value={stats.totalEpisodes || 0} duration={1000} />
-                  </p>
-                </div>
-                <div className="border border-white/20 p-2 rounded-lg stagger-6">
-                  <p className="body-sm text-white/70 mb-0.5">Chapters</p>
-                  <p className="number-md text-white">
-                    <AnimatedNumber value={stats.totalChapters || 0} duration={1000} />
-                  </p>
-                </div>
-                <div className="border border-white/20 p-2 rounded-lg stagger-7">
-                  <p className="body-sm text-white/70 mb-0.5">Top Studio</p>
-                  <p className="heading-sm text-white truncate">{stats.topStudios?.[0]?.[0] || 'N/A'}</p>
-                </div>
-                <div className="border border-white/20 p-2 rounded-lg stagger-8">
-                  <p className="body-sm text-white/70 mb-0.5">Top Author</p>
-                  <p className="heading-sm text-white truncate">{stats.topAuthors?.[0]?.[0] || 'N/A'}</p>
+              <div className="border border-white/20 p-3 md:p-4 rounded-lg flex flex-col">
+                <h3 className="heading-sm text-[#9EFF00] mb-3">Top 5 Manga</h3>
+                <div className="space-y-2 flex-grow">
+                  {stats.topManga.slice(0, 5).map((m, i) => (
+                    <p key={m.node.id} className="body-sm truncate bg-white/5 py-1.5 px-2 rounded">
+                      <span className="font-bold text-[#9EFF00] w-6 inline-block">{i+1}.</span>{m.node.title}
+                    </p>
+                  ))}
                 </div>
               </div>
-              <div className="border border-white/20 p-2 rounded-lg stagger-7 flex-shrink-0">
-                <p className="body-sm text-white/70 mb-0.5">Total Time Spent</p>
+              <div className="border border-white/20 p-3 md:p-4 rounded-lg">
+                <p className="body-sm text-white/70 mb-2">Episodes Watched</p>
                 <p className="number-md text-white">
+                  <AnimatedNumber value={stats.totalEpisodes || 0} duration={1000} />
+                </p>
+              </div>
+              <div className="border border-white/20 p-3 md:p-4 rounded-lg">
+                <p className="body-sm text-white/70 mb-2">Chapters Read</p>
+                <p className="number-md text-white">
+                  <AnimatedNumber value={stats.totalChapters || 0} duration={1000} />
+                </p>
+              </div>
+              <div className="border border-white/20 p-3 md:p-4 rounded-lg col-span-1 sm:col-span-2">
+                <p className="body-sm text-white/70 mb-2">Total Time Spent</p>
+                <p className="number-lg text-white">
                   {totalDays > 0 ? (
                     <>
                       <AnimatedNumber value={totalDays} duration={1000} /> Days
-                      <span className="body-sm text-white/70 ml-2">({totalTimeSpent}h)</span>
+                      <span className="body-md text-white/70 ml-2">({totalTimeSpent} hours)</span>
                     </>
                   ) : (
                     <>
@@ -1876,6 +1879,14 @@ export default function MALWrapped() {
                     </>
                   )}
                 </p>
+              </div>
+              <div className="border border-white/20 p-3 md:p-4 rounded-lg">
+                <p className="body-sm text-white/70 mb-2">Top Studio</p>
+                <p className="heading-sm text-white truncate">{stats.topStudios?.[0]?.[0] || 'N/A'}</p>
+              </div>
+              <div className="border border-white/20 p-3 md:p-4 rounded-lg">
+                <p className="body-sm text-white/70 mb-2">Top Author</p>
+                <p className="heading-sm text-white truncate">{stats.topAuthors?.[0]?.[0] || 'N/A'}</p>
               </div>
             </div>
           </SlideLayout>
@@ -1923,7 +1934,6 @@ export default function MALWrapped() {
                     ...pos,
                     transform: `rotate(${pos.rotate}deg)`,
                     animation: `float 8s ease-in-out infinite`,
-                    animationDelay: `${idx * 0.8}s`
                   }}
                 />
               );
@@ -1931,8 +1941,8 @@ export default function MALWrapped() {
           })()}
         </div>
       )}
-      <div ref={slideRef} className={`w-full max-w-5xl h-[100vh] bg-[#101010] border-2 border-white/10 rounded-xl shadow-2xl shadow-black/50 flex flex-col justify-center relative overflow-hidden ${isCapturing ? 'capturing' : ''}`} style={{ zIndex: 10, minHeight: 0 }}>
-        <div className="z-10 w-full h-full flex flex-col items-center justify-center overflow-hidden" style={{ minHeight: 0, maxHeight: '100%' }}>
+      <div ref={slideRef} className={`w-full max-w-5xl h-full max-h-full bg-[#101010] border-2 border-white/10 rounded-xl shadow-2xl shadow-black/50 flex flex-col justify-center relative overflow-hidden ${isCapturing ? 'capturing' : ''}`} style={{ zIndex: 10 }}>
+        <div className="z-10 w-full h-full flex flex-col items-center justify-center">
           {error && (
             <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500/90 text-white px-6 py-3 rounded-lg z-50">
               {error}
