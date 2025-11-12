@@ -221,6 +221,52 @@
     animation: float 8s ease-in-out infinite;
   }
 
+  /* Spotify Wrapped Style Gradients */
+  .gradient-purple-pink {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  }
+
+  .gradient-blue-green {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #06b6d4 100%);
+  }
+
+  .gradient-orange-red {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 50%, #f093fb 100%);
+  }
+
+  .gradient-rainbow {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%);
+  }
+
+  .gradient-yellow-pink {
+    background: linear-gradient(135deg, #f6d365 0%, #fda085 50%, #f093fb 100%);
+  }
+
+  .gradient-blue-purple {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 50%, #667eea 100%);
+  }
+
+  .text-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-blue {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-rainbow {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
   /* Stop animations when capturing */
   .slide-card.capturing [class*="animate-"] {
     animation: none !important;
