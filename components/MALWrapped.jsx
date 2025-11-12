@@ -1853,44 +1853,44 @@ export default function MALWrapped() {
                 {stats.selectedYear === 'all' ? 'All Time' : stats.selectedYear} In Review
               </h1>
             </div>
-            <div className="mt-6 flex flex-col gap-3 text-white animate-fade-slide-up w-full">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="border border-white/5 p-3 rounded-lg flex flex-col bg-white/2 hover:bg-white/5 transition-colors">
+            <div className="mt-4 flex flex-col gap-2 text-white animate-fade-slide-up w-full max-h-full overflow-y-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="border border-white/5 p-2 rounded-lg flex flex-col bg-white/2 hover:bg-white/5 transition-colors">
                   <p className="body-sm text-white/70 mb-2">Top 5 Anime</p>
-                  <div className="space-y-2 flex-grow">
+                  <div className="space-y-1 flex-grow">
                     {stats.topRated.slice(0, 5).map((a, i) => (
-                        <p key={a.node.id} className="bg-white/3 py-1.5 px-2 rounded hover:bg-white/5 transition-colors">
+                        <p key={a.node.id} className="bg-white/3 py-1 px-2 rounded hover:bg-white/5 transition-colors">
                         <span className="font-bold text-[#3B82F6] w-6 inline-block">{i+1}.</span><span className="heading-sm text-white truncate">{a.node.title}</span>
                       </p>
                     ))}
                   </div>
                 </div>
-                <div className="border border-white/5 p-3 rounded-lg flex flex-col bg-white/2 hover:bg-white/5 transition-colors">
+                <div className="border border-white/5 p-2 rounded-lg flex flex-col bg-white/2 hover:bg-white/5 transition-colors">
                   <p className="body-sm text-white/70 mb-2">Top 5 Manga</p>
-                  <div className="space-y-2 flex-grow">
+                  <div className="space-y-1 flex-grow">
                     {stats.topManga.slice(0, 5).map((m, i) => (
-                        <p key={m.node.id} className="bg-white/3 py-1.5 px-2 rounded hover:bg-white/5 transition-colors">
+                        <p key={m.node.id} className="bg-white/3 py-1 px-2 rounded hover:bg-white/5 transition-colors">
                         <span className="font-bold text-[#3B82F6] w-6 inline-block">{i+1}.</span><span className="heading-sm text-white truncate">{m.node.title}</span>
                       </p>
                     ))}
                   </div>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="border border-white/5 p-3 rounded-lg bg-white/2 hover:bg-white/5 transition-colors">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="border border-white/5 p-2 rounded-lg bg-white/2 hover:bg-white/5 transition-colors">
                   <p className="body-sm text-white/70 mb-2">Episodes Watched</p>
                   <p className="number-md text-white">
                     <AnimatedNumber value={stats.totalEpisodes || 0} duration={1000} />
                   </p>
                 </div>
-                <div className="border border-white/5 p-3 rounded-lg bg-white/2 hover:bg-white/5 transition-colors">
+                <div className="border border-white/5 p-2 rounded-lg bg-white/2 hover:bg-white/5 transition-colors">
                   <p className="body-sm text-white/70 mb-2">Chapters Read</p>
                   <p className="number-md text-white">
                     <AnimatedNumber value={stats.totalChapters || 0} duration={1000} />
                   </p>
                 </div>
               </div>
-              <div className="border border-white/5 p-3 rounded-lg bg-white/2 hover:bg-white/5 transition-colors">
+              <div className="border border-white/5 p-2 rounded-lg bg-white/2 hover:bg-white/5 transition-colors">
                 <p className="body-sm text-white/70 mb-2">Total Time Spent</p>
                 <p className="number-lg text-white">
                   {totalDays > 0 ? (
@@ -1905,12 +1905,12 @@ export default function MALWrapped() {
                   )}
                 </p>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="border border-white/5 p-3 rounded-lg bg-white/2 hover:bg-white/5 transition-colors">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="border border-white/5 p-2 rounded-lg bg-white/2 hover:bg-white/5 transition-colors">
                   <p className="body-sm text-white/70 mb-2">Top Studio</p>
                   <p className="heading-sm text-white truncate">{stats.topStudios?.[0]?.[0] || 'N/A'}</p>
                 </div>
-                <div className="border border-white/5 p-3 rounded-lg bg-white/2 hover:bg-white/5 transition-colors">
+                <div className="border border-white/5 p-2 rounded-lg bg-white/2 hover:bg-white/5 transition-colors">
                   <p className="body-sm text-white/70 mb-2">Top Author</p>
                   <p className="heading-sm text-white truncate">{stats.topAuthors?.[0]?.[0] || 'N/A'}</p>
                 </div>
@@ -2037,8 +2037,8 @@ export default function MALWrapped() {
               </div>
               
               {/* Slide Content */}
-              <div key={currentSlide} className="w-full flex-grow flex items-center justify-center overflow-hidden py-2 sm:py-4">
-                <div className="w-full h-full relative overflow-hidden">
+              <div key={currentSlide} className="w-full flex-grow flex items-center justify-center overflow-y-auto py-2 sm:py-4">
+                <div className="w-full h-full relative overflow-y-auto">
                   <SlideContent slide={slides[currentSlide]} mangaListData={mangaList} />
                 </div>
               </div>
