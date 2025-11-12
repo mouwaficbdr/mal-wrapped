@@ -939,6 +939,9 @@ export default function MALWrapped() {
         ? [...visibleItems, ...visibleItems, ...visibleItems]
         : visibleItems;
       
+      // Center items when there are fewer than itemsPerView
+      const shouldCenter = !shouldScroll && visibleItems.length < itemsPerView;
+      
       useEffect(() => {
         // Only animate if we have more items than viewport and not hovered
         if (visibleItems.length <= itemsPerView || isHovered) {
@@ -978,7 +981,7 @@ export default function MALWrapped() {
 
       return (
         <div 
-          className="mt-6 overflow-hidden relative"
+          className="mt-6 overflow-hidden relative flex justify-center"
           style={{ 
             maskImage: shouldScroll ? 'none' : 'linear-gradient(to right, black 0%, black 100%)',
             WebkitMaskImage: shouldScroll ? 'none' : 'linear-gradient(to right, black 0%, black 100%)'
@@ -994,7 +997,9 @@ export default function MALWrapped() {
             style={{ 
               transform: shouldScroll ? `translateX(-${scrollPosition}%)` : 'translateX(0)',
               willChange: shouldScroll ? 'transform' : 'auto',
-              gap: gapSize
+              gap: gapSize,
+              justifyContent: shouldCenter ? 'center' : 'flex-start',
+              width: shouldCenter ? 'auto' : '100%'
             }}
           >
             {duplicatedItems.map((item, idx) => {
@@ -1038,7 +1043,11 @@ export default function MALWrapped() {
                 <div 
                   key={uniqueKey} 
                   className="relative group flex-shrink-0 flex justify-center" 
-                  style={{ width: `${itemWidth}%` }}
+                  style={{ 
+                    width: shouldCenter ? `${100 / itemsPerView}%` : `${itemWidth}%`,
+                    minWidth: shouldCenter ? '120px' : 'auto',
+                    maxWidth: shouldCenter ? '183px' : 'none'
+                  }}
                   onMouseEnter={() => showHover && setHoveredItem(actualIndex)}
                   onMouseLeave={() => showHover && setHoveredItem(null)}
                 >
