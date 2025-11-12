@@ -1074,8 +1074,8 @@ export default function MALWrapped() {
       if (visibleItems.length === 0) return null;
 
       return (
-        <div className="mt-6 flex justify-center w-full px-2">
-          <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-3 justify-items-center w-full max-w-full">
+        <div className="mt-6 flex justify-center w-full px-2 sm:px-4">
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 sm:gap-4 justify-items-center items-start w-full max-w-4xl">
             {visibleItems.map((item, idx) => {
               const malUrl = getMALUrl(item);
               const itemContent = (
@@ -1102,9 +1102,9 @@ export default function MALWrapped() {
               );
               
               return (
-                <div key={idx} className="group flex justify-center">
+                <div key={idx} className="group w-full flex justify-center">
                   {malUrl ? (
-                    <a href={malUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+                    <a href={malUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="w-full flex justify-center">
                       {itemContent}
                     </a>
                   ) : (
