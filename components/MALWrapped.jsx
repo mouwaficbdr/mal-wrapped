@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, Download } from 'lucide-react';
 
 function generateCodeVerifier(length = 128) {
@@ -900,19 +900,18 @@ export default function MALWrapped() {
       const [itemsPerView, setItemsPerView] = useState(3);
       const [maxHeight, setMaxHeight] = useState(null);
       
-      // Deduplicate items by title to prevent repeats
+      // Deduplicate items by title AND ID to prevent repeats
       const uniqueItemsMap = new Map();
       items.forEach(item => {
         const title = item.title || '';
-        if (title && !uniqueItemsMap.has(title)) {
-          uniqueItemsMap.set(title, item);
+        const id = item.malId || item.mangaId || '';
+        const uniqueKey = `${title}-${id}`;
+        if (title && !uniqueItemsMap.has(uniqueKey)) {
+          uniqueItemsMap.set(uniqueKey, item);
         }
       });
       const uniqueItems = Array.from(uniqueItemsMap.values());
       const visibleItems = uniqueItems.slice(0, maxItems);
-      
-      // Duplicate items for infinite loop
-      const duplicatedItems = [...visibleItems, ...visibleItems, ...visibleItems];
       
       // Update gap size and items per view based on screen width
       useEffect(() => {
@@ -934,8 +933,19 @@ export default function MALWrapped() {
       
       const itemWidth = 100 / itemsPerView;
       
+      // Only duplicate items if we have more items than can fit in viewport (for infinite scroll)
+      // Otherwise, just show the unique items
+      const shouldScroll = visibleItems.length > itemsPerView;
+      const duplicatedItems = shouldScroll 
+        ? [...visibleItems, ...visibleItems, ...visibleItems]
+        : visibleItems;
+      
       useEffect(() => {
-        if (visibleItems.length <= itemsPerView || isHovered) return;
+        // Only animate if we have more items than viewport and not hovered
+        if (visibleItems.length <= itemsPerView || isHovered) {
+          setScrollPosition(0);
+          return;
+        }
         
         const scrollSpeed = 0.15;
         let animationFrame;
@@ -971,6 +981,10 @@ export default function MALWrapped() {
       return (
         <div 
           className="mt-6 overflow-hidden relative"
+          style={{ 
+            maskImage: shouldScroll ? 'none' : 'linear-gradient(to right, black 0%, black 100%)',
+            WebkitMaskImage: shouldScroll ? 'none' : 'linear-gradient(to right, black 0%, black 100%)'
+          }}
           onMouseEnter={() => showHover && setIsHovered(true)}
           onMouseLeave={() => {
             showHover && setIsHovered(false);
@@ -980,8 +994,8 @@ export default function MALWrapped() {
           <div 
             className="flex"
             style={{ 
-              transform: `translateX(-${scrollPosition}%)`,
-              willChange: 'transform',
+              transform: shouldScroll ? `translateX(-${scrollPosition}%)` : 'translateX(0)',
+              willChange: shouldScroll ? 'transform' : 'auto',
               gap: gapSize
             }}
           >
