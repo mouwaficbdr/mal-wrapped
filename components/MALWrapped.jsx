@@ -987,6 +987,8 @@ export default function MALWrapped() {
           >
             {duplicatedItems.map((item, idx) => {
               const malUrl = getMALUrl(item);
+              const actualIndex = idx % visibleItems.length;
+              const uniqueKey = `${item.title || ''}-${item.malId || item.mangaId || idx}-${actualIndex}`;
               const content = (
                 <div className="flex flex-col flex-shrink-0">
                   <div className="aspect-[2/3] w-28 sm:w-32 md:w-40 bg-transparent border border-white/5 rounded-lg overflow-hidden transition-all duration-300 relative group-hover:border-[#3B82F6]/60" style={{ ...(maxHeight && { maxHeight }), boxSizing: 'border-box' }}>
@@ -998,7 +1000,7 @@ export default function MALWrapped() {
                         className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-110"
                       />
                     )}
-                    {showHover && hoveredItem === (idx % visibleItems.length) && item.title && (
+                    {showHover && hoveredItem === actualIndex && item.title && (
                       <div className="absolute inset-0 bg-black/70 flex items-center justify-center p-2 z-10 transition-opacity duration-300 rounded-lg">
                         <p className="text-white body-sm font-bold text-center leading-tight">{item.title}</p>
                         {item.userRating && (
@@ -1022,10 +1024,10 @@ export default function MALWrapped() {
               
               return (
                 <div 
-                  key={idx} 
+                  key={uniqueKey} 
                   className="relative group flex-shrink-0" 
                   style={{ width: `${itemWidth}%` }}
-                  onMouseEnter={() => showHover && setHoveredItem(idx % visibleItems.length)}
+                  onMouseEnter={() => showHover && setHoveredItem(actualIndex)}
                   onMouseLeave={() => showHover && setHoveredItem(null)}
                 >
                   {malUrl ? (
@@ -1278,11 +1280,20 @@ export default function MALWrapped() {
 
       case 'top_studio':
         const topStudio = stats.topStudios && stats.topStudios.length > 0 ? stats.topStudios[0][0] : null;
-        const topStudioAnime = topStudio ? stats.thisYearAnime.filter(item => 
+        const topStudioAnimeRaw = topStudio ? stats.thisYearAnime.filter(item => 
           item.node?.studios?.some(s => s.name === topStudio)
         ) : [];
-        // Use first anime from studio as representation
-        const topStudioRepresentation = topStudioAnime.length > 0 ? topStudioAnime[0] : null;
+        
+        // Deduplicate anime by title to avoid showing the same work multiple times
+        const topStudioAnimeMap = new Map();
+        topStudioAnimeRaw.forEach(item => {
+          const title = item.node?.title || '';
+          if (title && !topStudioAnimeMap.has(title)) {
+            topStudioAnimeMap.set(title, item);
+          }
+        });
+        const topStudioAnime = Array.from(topStudioAnimeMap.values());
+        
         const studioAnime = topStudioAnime.map(item => ({
           title: item.node?.title || '',
           coverImage: item.node?.main_picture?.large || item.node?.main_picture?.medium || '',
