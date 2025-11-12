@@ -943,7 +943,6 @@ export default function MALWrapped() {
       useEffect(() => {
         // Only animate if we have more items than viewport and not hovered
         if (visibleItems.length <= itemsPerView || isHovered) {
-          setScrollPosition(0);
           return;
         }
         
@@ -1076,7 +1075,7 @@ export default function MALWrapped() {
       if (visibleItems.length === 0) return null;
 
       return (
-        <div className="mt-6 grid grid-cols-3 sm:grid-cols-5 gap-3">
+        <div className="mt-6 grid grid-cols-3 sm:grid-cols-5 gap-3 justify-items-center max-w-full mx-auto">
           {visibleItems.map((item, idx) => {
             const malUrl = getMALUrl(item);
             const itemContent = (
@@ -1398,10 +1397,10 @@ export default function MALWrapped() {
         }));
         return (
           <SlideLayout verticalText="HIDDEN-GEMS">
-            <h1 className="relative z-10 heading-lg uppercase text-[#3B82F6] border-b border-[#3B82F6]/60 pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap animate-fade-slide-up">
+            <h1 className="relative z-10 heading-lg uppercase text-[#3B82F6] border-b border-[#3B82F6]/60 pb-1 sm:pb-2 px-2 mx-auto text-center whitespace-nowrap animate-fade-slide-up">
               Hidden Gems
             </h1>
-            <h2 className="body-lg font-semibold uppercase text-white/80 mt-2 sm:mt-3 animate-fade-slide-up whitespace-nowrap">
+            <h2 className="body-lg font-semibold uppercase text-white/80 mt-2 sm:mt-3 text-center animate-fade-slide-up whitespace-nowrap">
               High-rated anime with low popularity
             </h2>
             {gems.length > 0 ? (
@@ -1423,10 +1422,10 @@ export default function MALWrapped() {
         }));
         return (
           <SlideLayout verticalText="DIDNT-LAND">
-            <h1 className="relative z-10 heading-lg uppercase text-[#3B82F6] border-b border-[#3B82F6]/60 pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap animate-fade-slide-up">
+            <h1 className="relative z-10 heading-lg uppercase text-[#3B82F6] border-b border-[#3B82F6]/60 pb-1 sm:pb-2 px-2 mx-auto text-center whitespace-nowrap animate-fade-slide-up">
               Didn't Land
             </h1>
-            <h2 className="body-lg font-semibold uppercase text-white/80 mt-2 sm:mt-3 animate-fade-slide-up whitespace-nowrap">
+            <h2 className="body-lg font-semibold uppercase text-white/80 mt-2 sm:mt-3 text-center animate-fade-slide-up whitespace-nowrap">
               5 shows you rated the lowest
             </h2>
             {didntLand.length > 0 ? (
@@ -1447,10 +1446,10 @@ export default function MALWrapped() {
         }));
         return (
           <SlideLayout verticalText="PLANNED">
-            <h1 className="relative z-10 heading-lg uppercase text-[#3B82F6] border-b border-[#3B82F6]/60 pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap animate-fade-slide-up">
+            <h1 className="relative z-10 heading-lg uppercase text-[#3B82F6] border-b border-[#3B82F6]/60 pb-1 sm:pb-2 px-2 mx-auto text-center whitespace-nowrap animate-fade-slide-up">
               Planned to Watch
             </h1>
-            <h2 className="body-lg font-semibold uppercase text-white/80 mt-2 sm:mt-3 animate-fade-slide-up whitespace-nowrap">
+            <h2 className="body-lg font-semibold uppercase text-white/80 mt-2 sm:mt-3 text-center animate-fade-slide-up whitespace-nowrap">
               5 shows you plan to watch {stats.selectedYear === 'all' ? '' : 'this year'}.
             </h2>
             {plannedAnimeItems.length > 0 ? (
@@ -1729,10 +1728,10 @@ export default function MALWrapped() {
         }));
         return (
           <SlideLayout verticalText="HIDDEN-GEMS">
-            <h1 className="relative z-10 heading-lg uppercase text-[#3B82F6] border-b border-[#3B82F6]/60 pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap animate-fade-slide-up">
+            <h1 className="relative z-10 heading-lg uppercase text-[#3B82F6] border-b border-[#3B82F6]/60 pb-1 sm:pb-2 px-2 mx-auto text-center whitespace-nowrap animate-fade-slide-up">
               Hidden Gems
             </h1>
-            <h2 className="body-lg font-semibold uppercase text-white/80 mt-2 sm:mt-3 animate-fade-slide-up whitespace-nowrap">
+            <h2 className="body-lg font-semibold uppercase text-white/80 mt-2 sm:mt-3 text-center animate-fade-slide-up whitespace-nowrap">
               High-rated manga with low popularity
             </h2>
             {mangaGems.length > 0 ? (
@@ -1754,10 +1753,10 @@ export default function MALWrapped() {
         }));
         return (
           <SlideLayout verticalText="DIDNT-LAND">
-            <h1 className="relative z-10 heading-lg uppercase text-[#3B82F6] border-b border-[#3B82F6]/60 pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap animate-fade-slide-up">
+            <h1 className="relative z-10 heading-lg uppercase text-[#3B82F6] border-b border-[#3B82F6]/60 pb-1 sm:pb-2 px-2 mx-auto text-center whitespace-nowrap animate-fade-slide-up">
               Didn't Land
             </h1>
-            <h2 className="body-lg font-semibold uppercase text-white/80 mt-2 sm:mt-3 animate-fade-slide-up whitespace-nowrap">
+            <h2 className="body-lg font-semibold uppercase text-white/80 mt-2 sm:mt-3 text-center animate-fade-slide-up whitespace-nowrap">
               5 manga you rated the lowest
             </h2>
             {mangaDidntLand.length > 0 ? (
@@ -1778,10 +1777,10 @@ export default function MALWrapped() {
         }));
         return (
           <SlideLayout verticalText="PLANNED">
-            <h1 className="relative z-10 heading-lg uppercase text-[#3B82F6] border-b border-[#3B82F6]/60 pb-1 sm:pb-2 px-2 inline-block whitespace-nowrap animate-fade-slide-up">
+            <h1 className="relative z-10 heading-lg uppercase text-[#3B82F6] border-b border-[#3B82F6]/60 pb-1 sm:pb-2 px-2 mx-auto text-center whitespace-nowrap animate-fade-slide-up">
               Planned to Read
             </h1>
-            <h2 className="body-lg font-semibold uppercase text-white/80 mt-2 sm:mt-3 animate-fade-slide-up whitespace-nowrap">
+            <h2 className="body-lg font-semibold uppercase text-white/80 mt-2 sm:mt-3 text-center animate-fade-slide-up whitespace-nowrap">
               5 manga you plan to read {stats.selectedYear === 'all' ? '' : 'this year'}.
             </h2>
             {plannedMangaItems.length > 0 ? (
