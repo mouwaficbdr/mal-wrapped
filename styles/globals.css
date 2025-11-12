@@ -84,6 +84,39 @@
     line-height: 1.5;
   }
   
+  /* Title Styles - For series names, anime/manga titles */
+  .title-xl {
+    font-family: 'Hanken Grotesk', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #ffffff;
+  }
+  
+  .title-lg {
+    font-family: 'Hanken Grotesk', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.3;
+    color: #ffffff;
+  }
+  
+  .title-md {
+    font-family: 'Hanken Grotesk', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.4;
+    color: #ffffff;
+  }
+  
+  .title-sm {
+    font-family: 'Hanken Grotesk', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.4;
+    color: #ffffff;
+  }
+  
   /* Number Styles - Chakra Petch */
   .number-xl {
     font-family: 'Chakra Petch', sans-serif;
@@ -116,6 +149,10 @@
     .body-lg { font-size: 0.9375rem; }
     .body-md { font-size: 0.9375rem; }
     .body-sm { font-size: 0.8125rem; }
+    .title-xl { font-size: 1.75rem; }
+    .title-lg { font-size: 1.25rem; }
+    .title-md { font-size: 0.9375rem; }
+    .title-sm { font-size: 0.8125rem; }
     .number-xl { font-size: 3rem; }
     .number-lg { font-size: 2.5rem; }
     .number-md { font-size: 1.75rem; }
@@ -128,6 +165,10 @@
     .body-lg { font-size: 1.125rem; }
     .body-md { font-size: 1.125rem; }
     .body-sm { font-size: 1rem; }
+    .title-xl { font-size: 3rem; }
+    .title-lg { font-size: 1.75rem; }
+    .title-md { font-size: 1.125rem; }
+    .title-sm { font-size: 1rem; }
     .number-xl { font-size: 5rem; }
     .number-lg { font-size: 4rem; }
   }

@@ -764,7 +764,7 @@ export default function MALWrapped() {
                 )}
               </div>
               <div className="text-center">
-                <h3 className="text-3xl md:text-5xl font-bold text-white mb-2">{topItem.node?.title}</h3>
+                <h3 className="title-xl mb-2">{topItem.node?.title}</h3>
                 {type === 'anime' && topItem.node?.studios?.[0]?.name && (
                   <p className="text-xl md:text-2xl text-[#3B82F6] mb-4">{topItem.node.studios[0].name}</p>
                 )}
@@ -814,7 +814,7 @@ export default function MALWrapped() {
                       })()}
                       <div className="p-2 flex flex-col justify-center flex-grow min-w-0 text-center">
                         <p className="text-[10px] sm:text-xs md:text-sm uppercase tracking-widest text-[#3B82F6] font-bold">#1 Favorite</p>
-                        <h3 className="font-bold text-white text-xs sm:text-sm md:text-base mt-0.5 sm:mt-1 leading-tight truncate">{featured.title}</h3>
+                        <h3 className="title-sm mt-0.5 sm:mt-1 truncate">{featured.title}</h3>
                         {featured.studio && <p className="text-[10px] sm:text-xs md:text-sm text-[#3B82F6] truncate">{featured.studio}</p>}
                         {featured.author && <p className="text-[10px] sm:text-xs md:text-sm text-[#3B82F6] truncate">{featured.author}</p>}
                         <div className="flex items-center justify-center text-xs sm:text-sm md:text-base text-yellow-300 mt-0.5 sm:mt-1">
@@ -843,7 +843,7 @@ export default function MALWrapped() {
                                 )}
                               </div>
                               <div className="mt-1 text-center w-full min-w-0">
-                                <h3 className="font-bold text-white text-xs sm:text-sm md:text-base truncate leading-tight">{item.title}</h3>
+                                <h3 className="title-sm truncate">{item.title}</h3>
                                 <div className="flex items-center justify-center text-xs sm:text-sm md:text-base text-yellow-300">
                                   <span className="mr-0.5 sm:mr-1 shrink-0">★</span>
                                   <span>{item.userRating.toFixed(1)}</span>
@@ -1014,7 +1014,7 @@ export default function MALWrapped() {
                     )}
                     {showHover && hoveredItem === actualIndex && item.title && (
                       <div className="absolute inset-0 bg-black/70 flex items-center justify-center p-2 z-10 transition-opacity duration-300 rounded-lg">
-                        <p className="text-white body-sm font-bold text-center leading-tight">{item.title}</p>
+                        <p className="title-sm text-center">{item.title}</p>
                         {item.userRating && (
                           <div className="absolute bottom-2 right-2 text-yellow-300 body-sm font-bold">
                             ★ {item.userRating.toFixed(1)}
@@ -1025,7 +1025,7 @@ export default function MALWrapped() {
                   </div>
                   {showNames && item.title && (
                     <div className="mt-2 text-center">
-                      <p className="body-sm font-bold text-white truncate">{item.title}</p>
+                      <p className="title-sm truncate">{item.title}</p>
                       {item.userRating && (
                         <p className="body-sm text-yellow-300">★ {item.userRating.toFixed(1)}</p>
                       )}
@@ -1105,7 +1105,7 @@ export default function MALWrapped() {
                   </div>
                   {item.title && (
                     <div className="mt-2 text-center w-full px-1">
-                      <p className="body-sm font-bold text-white truncate">{item.title}</p>
+                      <p className="title-sm truncate">{item.title}</p>
                       {item.userRating && (
                         <p className="body-sm text-yellow-300">★ {item.userRating.toFixed(1)}</p>
                       )}
@@ -1138,7 +1138,7 @@ export default function MALWrapped() {
           <div className={`text-3xl font-bold w-12 shrink-0 ${isTop ? 'text-[#3B82F6]' : 'text-white/60'}`}>#{rank}</div>
           <div className="flex-grow flex items-center gap-4 min-w-0">
             <div className="flex-grow min-w-0">
-              <p className="font-bold text-white text-xl truncate">{item.name}</p>
+              <p className="title-lg truncate">{item.name}</p>
               <p className="text-base text-white/50">{item.count} entries</p>
             </div>
           </div>
@@ -1160,7 +1160,7 @@ export default function MALWrapped() {
           )}
         </div>
         <div className="mt-2">
-          <h3 className="font-bold text-white truncate text-base">{item.title}</h3>
+          <h3 className="title-md truncate">{item.title}</h3>
           <div className="flex items-center text-base text-yellow-300">
             <span className="mr-1">★</span>
             <span>{item.userRating?.toFixed(1) || 'N/A'}</span>
@@ -1397,7 +1397,7 @@ export default function MALWrapped() {
                             )}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-bold text-white text-xs sm:text-sm md:text-base truncate">{highlight.node?.title}</p>
+                            <p className="title-sm truncate">{highlight.node?.title}</p>
                             <p className="text-xs text-[#3B82F6] truncate">{highlight.node?.studios?.[0]?.name || ''}</p>
                             <p className="text-xs sm:text-sm md:text-base text-yellow-300 mt-1">★ {highlight.list_status?.score || 'N/A'}</p>
                             <p className="body-sm text-white/70 mt-1">{seasonData.totalAnime} anime</p>
