@@ -1060,19 +1060,6 @@ export default function MALWrapped() {
     // Grid Image Component for hidden gems, didn't land, and planned sections
     const GridImages = ({ items, maxItems = 5 }) => {
       const visibleItems = items.slice(0, maxItems);
-      const itemCount = visibleItems.length;
-      
-      // Dynamically set columns based on number of items
-      // On mobile: max 3 columns, on larger screens: use item count (max 5)
-      const getGridCols = () => {
-        if (itemCount === 0) return 'grid-cols-1';
-        if (itemCount === 1) return 'grid-cols-1';
-        if (itemCount === 2) return 'grid-cols-2';
-        if (itemCount === 3) return 'grid-cols-3';
-        if (itemCount === 4) return 'grid-cols-2 sm:grid-cols-4';
-        // 5 or more items
-        return 'grid-cols-3 sm:grid-cols-5';
-      };
 
       const getMALUrl = (item) => {
         if (item.malId) {
@@ -1088,12 +1075,12 @@ export default function MALWrapped() {
 
       return (
         <div className="mt-6 flex justify-center w-full px-2 sm:px-4">
-          <div className={`grid ${getGridCols()} gap-3 sm:gap-4 place-items-center w-full max-w-4xl mx-auto`}>
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 sm:gap-4 justify-items-center items-start w-full max-w-4xl">
             {visibleItems.map((item, idx) => {
               const malUrl = getMALUrl(item);
               const itemContent = (
                 <div className="flex flex-col items-center w-full">
-                  <div className="aspect-[2/3] bg-transparent border border-white/5 rounded-lg overflow-hidden transition-all duration-300 relative group-hover:border-[#3B82F6]/60" style={{ maxHeight: '275px', maxWidth: '183px', width: '100%', boxSizing: 'border-box' }}>
+                  <div className="aspect-[2/3] w-full bg-transparent border border-white/5 rounded-lg overflow-hidden transition-all duration-300 relative group-hover:border-[#3B82F6]/60" style={{ maxHeight: '275px', maxWidth: '100%', boxSizing: 'border-box' }}>
                     {item.coverImage && (
                       <img 
                         src={item.coverImage} 
@@ -1105,7 +1092,7 @@ export default function MALWrapped() {
                   </div>
                   {item.title && (
                     <div className="mt-2 text-center w-full px-1">
-                      <p className="body-sm font-bold text-white truncate">{item.title}</p>
+                      <p className="body-sm font-bold text-white truncate w-full">{item.title}</p>
                       {item.userRating && (
                         <p className="body-sm text-yellow-300">★ {item.userRating.toFixed(1)}</p>
                       )}
@@ -1350,7 +1337,7 @@ export default function MALWrapped() {
                   </div>
                 </div>
                 {studioAnime.length > 0 && (
-                  <GridImages items={studioAnime} maxItems={30} />
+                  <ImageCarousel items={studioAnime} maxItems={30} showHover={true} showNames={false} />
                 )}
                 {otherStudios.length > 0 && (
                   <div className="mt-4 sm:mt-6 grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
@@ -1737,7 +1724,7 @@ export default function MALWrapped() {
                   </div>
                 </div>
                 {authorManga.length > 0 && (
-                  <GridImages items={authorManga} maxItems={30} />
+                  <ImageCarousel items={authorManga} maxItems={30} showHover={true} showNames={false} />
                 )}
                 {otherAuthors.length > 0 && (
                   <div className="mt-4 sm:mt-6 grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
