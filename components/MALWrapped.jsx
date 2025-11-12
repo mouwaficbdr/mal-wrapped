@@ -532,25 +532,25 @@ export default function MALWrapped() {
     const mangaDays = Math.floor(mangaHours / 24);
 
     // Manga authors (from filtered manga)
+    // Normalize author names to avoid duplicates from spacing/case variations
+    const normalizeAuthorName = (first, last) => {
+      return `${(first || '').trim()} ${(last || '').trim()}`.trim().replace(/\s+/g, ' ');
+    };
+    
     const authorCounts = {};
     filteredManga.forEach(item => {
       item.node?.authors?.forEach(author => {
-        const name = `${author.node?.first_name || ''} ${author.node?.last_name || ''}`.trim();
+        const name = normalizeAuthorName(
+          author.node?.first_name || '',
+          author.node?.last_name || ''
+        );
         if (name) {
           authorCounts[name] = (authorCounts[name] || 0) + 1;
         }
       });
     });
-
-    // Deduplicate authors - only keep unique entries
-    const uniqueAuthorCounts = {};
-    Object.entries(authorCounts).forEach(([name, count]) => {
-      if (!uniqueAuthorCounts[name]) {
-        uniqueAuthorCounts[name] = count;
-      }
-    });
     
-    const topAuthors = Object.entries(uniqueAuthorCounts)
+    const topAuthors = Object.entries(authorCounts)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5);
 
@@ -1617,7 +1617,11 @@ export default function MALWrapped() {
 
       case 'top_author':
         const topAuthor = stats.topAuthors && stats.topAuthors.length > 0 ? stats.topAuthors[0][0] : null;
-        const topAuthorManga = topAuthor ? (mangaListData || []).filter(item => {
+        const normalizeAuthorName = (first, last) => {
+          return `${(first || '').trim()} ${(last || '').trim()}`.trim().replace(/\s+/g, ' ');
+        };
+        
+        const topAuthorMangaRaw = topAuthor ? (mangaListData || []).filter(item => {
           if (stats.selectedYear !== 'all') {
             const finishDate = item.list_status?.finish_date;
             const startDate = item.list_status?.start_date;
@@ -1632,12 +1636,24 @@ export default function MALWrapped() {
             }
           }
           return item.node?.authors?.some(a => {
-            const name = `${a.node?.first_name || ''} ${a.node?.last_name || ''}`.trim();
+            const name = normalizeAuthorName(
+              a.node?.first_name || '',
+              a.node?.last_name || ''
+            );
             return name === topAuthor;
           });
         }) : [];
-        // Use first manga from author as representation
-        const topAuthorRepresentation = topAuthorManga.length > 0 ? topAuthorManga[0] : null;
+        
+        // Deduplicate manga by title to avoid showing the same work multiple times
+        const topAuthorMangaMap = new Map();
+        topAuthorMangaRaw.forEach(item => {
+          const title = item.node?.title || '';
+          if (title && !topAuthorMangaMap.has(title)) {
+            topAuthorMangaMap.set(title, item);
+          }
+        });
+        const topAuthorManga = Array.from(topAuthorMangaMap.values());
+        
         const authorManga = topAuthorManga.map(item => ({
           title: item.node?.title || '',
           coverImage: item.node?.main_picture?.large || item.node?.main_picture?.medium || '',
