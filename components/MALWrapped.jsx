@@ -1002,8 +1002,8 @@ export default function MALWrapped() {
               const actualIndex = idx % visibleItems.length;
               const uniqueKey = `${item.title || ''}-${item.malId || item.mangaId || idx}-${actualIndex}`;
               const content = (
-                <div className="flex flex-col flex-shrink-0 items-center">
-                  <div className="aspect-[2/3] bg-transparent border border-white/5 rounded-lg overflow-hidden transition-all duration-300 relative group-hover:border-[#3B82F6]/60" style={{ maxHeight: '275px', boxSizing: 'border-box' }}>
+                <div className="flex flex-col flex-shrink-0 items-center w-full">
+                  <div className="aspect-[2/3] w-full bg-transparent border border-white/5 rounded-lg overflow-hidden transition-all duration-300 relative group-hover:border-[#3B82F6]/60" style={{ maxHeight: '275px', maxWidth: '100%', boxSizing: 'border-box' }}>
                     {item.coverImage && (
                       <img 
                         src={item.coverImage} 
@@ -1074,13 +1074,13 @@ export default function MALWrapped() {
       if (visibleItems.length === 0) return null;
 
       return (
-        <div className="mt-6 flex justify-center w-full">
-          <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 justify-items-center">
+        <div className="mt-6 flex justify-center w-full px-2">
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-3 justify-items-center w-full max-w-full">
             {visibleItems.map((item, idx) => {
               const malUrl = getMALUrl(item);
               const itemContent = (
-                <div className="flex flex-col items-center">
-                  <div className="aspect-[2/3] bg-transparent border border-white/5 rounded-lg overflow-hidden transition-all duration-300 relative group-hover:border-[#3B82F6]/60" style={{ maxHeight: '275px', boxSizing: 'border-box' }}>
+                <div className="flex flex-col items-center w-full">
+                  <div className="aspect-[2/3] w-full bg-transparent border border-white/5 rounded-lg overflow-hidden transition-all duration-300 relative group-hover:border-[#3B82F6]/60" style={{ maxHeight: '275px', maxWidth: '100%', boxSizing: 'border-box' }}>
                     {item.coverImage && (
                       <img 
                         src={item.coverImage} 
@@ -1091,8 +1091,8 @@ export default function MALWrapped() {
                     )}
                   </div>
                   {item.title && (
-                    <div className="mt-2 text-center">
-                      <p className="body-sm font-bold text-white truncate">{item.title}</p>
+                    <div className="mt-2 text-center w-full px-1">
+                      <p className="body-sm font-bold text-white truncate w-full">{item.title}</p>
                       {item.userRating && (
                         <p className="body-sm text-yellow-300">★ {item.userRating.toFixed(1)}</p>
                       )}
