@@ -1458,8 +1458,8 @@ export default function MALWrapped() {
             <div className="text-center relative">
               <div className="absolute inset-0 bg-[#09e9fe]/10 opacity-10 blur-3xl -z-10"></div>
               <motion.h1 className="relative z-10 heading-lg text-[#09e9fe] font-black pb-2 px-2 inline-block whitespace-nowrap" style={{ borderBottom: '2px solid', borderColor: '#09e9fe' }} {...fadeSlideUp} data-framer-motion>
-              Favorite Studio
-            </h1>
+                Favorite Studio
+              </motion.h1>
             </div>
             {topStudio ? (
               <>
@@ -1498,8 +1498,8 @@ export default function MALWrapped() {
             <div className="text-center relative">
               <div className="absolute inset-0 bg-[#09e9fe]/10 opacity-10 blur-3xl -z-10"></div>
               <motion.h1 className="relative z-10 heading-lg text-[#09e9fe] font-black pb-2 px-2 inline-block whitespace-nowrap" style={{ borderBottom: '2px solid', borderColor: '#09e9fe' }} {...fadeSlideUp} data-framer-motion>
-              Seasonal Highlights
-            </h1>
+                Seasonal Highlights
+              </motion.h1>
             </div>
             <div className="mt-2 sm:mt-4 flex flex-col md:grid md:grid-cols-2 gap-1.5 sm:gap-2 relative z-10">
               {seasons.map(season => {
@@ -1550,8 +1550,8 @@ export default function MALWrapped() {
             <div className="text-center relative">
               <div className="absolute inset-0 bg-[#09e9fe]/10 opacity-10 blur-3xl -z-10"></div>
               <motion.h1 className="relative z-10 heading-lg text-[#09e9fe] font-black pb-2 px-2 inline-block whitespace-nowrap" style={{ borderBottom: '2px solid', borderColor: '#09e9fe' }} {...fadeSlideUp} data-framer-motion>
-              Hidden Gems
-            </h1>
+                Hidden Gems
+              </motion.h1>
             </div>
             <motion.h2 className="body-lg font-bold text-white/90 mt-2 text-center whitespace-nowrap relative z-10" {...fadeSlideUp} data-framer-motion>
               High-rated anime with low popularity
@@ -1578,8 +1578,8 @@ export default function MALWrapped() {
             <div className="text-center relative">
               <div className="absolute inset-0 bg-[#09e9fe]/10 opacity-10 blur-3xl -z-10"></div>
               <motion.h1 className="relative z-10 heading-lg text-[#09e9fe] font-black pb-2 px-2 inline-block whitespace-nowrap" style={{ borderBottom: '2px solid', borderColor: '#09e9fe' }} {...fadeSlideUp} data-framer-motion>
-              Didn't Land
-            </h1>
+                Didn't Land
+              </motion.h1>
             </div>
             <motion.h2 className="body-lg font-bold text-white/90 mt-2 text-center whitespace-nowrap relative z-10" {...fadeSlideUp} data-framer-motion>
               5 shows you rated the lowest
@@ -1605,8 +1605,8 @@ export default function MALWrapped() {
             <div className="text-center relative">
               <div className="absolute inset-0 bg-[#09e9fe]/10 opacity-10 blur-3xl -z-10"></div>
               <motion.h1 className="relative z-10 heading-lg text-[#09e9fe] font-black pb-2 px-2 inline-block whitespace-nowrap" style={{ borderBottom: '2px solid', borderColor: '#09e9fe' }} {...fadeSlideUp} data-framer-motion>
-              Planned to Watch
-            </h1>
+                Planned to Watch
+              </motion.h1>
             </div>
             <motion.h2 className="body-lg font-bold text-white/90 mt-2 text-center whitespace-nowrap relative z-10" {...fadeSlideUp} data-framer-motion>
               5 shows you plan to watch {stats.selectedYear === 'all' ? '' : 'this year'}.
@@ -1655,7 +1655,7 @@ export default function MALWrapped() {
               <div className="absolute inset-0 bg-[#09e9fe]/10 opacity-10 blur-3xl -z-10"></div>
               <motion.h1 className="relative z-10 heading-lg text-[#09e9fe] font-black pb-2 px-2 inline-block whitespace-nowrap" style={{ borderBottom: '2px solid', borderColor: '#09e9fe' }} {...fadeSlideUp} data-framer-motion>
               {stats.selectedYear === 'all' ? 'All Time' : stats.selectedYear} Manga Read
-            </h1>
+            </motion.h1>
             </div>
             <motion.div className="mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
               <p className="number-xl text-[#09e9fe] drop-shadow-lg">
@@ -1674,7 +1674,7 @@ export default function MALWrapped() {
               <div className="absolute inset-0 bg-[#09e9fe]/10 opacity-10 blur-3xl -z-10"></div>
               <motion.h1 className="relative z-10 heading-lg text-[#09e9fe] font-black pb-2 px-2 inline-block whitespace-nowrap" style={{ borderBottom: '2px solid', borderColor: '#09e9fe' }} {...fadeSlideUp} data-framer-motion>
               Reading Stats
-            </h1>
+            </motion.h1>
             </div>
             <motion.div className="mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
               <div className="space-y-4">
@@ -1770,7 +1770,7 @@ export default function MALWrapped() {
               <div className="absolute inset-0 bg-[#09e9fe]/10 opacity-10 blur-3xl -z-10"></div>
               <motion.h1 className="relative z-10 heading-lg text-[#09e9fe] font-black pb-2 px-2 inline-block whitespace-nowrap" style={{ borderBottom: '2px solid', borderColor: '#09e9fe' }} {...fadeSlideUp} data-framer-motion>
               Most Read Genre
-            </h1>
+            </motion.h1>
             </div>
             {topMangaGenre ? (
               <>
@@ -1910,8 +1910,8 @@ export default function MALWrapped() {
             <div className="text-center relative">
               <div className="absolute inset-0 bg-[#09e9fe]/10 opacity-10 blur-3xl -z-10"></div>
               <motion.h1 className="relative z-10 heading-lg text-[#09e9fe] font-black pb-2 px-2 inline-block whitespace-nowrap" style={{ borderBottom: '2px solid', borderColor: '#09e9fe' }} {...fadeSlideUp} data-framer-motion>
-              Hidden Gems
-            </h1>
+                Hidden Gems
+              </motion.h1>
             </div>
             <motion.h2 className="body-lg font-bold text-white/90 mt-2 text-center whitespace-nowrap relative z-10" {...fadeSlideUp} data-framer-motion>
               High-rated manga with low popularity
@@ -1938,8 +1938,8 @@ export default function MALWrapped() {
             <div className="text-center relative">
               <div className="absolute inset-0 bg-[#09e9fe]/10 opacity-10 blur-3xl -z-10"></div>
               <motion.h1 className="relative z-10 heading-lg text-[#09e9fe] font-black pb-2 px-2 inline-block whitespace-nowrap" style={{ borderBottom: '2px solid', borderColor: '#09e9fe' }} {...fadeSlideUp} data-framer-motion>
-              Didn't Land
-            </h1>
+                Didn't Land
+              </motion.h1>
             </div>
             <motion.h2 className="body-lg font-bold text-white/90 mt-2 text-center whitespace-nowrap relative z-10" {...fadeSlideUp} data-framer-motion>
               5 manga you rated the lowest
@@ -1966,7 +1966,7 @@ export default function MALWrapped() {
               <div className="absolute inset-0 bg-[#09e9fe]/10 opacity-10 blur-3xl -z-10"></div>
               <motion.h1 className="relative z-10 heading-lg text-[#09e9fe] font-black pb-2 px-2 inline-block whitespace-nowrap" style={{ borderBottom: '2px solid', borderColor: '#09e9fe' }} {...fadeSlideUp} data-framer-motion>
               Planned to Read
-            </h1>
+            </motion.h1>
             </div>
             <motion.h2 className="body-lg font-bold text-white/90 mt-2 text-center whitespace-nowrap relative z-10" {...fadeSlideUp} data-framer-motion>
               5 manga you plan to read {stats.selectedYear === 'all' ? '' : 'this year'}.
