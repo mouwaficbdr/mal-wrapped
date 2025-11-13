@@ -768,7 +768,7 @@ export default function MALWrapped() {
                 )}
               </div>
               <div className="text-center">
-                <h3 className="title-xl mb-2">{topItem.node?.title}</h3>
+                <h3 className="title-l mb-2">{topItem.node?.title}</h3>
                 {type === 'anime' && topItem.node?.studios?.[0]?.name && (
                   <p className="body-md text-[#09e9fe] mb-2 font-bold">{topItem.node.studios[0].name}</p>
                 )}
