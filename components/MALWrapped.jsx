@@ -2059,17 +2059,30 @@ export default function MALWrapped() {
             <div className="w-full h-full flex flex-col overflow-hidden">
               {/* Top Bar - Year Selector and Download */}
               <div className="flex-shrink-0 px-3 sm:px-4 md:px-6 pt-3 pb-2 flex items-center justify-center gap-2 sm:gap-3">
-                <select
-                  value={selectedYear}
-                  onChange={(e) => setSelectedYear(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
-                  className="px-3 sm:px-4 py-1.5 sm:py-2 bg-black/50 rounded-lg text-xs sm:text-sm font-bold uppercase tracking-wider focus:outline-none transition-all hover:bg-black/70 text-gradient-blue appearance-none relative pr-8 sm:pr-10"
-                  style={{ border: '1px solid transparent', backgroundImage: 'linear-gradient(black, black), linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', backgroundOrigin: 'border-box', backgroundClip: 'padding-box, border-box' }}
-                >
-                  <option value="2023">2023</option>
-                  <option value="2024">2024</option>
-                  <option value="2025">2025</option>
-                  <option value="all">ALL TIME</option>
-                </select>
+                <div className="relative min-w-[120px] sm:min-w-[140px]">
+                  <select
+                    value={selectedYear}
+                    onChange={(e) => setSelectedYear(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
+                    className="w-full px-3 sm:px-4 py-1.5 sm:py-2 bg-black/50 rounded-lg text-xs sm:text-sm font-bold uppercase tracking-wider focus:outline-none transition-all hover:bg-black/70 appearance-none pr-8 sm:pr-10 text-white"
+                    style={{ 
+                      border: '1px solid transparent', 
+                      backgroundImage: 'linear-gradient(black, black), linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', 
+                      backgroundOrigin: 'border-box', 
+                      backgroundClip: 'padding-box, border-box',
+                      color: '#ffffff'
+                    }}
+                  >
+                    <option value="2023" style={{ background: '#0A0A0A', color: '#ffffff' }}>2023</option>
+                    <option value="2024" style={{ background: '#0A0A0A', color: '#ffffff' }}>2024</option>
+                    <option value="2025" style={{ background: '#0A0A0A', color: '#ffffff' }}>2025</option>
+                    <option value="all" style={{ background: '#0A0A0A', color: '#ffffff' }}>ALL TIME</option>
+                  </select>
+                  <div className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 pointer-events-none z-10">
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
                 <button onClick={handleDownloadPNG} className="p-1.5 sm:p-2 text-white rounded-full bg-black/20 backdrop-blur-sm hover:bg-black/40 transition-all" title="Download Slide">
                   <Download className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
