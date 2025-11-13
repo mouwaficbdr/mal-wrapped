@@ -73,6 +73,7 @@ export default function MALWrapped() {
     { id: 'anime_time' },
     { id: 'top_genre' },
     { id: 'drumroll_anime' },
+    { id: 'top_5_anime' },
     { id: 'top_studio' },
     { id: 'seasonal_highlights' },
     { id: 'hidden_gems_anime' },
@@ -82,6 +83,7 @@ export default function MALWrapped() {
     { id: 'manga_time' },
     { id: 'top_manga_genre' },
     { id: 'drumroll_manga' },
+    { id: 'top_5_manga' },
     { id: 'top_author' },
     { id: 'hidden_gems_manga' },
     { id: 'didnt_land_manga' },
@@ -718,16 +720,14 @@ export default function MALWrapped() {
     }
   }
 
-  // Drumroll to Top 5 Slide Component
-  function DrumrollToTop5Slide({ type, topItem, top5Items, verticalText }) {
-    const [phase, setPhase] = useState(0); // 0: drumroll, 1: reveal #1, 2: show top 5
+  // Drumroll Slide Component (only drumroll and reveal #1)
+  function DrumrollSlide({ type, topItem, verticalText }) {
+    const [phase, setPhase] = useState(0); // 0: drumroll, 1: reveal #1
     
     useEffect(() => {
       const timer1 = setTimeout(() => setPhase(1), 2000);
-      const timer2 = setTimeout(() => setPhase(2), 5000);
       return () => {
         clearTimeout(timer1);
-        clearTimeout(timer2);
       };
     }, []);
 
@@ -743,18 +743,6 @@ export default function MALWrapped() {
         </div>
       </div>
     );
-
-    const top5Formatted = top5Items.map(item => ({
-      id: item.node.id,
-      title: item.node.title,
-      coverImage: item.node.main_picture?.large || item.node.main_picture?.medium || '',
-      userRating: item.list_status.score,
-      studio: type === 'anime' ? (item.node.studios?.[0]?.name || '') : '',
-      author: type === 'manga' ? (`${item.node.authors?.[0]?.node?.first_name || ''} ${item.node.authors?.[0]?.node?.last_name || ''}`.trim()) : '',
-      genres: item.node.genres?.map(g => g.name) || [],
-      malId: type === 'anime' ? item.node.id : null,
-      mangaId: type === 'manga' ? item.node.id : null
-    }));
 
     const yearText = stats.selectedYear === 'all' ? 'of all time' : `of ${stats.selectedYear}`;
 
@@ -796,106 +784,146 @@ export default function MALWrapped() {
               </div>
             </div>
           </div>
-        ) : phase === 2 && top5Formatted.length > 0 ? (
-          <div className="animate-fade-slide-up relative">
-            <div className="absolute inset-0 bg-[#09e9fe]/10 opacity-15 blur-3xl -z-10"></div>
-            <div className="text-center relative z-10">
-              <h1 className="heading-lg text-[#09e9fe] font-black pb-2 px-2 inline-block whitespace-nowrap animate-fade-slide-up" style={{ borderBottom: '2px solid #09e9fe' }}>
-                Your Favorite {type === 'anime' ? 'Anime' : 'Manga'}
-              </h1>
-            </div>
-            <h2 className="body-lg font-bold text-white/90 mt-2 text-center animate-fade-slide-up whitespace-nowrap relative z-10">
-              The {type === 'anime' ? 'series' : 'manga'} you rated the highest.
-            </h2>
-            <div className="mt-4 flex flex-col gap-2 w-full">
-              {(() => {
-                const [featured, ...others] = top5Formatted;
-                return (
-                  <>
-                    <div className="border-box-cyan rounded-xl overflow-hidden group transition-all duration-300 flex flex-row items-center relative w-full shadow-2xl" style={{ padding: '2px' }}>
-                      <div className="bg-black/20 rounded-xl w-full h-full hover:bg-black/30 flex flex-row items-center">
-                        <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-10 w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 bg-[#09e9fe] text-white rounded-full flex items-center justify-center font-black text-xs sm:text-sm md:text-base shadow-lg">1</div>
-                        {(() => {
-                          const featuredUrl = featured.malId ? `https://myanimelist.net/anime/${featured.malId}` : (featured.mangaId ? `https://myanimelist.net/manga/${featured.mangaId}` : null);
-                          const featuredImage = (
-                            <div className="border-box-cyan flex-shrink-0 rounded-xl overflow-hidden group transition-all duration-300 shadow-xl relative" style={{ boxSizing: 'border-box', aspectRatio: '2/3', maxHeight: '275px', padding: '2px' }}>
-                              <div className="bg-transparent rounded-xl w-full h-full overflow-hidden">
-                                {featured.coverImage && (
-                                  <img src={featured.coverImage} crossOrigin="anonymous" alt={featured.title} className="w-full h-full object-cover rounded-xl transition-transform duration-300 group-hover:scale-110" />
-                                )}
-                              </div>
-                            </div>
-                          );
-                          return featuredUrl ? (
-                            <a href={featuredUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
-                              {featuredImage}
-                            </a>
-                          ) : featuredImage;
-                        })()}
-                        <div className="p-2 flex flex-col justify-center flex-grow min-w-0 text-center">
-                        <p className="body-sm tracking-widest text-[#09e9fe] font-black">#1 Favorite</p>
-                        <h3 className="title-sm mt-2 truncate font-black text-white">{featured.title}</h3>
-                        {featured.studio && <p className="body-sm text-[#09e9fe] truncate font-bold">{featured.studio}</p>}
-                        {featured.author && <p className="body-sm text-[#09e9fe] truncate font-bold">{featured.author}</p>}
-                        <div className="flex items-center justify-center body-sm text-yellow-300 mt-2 font-bold">
-                          <span className="mr-0.5 sm:mr-1">★</span>
-                          <span>{featured.userRating.toFixed(1)} / 10</span>
-                        </div>
-                        {featured.genres.length > 0 && (
-                          <div className="mt-2 flex flex-wrap gap-2 justify-center">
-                            {featured.genres.slice(0, 2).map(g => (
-                              <span key={g} className="border-box-cyan body-sm tracking-wider text-white px-2 py-0.5 rounded-lg font-semibold" style={{ border: '1px solid rgba(9, 233, 254, 0.1)' }}>{g}</span>
-                            ))}
-                          </div>
-                        )}
-                        </div>
-                      </div>
-                    </div>
-                    {others.length > 0 && (
-                      <div className="grid grid-cols-4 gap-2 w-full">
-                        {others.map((item, index) => {
-                          const malUrl = item.malId ? `https://myanimelist.net/anime/${item.malId}` : (item.mangaId ? `https://myanimelist.net/manga/${item.mangaId}` : null);
-                          const itemContent = (
-                            <div className="flex flex-col w-full min-w-0">
-                              <div className="border-box-cyan rounded-xl overflow-hidden group aspect-[2/3] relative transition-all duration-300 w-full shadow-lg" style={{ boxSizing: 'border-box', maxHeight: '275px', padding: '2px' }}>
-                                <div className="bg-transparent rounded-xl w-full h-full overflow-hidden relative">
-                                  <div className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 z-10 w-5 h-5 sm:w-6 sm:h-6 bg-[#09e9fe] text-white rounded-full flex items-center justify-center font-black text-xs sm:text-sm shadow-md">{index + 2}</div>
-                                  {item.coverImage && (
-                                    <img src={item.coverImage} alt={item.title} crossOrigin="anonymous" className="w-full h-full object-cover rounded-xl transition-transform duration-300 group-hover:scale-110" />
-                                  )}
-                                </div>
-                              </div>
-                              <div className="mt-2 text-center w-full min-w-0">
-                                <h3 className="title-sm truncate font-black text-white">{item.title}</h3>
-                                <div className="flex items-center justify-center body-sm text-yellow-300 font-bold">
-                                  <span className="mr-0.5 sm:mr-1 shrink-0">★</span>
-                                  <span>{item.userRating.toFixed(1)}</span>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                          return (
-                            <div key={item.id} className="w-full min-w-0">
-                              {malUrl ? (
-                                <a href={malUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
-                                  {itemContent}
-                                </a>
-                              ) : (
-                                itemContent
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </>
-                );
-              })()}
-            </div>
-          </div>
         ) : (
           <div className="text-white/50">No favorite {type} found</div>
         )}
+      </SlideLayout>
+    );
+  }
+
+  // Top 5 Slide Component (shows the top 5 list)
+  function Top5Slide({ type, top5Items, verticalText }) {
+    const SlideLayout = ({ children, verticalText }) => (
+      <div className="w-full h-full relative px-3 sm:px-4 md:p-6 lg:p-8 flex flex-col items-center justify-center slide-card overflow-hidden">
+        {verticalText && (
+          <p className="absolute top-1/2 -left-2 md:-left-2 -translate-y-1/2 text-[#09e9fe]/50 font-bold tracking-[.3em] [writing-mode:vertical-lr] text-xs sm:text-sm md:text-base z-10 pointer-events-none">
+            {verticalText}
+          </p>
+        )}
+        <div className="w-full relative z-10">
+          {children}
+        </div>
+      </div>
+    );
+
+    const top5Formatted = top5Items.map(item => ({
+      id: item.node.id,
+      title: item.node.title,
+      coverImage: item.node.main_picture?.large || item.node.main_picture?.medium || '',
+      userRating: item.list_status.score,
+      studio: type === 'anime' ? (item.node.studios?.[0]?.name || '') : '',
+      author: type === 'manga' ? (`${item.node.authors?.[0]?.node?.first_name || ''} ${item.node.authors?.[0]?.node?.last_name || ''}`.trim()) : '',
+      genres: item.node.genres?.map(g => g.name) || [],
+      malId: type === 'anime' ? item.node.id : null,
+      mangaId: type === 'manga' ? item.node.id : null
+    }));
+
+    if (top5Formatted.length === 0) {
+      return (
+        <SlideLayout verticalText={verticalText}>
+          <div className="text-white/50">No favorite {type} found</div>
+        </SlideLayout>
+      );
+    }
+
+    return (
+      <SlideLayout verticalText={verticalText}>
+        <div className="animate-fade-slide-up relative">
+          <div className="absolute inset-0 bg-[#09e9fe]/10 opacity-15 blur-3xl -z-10"></div>
+          <div className="text-center relative z-10">
+            <h1 className="heading-lg text-[#09e9fe] font-black pb-2 px-2 inline-block whitespace-nowrap animate-fade-slide-up" style={{ borderBottom: '2px solid #09e9fe' }}>
+              Your Favorite {type === 'anime' ? 'Anime' : 'Manga'}
+            </h1>
+          </div>
+          <h2 className="body-lg font-bold text-white/90 mt-2 text-center animate-fade-slide-up whitespace-nowrap relative z-10">
+            The {type === 'anime' ? 'series' : 'manga'} you rated the highest.
+          </h2>
+          <div className="mt-4 flex flex-col gap-2 w-full">
+            {(() => {
+              const [featured, ...others] = top5Formatted;
+              return (
+                <>
+                  <div className="border-box-cyan rounded-xl overflow-hidden group transition-all duration-300 flex flex-row items-center relative w-full shadow-2xl" style={{ padding: '2px' }}>
+                    <div className="bg-black/20 rounded-xl w-full h-full hover:bg-black/30 flex flex-row items-center">
+                      <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-10 w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 bg-[#09e9fe] text-white rounded-full flex items-center justify-center font-black text-xs sm:text-sm md:text-base shadow-lg">1</div>
+                      {(() => {
+                        const featuredUrl = featured.malId ? `https://myanimelist.net/anime/${featured.malId}` : (featured.mangaId ? `https://myanimelist.net/manga/${featured.mangaId}` : null);
+                        const featuredImage = (
+                          <div className="border-box-cyan flex-shrink-0 rounded-xl overflow-hidden group transition-all duration-300 shadow-xl relative" style={{ boxSizing: 'border-box', aspectRatio: '2/3', maxHeight: '275px', padding: '2px' }}>
+                            <div className="bg-transparent rounded-xl w-full h-full overflow-hidden">
+                              {featured.coverImage && (
+                                <img src={featured.coverImage} crossOrigin="anonymous" alt={featured.title} className="w-full h-full object-cover rounded-xl transition-transform duration-300 group-hover:scale-110" />
+                              )}
+                            </div>
+                          </div>
+                        );
+                        return featuredUrl ? (
+                          <a href={featuredUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+                            {featuredImage}
+                          </a>
+                        ) : featuredImage;
+                      })()}
+                      <div className="p-2 flex flex-col justify-center flex-grow min-w-0 text-center">
+                      <p className="body-sm tracking-widest text-[#09e9fe] font-black">#1 Favorite</p>
+                      <h3 className="title-sm mt-2 truncate font-black text-white">{featured.title}</h3>
+                      {featured.studio && <p className="body-sm text-[#09e9fe] truncate font-bold">{featured.studio}</p>}
+                      {featured.author && <p className="body-sm text-[#09e9fe] truncate font-bold">{featured.author}</p>}
+                      <div className="flex items-center justify-center body-sm text-yellow-300 mt-2 font-bold">
+                        <span className="mr-0.5 sm:mr-1">★</span>
+                        <span>{featured.userRating.toFixed(1)} / 10</span>
+                      </div>
+                      {featured.genres.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-2 justify-center">
+                          {featured.genres.slice(0, 2).map(g => (
+                            <span key={g} className="border-box-cyan body-sm tracking-wider text-white px-2 py-0.5 rounded-lg font-semibold" style={{ border: '1px solid rgba(9, 233, 254, 0.1)' }}>{g}</span>
+                          ))}
+                        </div>
+                      )}
+                      </div>
+                    </div>
+                  </div>
+                  {others.length > 0 && (
+                    <div className="grid grid-cols-4 gap-2 w-full">
+                      {others.map((item, index) => {
+                        const malUrl = item.malId ? `https://myanimelist.net/anime/${item.malId}` : (item.mangaId ? `https://myanimelist.net/manga/${item.mangaId}` : null);
+                        const itemContent = (
+                          <div className="flex flex-col w-full min-w-0">
+                            <div className="border-box-cyan rounded-xl overflow-hidden group aspect-[2/3] relative transition-all duration-300 w-full shadow-lg" style={{ boxSizing: 'border-box', maxHeight: '275px', padding: '2px' }}>
+                              <div className="bg-transparent rounded-xl w-full h-full overflow-hidden relative">
+                                <div className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 z-10 w-5 h-5 sm:w-6 sm:h-6 bg-[#09e9fe] text-white rounded-full flex items-center justify-center font-black text-xs sm:text-sm shadow-md">{index + 2}</div>
+                                {item.coverImage && (
+                                  <img src={item.coverImage} alt={item.title} crossOrigin="anonymous" className="w-full h-full object-cover rounded-xl transition-transform duration-300 group-hover:scale-110" />
+                                )}
+                              </div>
+                            </div>
+                            <div className="mt-2 text-center w-full min-w-0">
+                              <h3 className="title-sm truncate font-black text-white">{item.title}</h3>
+                              <div className="flex items-center justify-center body-sm text-yellow-300 font-bold">
+                                <span className="mr-0.5 sm:mr-1 shrink-0">★</span>
+                                <span>{item.userRating.toFixed(1)}</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                        return (
+                          <div key={item.id} className="w-full min-w-0">
+                            {malUrl ? (
+                              <a href={malUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+                                {itemContent}
+                              </a>
+                            ) : (
+                              itemContent
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </>
+              );
+            })()}
+          </div>
+        </div>
       </SlideLayout>
     );
   }
@@ -1341,11 +1369,17 @@ export default function MALWrapped() {
         );
 
       case 'drumroll_anime':
-        return <DrumrollToTop5Slide 
+        return <DrumrollSlide 
           type="anime" 
           topItem={stats.topRated.length > 0 ? stats.topRated[0] : null}
-          top5Items={stats.topRated.slice(0, 5)}
           verticalText="DRUMROLL"
+        />;
+
+      case 'top_5_anime':
+        return <Top5Slide 
+          type="anime" 
+          top5Items={stats.topRated.slice(0, 5)}
+          verticalText="TOP-5"
         />;
 
 
@@ -1719,11 +1753,17 @@ export default function MALWrapped() {
         );
 
       case 'drumroll_manga':
-        return <DrumrollToTop5Slide 
+        return <DrumrollSlide 
           type="manga" 
           topItem={stats.topManga.length > 0 ? stats.topManga[0] : null}
-          top5Items={stats.topManga.slice(0, 5)}
           verticalText="DRUMROLL"
+        />;
+
+      case 'top_5_manga':
+        return <Top5Slide 
+          type="manga" 
+          top5Items={stats.topManga.slice(0, 5)}
+          verticalText="TOP-5"
         />;
 
 
