@@ -1945,14 +1945,14 @@ export default function MALWrapped() {
                 {stats.selectedYear === 'all' ? 'All Time' : stats.selectedYear} In Review
               </h1>
             </div>
-            <div className="mt-2 sm:mt-4 flex flex-col gap-1.5 sm:gap-2 text-white animate-fade-slide-up w-full max-h-full overflow-y-auto relative z-10">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2">
+            <div className="mt-2 sm:mt-4 flex flex-col gap-1 sm:gap-1.5 text-white animate-fade-slide-up w-full max-h-full overflow-y-auto relative z-10">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-1.5">
                 <div className="border-box-cyan rounded-xl flex flex-col transition-all shadow-lg" style={{ padding: '2px' }}>
                   <div className="bg-black/20 rounded-xl hover:bg-black/30 p-1.5 sm:p-2 flex flex-col h-full">
-                  <p className="body-sm text-white/90 mb-1 sm:mb-2 font-bold text-xs sm:text-sm">Top 5 Anime</p>
-                  <div className="space-y-0.5 sm:space-y-1 flex-grow">
+                  <p className="body-sm text-white/90 mb-0.5 sm:mb-1 font-bold text-xs sm:text-sm">Top 5 Anime</p>
+                  <div className="space-y-0 flex-grow">
                     {stats.topRated.slice(0, 5).map((a, i) => (
-                        <p key={a.node.id} className="py-0.5 sm:py-1 px-1 sm:px-2">
+                        <p key={a.node.id} className="py-0 px-1 sm:px-2">
                           <span className="font-black text-[#09e9fe] w-4 sm:w-6 inline-block text-xs sm:text-sm">{i+1}.</span><span className="heading-sm text-white truncate font-bold text-xs sm:text-sm md:text-base">{a.node.title}</span>
                         </p>
                     ))}
@@ -1961,10 +1961,10 @@ export default function MALWrapped() {
                 </div>
                 <div className="border-box-cyan rounded-xl flex flex-col transition-all shadow-lg" style={{ padding: '2px' }}>
                   <div className="bg-black/20 rounded-xl hover:bg-black/30 p-1.5 sm:p-2 flex flex-col h-full">
-                  <p className="body-sm text-white/90 mb-1 sm:mb-2 font-bold text-xs sm:text-sm">Top 5 Manga</p>
-                  <div className="space-y-0.5 sm:space-y-1 flex-grow">
+                  <p className="body-sm text-white/90 mb-0.5 sm:mb-1 font-bold text-xs sm:text-sm">Top 5 Manga</p>
+                  <div className="space-y-0 flex-grow">
                     {stats.topManga.slice(0, 5).map((m, i) => (
-                        <p key={m.node.id} className="py-0.5 sm:py-1 px-1 sm:px-2">
+                        <p key={m.node.id} className="py-0 px-1 sm:px-2">
                           <span className="font-black text-[#09e9fe] w-4 sm:w-6 inline-block text-xs sm:text-sm">{i+1}.</span><span className="heading-sm text-white truncate font-bold text-xs sm:text-sm md:text-base">{m.node.title}</span>
                         </p>
                     ))}
@@ -1972,10 +1972,10 @@ export default function MALWrapped() {
                   </div>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+              <div className="grid grid-cols-2 gap-1 sm:gap-1.5">
                 <div className="border-box-cyan rounded-xl transition-all shadow-lg" style={{ padding: '2px' }}>
                   <div className="bg-black/20 rounded-xl hover:bg-black/30 p-1.5 sm:p-2 h-full">
-                  <p className="body-sm text-white/90 mb-1 sm:mb-2 font-bold text-xs sm:text-sm">Episodes Watched</p>
+                  <p className="body-sm text-white/90 mb-0.5 sm:mb-1 font-bold text-xs sm:text-sm">Episodes Watched</p>
                   <p className="number-md text-[#09e9fe] drop-shadow-lg text-lg sm:text-xl md:text-2xl">
                     {stats.totalEpisodes || 0}
                   </p>
@@ -1983,7 +1983,7 @@ export default function MALWrapped() {
                 </div>
                 <div className="border-box-cyan rounded-xl transition-all shadow-lg" style={{ padding: '2px' }}>
                   <div className="bg-black/20 rounded-xl hover:bg-black/30 p-1.5 sm:p-2 h-full">
-                  <p className="body-sm text-white/90 mb-1 sm:mb-2 font-bold text-xs sm:text-sm">Chapters Read</p>
+                  <p className="body-sm text-white/90 mb-0.5 sm:mb-1 font-bold text-xs sm:text-sm">Chapters Read</p>
                   <p className="number-md text-[#09e9fe] drop-shadow-lg text-lg sm:text-xl md:text-2xl">
                     {stats.totalChapters || 0}
                   </p>
@@ -1992,7 +1992,7 @@ export default function MALWrapped() {
               </div>
               <div className="border-box-cyan rounded-xl transition-all shadow-lg" style={{ padding: '2px' }}>
                 <div className="bg-black/20 rounded-xl hover:bg-black/30 p-1.5 sm:p-2 h-full">
-                <p className="body-sm text-white/90 mb-1 sm:mb-2 font-bold text-xs sm:text-sm">Total Time Spent</p>
+                <p className="body-sm text-white/90 mb-0.5 sm:mb-1 font-bold text-xs sm:text-sm">Total Time Spent</p>
                 <p className="number-lg text-[#09e9fe] drop-shadow-lg text-xl sm:text-2xl md:text-3xl">
                   {totalDays > 0 ? (
                     <>
@@ -2007,16 +2007,16 @@ export default function MALWrapped() {
                 </p>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+              <div className="grid grid-cols-2 gap-1 sm:gap-1.5">
                 <div className="border-box-cyan rounded-xl transition-all shadow-lg" style={{ padding: '2px' }}>
                   <div className="bg-black/20 rounded-xl hover:bg-black/30 p-1.5 sm:p-2 h-full">
-                  <p className="body-sm text-white/90 mb-1 sm:mb-2 font-bold text-xs sm:text-sm">Top Studio</p>
+                  <p className="body-sm text-white/90 mb-0.5 sm:mb-1 font-bold text-xs sm:text-sm">Top Studio</p>
                   <p className="heading-sm text-white truncate font-black text-xs sm:text-sm md:text-base">{stats.topStudios?.[0]?.[0] || 'N/A'}</p>
                   </div>
                 </div>
                 <div className="border-box-cyan rounded-xl transition-all shadow-lg" style={{ padding: '2px' }}>
                   <div className="bg-black/20 rounded-xl hover:bg-black/30 p-1.5 sm:p-2 h-full">
-                  <p className="body-sm text-white/90 mb-1 sm:mb-2 font-bold text-xs sm:text-sm">Top Author</p>
+                  <p className="body-sm text-white/90 mb-0.5 sm:mb-1 font-bold text-xs sm:text-sm">Top Author</p>
                   <p className="heading-sm text-white truncate font-black text-xs sm:text-sm md:text-base">{stats.topAuthors?.[0]?.[0] || 'N/A'}</p>
                   </div>
                 </div>
