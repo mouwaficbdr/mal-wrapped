@@ -240,6 +240,14 @@
     background-clip: text;
   }
 
+  .border-gradient-blue {
+    border-image: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) 1;
+  }
+
+  .bg-gradient-blue {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  }
+
   /* Stop animations when capturing */
   .slide-card.capturing [class*="animate-"] {
     animation: none !important;
