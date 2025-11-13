@@ -242,6 +242,16 @@
     background: #09e9fe;
   }
 
+  /* Border box with cyan border effect */
+  .border-box-cyan {
+    background: rgba(9, 233, 254, 0.1) !important;
+    transition: background 0.2s ease;
+  }
+
+  .border-box-cyan:hover {
+    background: rgba(9, 233, 254, 0.15) !important;
+  }
+
   /* Stop animations when capturing */
   .slide-card.capturing [class*="animate-"] {
     animation: none !important;
