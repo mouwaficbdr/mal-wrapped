@@ -1952,10 +1952,8 @@ export default function MALWrapped() {
                   <p className="body-sm text-white/90 mb-2 font-bold">Top 5 Anime</p>
                   <div className="space-y-1 flex-grow">
                     {stats.topRated.slice(0, 5).map((a, i) => (
-                        <p key={a.node.id} className="border-box-cyan rounded-lg transition-all relative" style={{ padding: '1px' }}>
-                          <span className="bg-black/20 rounded-lg hover:bg-black/30 py-1 px-2 block">
-                            <span className="font-black text-[#09e9fe] w-6 inline-block">{i+1}.</span><span className="heading-sm text-white truncate font-bold">{a.node.title}</span>
-                          </span>
+                        <p key={a.node.id} className="py-1 px-2">
+                          <span className="font-black text-[#09e9fe] w-6 inline-block">{i+1}.</span><span className="heading-sm text-white truncate font-bold">{a.node.title}</span>
                         </p>
                     ))}
                   </div>
@@ -1966,10 +1964,8 @@ export default function MALWrapped() {
                   <p className="body-sm text-white/90 mb-2 font-bold">Top 5 Manga</p>
                   <div className="space-y-1 flex-grow">
                     {stats.topManga.slice(0, 5).map((m, i) => (
-                        <p key={m.node.id} className="border-box-cyan rounded-lg transition-all relative" style={{ padding: '1px' }}>
-                          <span className="bg-black/20 rounded-lg hover:bg-black/30 py-1 px-2 block">
-                            <span className="font-black text-[#09e9fe] w-6 inline-block">{i+1}.</span><span className="heading-sm text-white truncate font-bold">{m.node.title}</span>
-                          </span>
+                        <p key={m.node.id} className="py-1 px-2">
+                          <span className="font-black text-[#09e9fe] w-6 inline-block">{i+1}.</span><span className="heading-sm text-white truncate font-bold">{m.node.title}</span>
                         </p>
                     ))}
                     </div>
@@ -1981,7 +1977,7 @@ export default function MALWrapped() {
                   <div className="bg-black/20 rounded-xl hover:bg-black/30 p-2 h-full">
                   <p className="body-sm text-white/90 mb-2 font-bold">Episodes Watched</p>
                   <p className="number-md text-[#09e9fe] drop-shadow-lg">
-                    <AnimatedNumber value={stats.totalEpisodes || 0} duration={1000} />
+                    {stats.totalEpisodes || 0}
                   </p>
                   </div>
                 </div>
@@ -1989,7 +1985,7 @@ export default function MALWrapped() {
                   <div className="bg-black/20 rounded-xl hover:bg-black/30 p-2 h-full">
                   <p className="body-sm text-white/90 mb-2 font-bold">Chapters Read</p>
                   <p className="number-md text-[#09e9fe] drop-shadow-lg">
-                    <AnimatedNumber value={stats.totalChapters || 0} duration={1000} />
+                    {stats.totalChapters || 0}
                   </p>
                   </div>
                 </div>
@@ -2000,12 +1996,12 @@ export default function MALWrapped() {
                 <p className="number-lg text-[#09e9fe] drop-shadow-lg">
                   {totalDays > 0 ? (
                     <>
-                      <AnimatedNumber value={totalDays} duration={1000} /> Days
+                      {totalDays} Days
                       <span className="body-md text-white/80 ml-2 font-semibold">({totalTimeSpent} hours)</span>
                     </>
                   ) : (
                     <>
-                      <AnimatedNumber value={totalTimeSpent} duration={1000} /> Hours
+                      {totalTimeSpent} Hours
                     </>
                   )}
                 </p>
