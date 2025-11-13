@@ -688,14 +688,29 @@ export default function MALWrapped() {
     
     setIsCapturing(true);
     try {
-      // Wait a bit to ensure animations are complete
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Wait for animations to complete and images to load
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Wait for all images to load
+      const cardElement = slideRef.current;
+      const images = cardElement.querySelectorAll('img');
+      await Promise.all(
+        Array.from(images).map(img => {
+          if (img.complete) return Promise.resolve();
+          return new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = resolve; // Continue even if image fails
+            // Timeout after 3 seconds
+            setTimeout(resolve, 3000);
+          });
+        })
+      );
+      
+      // Wait a bit more for any final renders
+      await new Promise(resolve => setTimeout(resolve, 200));
       
       // Dynamically import html2canvas
       const html2canvas = (await import('html2canvas')).default;
-      
-      // Get the main card container
-      const cardElement = slideRef.current;
       
       // Capture with all animations stopped
       const canvas = await html2canvas(cardElement, {
@@ -703,27 +718,64 @@ export default function MALWrapped() {
         scale: 2,
         logging: false,
         useCORS: true,
-        allowTaint: false,
+        allowTaint: true, // Changed to true to allow cross-origin images
+        removeContainer: true,
         scrollX: -window.scrollX,
         scrollY: -window.scrollY,
         windowWidth: document.documentElement.offsetWidth,
         windowHeight: document.documentElement.offsetHeight,
-        onclone: (clonedDoc) => {
+        imageTimeout: 15000,
+        onclone: (clonedDoc, element) => {
           // Stop all animations in cloned document
-          const clonedElement = clonedDoc.querySelector('.slide-card');
+          const clonedElement = clonedDoc.querySelector('.slide-card') || element;
           if (clonedElement) {
+            // Remove all transform and animation styles
             clonedElement.style.animation = 'none';
             clonedElement.style.transform = 'none';
+            clonedElement.style.transition = 'none';
+            clonedElement.style.animationPlayState = 'paused';
+            
             const allElements = clonedElement.querySelectorAll('*');
             allElements.forEach(el => {
+              // Stop all CSS animations and transitions
               el.style.animation = 'none';
-              el.style.transform = 'none';
-              // Ensure text gradients are visible
-              if (el.classList.contains('text-[#09e9fe]')) {
-                el.style.color = '#09e9fe';
+              el.style.transition = 'none';
+              el.style.animationPlayState = 'paused';
+              
+              // Get computed style from original element
+              const originalEl = document.querySelector(`[data-framer-motion-id="${el.getAttribute('data-framer-motion-id')}"]`) || el;
+              try {
+                const computedStyle = window.getComputedStyle(originalEl);
+                
+                // Preserve opacity in final state
+                const opacity = computedStyle.opacity;
+                if (opacity && opacity !== '0') {
+                  el.style.opacity = opacity;
+                } else {
+                  el.style.opacity = '1';
+                }
+                
+                // Preserve transforms in final state (for positioned elements)
+                const transform = computedStyle.transform;
+                if (transform && transform !== 'none' && transform !== 'matrix(1, 0, 0, 1, 0, 0)') {
+                  el.style.transform = transform;
+                }
+                
+                // Ensure visibility
+                el.style.visibility = 'visible';
+                
+                // Ensure colors are visible
+                if (el.classList.contains('text-[#09e9fe]')) {
+                  el.style.color = '#09e9fe';
+                }
+              } catch (e) {
+                // If we can't get computed style, just ensure visibility
+                el.style.opacity = '1';
+                el.style.visibility = 'visible';
               }
             });
           }
+          
           // Hide all navigation and control bars in cloned document
           const flexShrinkBars = clonedDoc.querySelectorAll('.flex-shrink-0');
           flexShrinkBars.forEach(bar => {
@@ -734,6 +786,27 @@ export default function MALWrapped() {
                                bar.textContent.includes('/');
             if (hasControls) {
               bar.style.display = 'none';
+            }
+          });
+          
+          // Ensure all images are properly displayed with correct sizing
+          const clonedImages = clonedDoc.querySelectorAll('img');
+          clonedImages.forEach(img => {
+            img.style.opacity = '1';
+            img.style.visibility = 'visible';
+            img.style.display = '';
+            img.style.transform = 'none'; // Remove any transforms on images
+            // Ensure images maintain their aspect ratio
+            if (!img.style.width && !img.style.height) {
+              const originalImg = Array.from(document.querySelectorAll('img')).find(
+                origImg => origImg.src === img.src && origImg.alt === img.alt
+              );
+              if (originalImg) {
+                const computedStyle = window.getComputedStyle(originalImg);
+                img.style.width = computedStyle.width;
+                img.style.height = computedStyle.height;
+                img.style.objectFit = 'cover';
+              }
             }
           });
         }
