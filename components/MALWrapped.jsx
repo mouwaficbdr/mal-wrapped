@@ -2088,7 +2088,7 @@ export default function MALWrapped() {
                       <AnimatedNumber value={stats.mangaDays} />
                     </p>
                     <p className="heading-sm text-white/90 mt-2 font-regular">Days</p>
-                    <p className="body-md text-white/80 mt-2 font-regularS">(or <AnimatedNumber value={stats.mangaHours || 0} /> hours)</p>
+                    <p className="body-md text-white/80 mt-2 font-regular">(or <AnimatedNumber value={stats.mangaHours || 0} /> hours)</p>
                   </div>
                 ) : (
                   <div>
@@ -2166,9 +2166,9 @@ export default function MALWrapped() {
             {topMangaGenre ? (
               <>
                 <motion.div className="mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
-                  <p className="body-sm text-white font-regular mb-2">#1</p>
+                  <p className="body-md text-white font-medium mb-2">#1</p>
                   <p className="heading-lg font-semibold text-white ">{topMangaGenre[0]}</p>
-                  <p className="body-md text-white/80 mt-2 font-regular">{topMangaGenre[1]} manga entries</p>
+                  <p className="body-md text-white/80 mt-2 font-regular">{topMangaGenre[1]} entries</p>
                 </motion.div>
                 {mangaGenreItems.length > 0 && <div className="relative z-10"><ImageCarousel items={mangaGenreItems} maxItems={30} showHover={true} showNames={false} /></div>}
                 {otherMangaGenres.length > 0 && (
@@ -2180,9 +2180,9 @@ export default function MALWrapped() {
                           whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
                           transition={{ duration: 0.2 }}
                         >
-                          <p className="body-sm text-white font-regular mb-2">#{idx + 2}</p>
+                          <p className="body-sm text-white font-medium mb-2">#{idx + 2}</p>
                           <p className="heading-sm font-semibold text-white">{genreName}</p>
-                          <p className="body-sm text-white/80 font-regular">{count} manga</p>
+                          <p className="body-sm text-white/80 font-regular">{count} entries</p>
                       </motion.div>
                       </motion.div>
                     ))}
@@ -2259,15 +2259,15 @@ export default function MALWrapped() {
           <SlideLayout verticalText="CREATORS" bgColor="pink">
             <div className="text-center relative">
               <motion.h1 className="relative z-10 heading-md text-white font-semibold pb-2 px-2 inline-block whitespace-nowrap" {...fadeSlideUp} data-framer-motion>
-                Favorite Author
+                Your Favorite Author
               </motion.h1>
             </div>
             {topAuthor ? (
               <>
                 <motion.div className="mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
-                  <p className="body-sm text-white font-regular mb-2">#1</p>
+                  <p className="body-md text-white font-medium mb-2">#1</p>
                   <p className="heading-lg font-semibold text-white ">{topAuthor}</p>
-                  <p className="body-md text-white/80 mt-2 font-regular">{stats.topAuthors[0][1]} manga</p>
+                  <p className="body-md text-white/80 mt-2 font-regular">{stats.topAuthors[0][1]} entries</p>
                 </motion.div>
                 {authorManga.length > 0 && (
                   <div className="relative z-10"><ImageCarousel items={authorManga} maxItems={30} showHover={true} showNames={false} /></div>
@@ -2281,9 +2281,9 @@ export default function MALWrapped() {
                           whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
                           transition={{ duration: 0.2 }}
                         >
-                          <p className="body-sm text-white font-regular mb-2">#{idx + 2}</p>
+                          <p className="body-sm text-white font-medium mb-2">#{idx + 2}</p>
                           <p className="heading-sm font-semibold text-white truncate">{authorName}</p>
-                          <p className="body-sm text-white/80 font-regular">{count} manga</p>
+                          <p className="body-sm text-white/80 font-regular">{count} entries</p>
                       </motion.div>
                       </motion.div>
                     ))}
@@ -2364,7 +2364,7 @@ export default function MALWrapped() {
             </motion.h1>
             </div>
             <motion.h2 className="body-md font-regular text-white/90 mt-2 text-center whitespace-nowrap relative z-10" {...fadeSlideUp} data-framer-motion>
-              Mangas you plan to read this year, but haven't yet. {stats.selectedYear === 'all' ? '' : 'this year'}.
+              Mangas you planned to read {stats.selectedYear === 'all' ? '' : 'this year'}, but haven't yet.
             </motion.h2>
             {plannedMangaItems.length > 0 ? (
               <motion.div {...fadeSlideUp} data-framer-motion>
