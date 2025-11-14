@@ -892,7 +892,7 @@ export default function MALWrapped() {
         {phase === 0 ? (
           <motion.div className="text-center relative overflow-hidden" {...fadeSlideUp} data-framer-motion>
             <motion.h1 className="heading-md font-medium text-white" {...pulse} data-framer-motion>{type === 'anime' ? '🎬' : '📚'}</motion.h1>
-            <h2 className="heading-md font-medium text-white mt-4">Your favorite {type === 'anime' ? 'anime' : 'manga'} {yearText} is...</h2>
+            <h2 className="heading-lg font-semibold text-white mt-4">Your favorite {type === 'anime' ? 'anime' : 'manga'} {yearText} is...</h2>
           </motion.div>
         ) : phase === 1 && topItem ? (
           <motion.div className="text-center relative overflow-hidden" {...fadeSlideUp} data-framer-motion>
@@ -1698,13 +1698,13 @@ export default function MALWrapped() {
                 <p className="number-lg text-white ">
                   <AnimatedNumber value={stats.totalEpisodes || 0} />
                 </p>
-                <p className="heading-md text-white/90 mt-2 font-medium">Episodes</p>
+                <p className="body-md text-white/90 mt-2 font-medium">Episodes</p>
               </div>
               <div className="text-center">
                 <p className="number-lg text-white ">
                   <AnimatedNumber value={stats.totalSeasons || 0} />
                 </p>
-                <p className="heading-md text-white/90 mt-2 font-medium">Seasons</p>
+                <p className="body-md text-white/90 mt-2 font-medium">Seasons</p>
               </div>
               <div className="text-center">
                 {stats.watchDays > 0 ? (
@@ -1712,8 +1712,8 @@ export default function MALWrapped() {
                     <p className="number-lg text-white ">
                       <AnimatedNumber value={stats.watchDays} />
                     </p>
-                    <p className="heading-md text-white/90 mt-2 font-medium">Days</p>
-                    <p className="body-md text-white/80 mt-2 font-semibold">or <AnimatedNumber value={stats.watchTime} /> hours</p>
+                    <p className="body-md text-white/90 mt-2 font-medium">Days</p>
+                    <p className="body-sm text-white/80 mt-2 font-semibold">or <AnimatedNumber value={stats.watchTime} /> hours</p>
                   </>
                 ) : (
                   <>
@@ -1759,7 +1759,7 @@ export default function MALWrapped() {
               <>
                 <motion.div className="mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
                   <p className="body-sm text-white font-semibold mb-2">#1</p>
-                  <p className="heading-md font-semibold text-white ">{topGenre}</p>
+                  <p className="heading-lg font-semibold text-white ">{topGenre}</p>
                   <p className="body-md text-white/80 mt-2 font-semibold">{stats.topGenres[0][1]} anime</p>
                 </motion.div>
                 {genreAnime.length > 0 && <div className="relative z-10"><ImageCarousel items={genreAnime} maxItems={30} showHover={true} showNames={false} /></div>}
@@ -1773,7 +1773,7 @@ export default function MALWrapped() {
                           transition={{ duration: 0.2 }}
                         >
                           <p className="body-sm text-white font-semibold mb-2">#{idx + 2}</p>
-                          <p className="heading-md font-semibold text-white">{genreName}</p>
+                          <p className="heading-sm font-semibold text-white">{genreName}</p>
                           <p className="body-sm text-white/80 font-semibold">{count} anime</p>
                       </motion.div>
                       </motion.div>
@@ -1835,7 +1835,7 @@ export default function MALWrapped() {
               <>
                 <motion.div className="mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
                   <p className="body-sm text-white font-semibold mb-2">#1</p>
-                  <p className="heading-md font-semibold text-white ">{topStudio}</p>
+                  <p className="heading-lg font-semibold text-white ">{topStudio}</p>
                   <p className="body-md text-white/80 mt-2 font-semibold">{stats.topStudios[0][1]} anime</p>
                 </motion.div>
                 {studioAnime.length > 0 && (
@@ -1851,7 +1851,7 @@ export default function MALWrapped() {
                           transition={{ duration: 0.2 }}
                         >
                           <p className="body-sm text-white font-semibold mb-2">#{idx + 2}</p>
-                          <p className="heading-md font-semibold text-white truncate">{studioName}</p>
+                          <p className="heading-sm font-semibold text-white truncate">{studioName}</p>
                           <p className="body-sm text-white/80 font-semibold">{count} anime</p>
                       </motion.div>
                       </motion.div>
