@@ -26,9 +26,9 @@
   /* Typography System - Named Styles */
   /* Use font weights more, fewer size variations */
   
-  /* Heading Styles - Montserrat */
+  /* Heading Styles - Sora */
   .heading-xl {
-    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
     font-size: 2.5rem;
     font-weight: 900;
     line-height: 1.1;
@@ -37,7 +37,7 @@
   }
   
   .heading-lg {
-    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
     font-size: 2rem;
     font-weight: 800;
     line-height: 1.2;
@@ -46,7 +46,7 @@
   }
   
   .heading-md {
-    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
     font-size: 1.5rem;
     font-weight: 700;
     line-height: 1.3;
@@ -55,7 +55,7 @@
   }
   
   .heading-sm {
-    font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
     font-size: 1.25rem;
     font-weight: 700;
     line-height: 1.4;
