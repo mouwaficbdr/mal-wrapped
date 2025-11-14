@@ -1682,7 +1682,7 @@ export default function MALWrapped() {
               <p className="number-xl text-white ">
                 <AnimatedNumber value={stats.thisYearAnime.length} />
               </p>
-              <p className="body-md text-white/90 mt-2 font-regular">Anime Series</p>
+              <p className="body-md text-white/90 mt-2 font-medium">anime in {stats.selectedYear === 'all' ? 'All Time' : stats.selectedYear}</p>
             </motion.div>
             {animeCarouselItems.length > 0 && <div className="relative z-10"><ImageCarousel items={animeCarouselItems} maxItems={50} showHover={true} showNames={false} /></div>}
           </SlideLayout>
