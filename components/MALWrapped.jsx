@@ -1196,12 +1196,14 @@ export default function MALWrapped() {
             </motion.p>
           )}
           {/* Additional decorative elements on card background */}
-          <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 1 }}>
-            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-white/10 via-white/5 to-transparent rounded-full blur-3xl opacity-80"></div>
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-white/10 via-white/5 to-transparent rounded-full blur-3xl opacity-80"></div>
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-gradient-radial from-white/8 via-white/4 to-transparent rounded-full blur-[60px] opacity-70"></div>
-            <div className="absolute top-1/4 right-1/4 w-32 h-32 bg-gradient-to-br from-white/8 to-transparent rounded-full blur-2xl opacity-60"></div>
-            <div className="absolute bottom-1/4 left-1/4 w-36 h-36 bg-gradient-to-tr from-white/8 to-transparent rounded-full blur-2xl opacity-60"></div>
+          <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 1 }}>
+            <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-white/15 via-white/8 to-transparent rounded-full blur-3xl" style={{ opacity: 0.9 }}></div>
+            <div className="absolute bottom-0 left-0 w-56 h-56 bg-gradient-to-tr from-white/15 via-white/8 to-transparent rounded-full blur-3xl" style={{ opacity: 0.9 }}></div>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-gradient-radial from-white/12 via-white/6 to-transparent rounded-full blur-[60px]" style={{ opacity: 0.85 }}></div>
+            <div className="absolute top-1/4 right-1/4 w-40 h-40 bg-gradient-to-br from-white/12 to-transparent rounded-full blur-2xl" style={{ opacity: 0.75 }}></div>
+            <div className="absolute bottom-1/4 left-1/4 w-44 h-44 bg-gradient-to-tr from-white/12 to-transparent rounded-full blur-2xl" style={{ opacity: 0.75 }}></div>
+            <div className="absolute top-1/3 right-1/3 w-36 h-36 bg-gradient-to-bl from-white/10 to-transparent rounded-full blur-2xl" style={{ opacity: 0.7 }}></div>
+            <div className="absolute bottom-1/3 left-1/3 w-40 h-40 bg-gradient-to-tl from-white/10 to-transparent rounded-full blur-2xl" style={{ opacity: 0.7 }}></div>
           </div>
           <motion.div 
             className="w-full relative z-20"
@@ -1341,7 +1343,7 @@ export default function MALWrapped() {
                 >
                   <motion.div 
                     className="aspect-[2/3] w-full bg-transparent border border-white/5 rounded-lg overflow-hidden relative" 
-                    style={{ maxHeight: '200px', maxWidth: '100%', boxSizing: 'border-box' }}
+                    style={{ maxHeight: '275px', maxWidth: '100%', boxSizing: 'border-box' }}
                     whileHover={{ borderColor: '#ffffff' }}
                     transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                   >
