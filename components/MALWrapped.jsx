@@ -2686,10 +2686,10 @@ export default function MALWrapped() {
                       color: '#ffffff'
                     }}
                   >
-                    <option value="2023" style={{ background: 'rgba(255, 255, 255, 0.05)', color: '#ffffff' }}>2023</option>
-                    <option value="2024" style={{ background: 'rgba(255, 255, 255, 0.05)', color: '#ffffff' }}>2024</option>
-                    <option value="2025" style={{ background: 'rgba(255, 255, 255, 0.05)', color: '#ffffff' }}>2025</option>
-                    <option value="all" style={{ background: 'rgba(255, 255, 255, 0.05)', color: '#ffffff' }}>All Time</option>
+                    <option value="2023" style={{  color: '#ffffff' }}>2023</option>
+                    <option value="2024" style={{ color: '#ffffff' }}>2024</option>
+                    <option value="2025" style={{ color: '#ffffff' }}>2025</option>
+                    <option value="all" style={{ color: '#ffffff' }}>All Time</option>
                 </select>
                   <div className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 pointer-events-none z-10">
                     <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
