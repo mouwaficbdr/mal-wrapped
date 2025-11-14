@@ -2608,12 +2608,12 @@ export default function MALWrapped() {
               <button
                 onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))}
                 disabled={currentSlide === 0}
-                  className="p-1.5 sm:p-2 text-white rounded-full bg-black/20 backdrop-blur-sm hover:bg-black/40 disabled:opacity-30 transition-all"
+                  className="p-1.5 sm:p-2 text-white rounded-full border-box-cyan disabled:opacity-30 transition-all"
               >
                   <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6"/>
               </button>
                 
-                <p className="text-white/60 text-xs sm:text-sm md:text-base font-mono py-1.5 sm:py-2 px-2 sm:px-4 rounded-full bg-black/20 backdrop-blur-sm whitespace-nowrap">{String(currentSlide + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}</p>
+                <p className="text-white/60 text-xs sm:text-sm md:text-base font-mono py-1.5 sm:py-2 px-2 sm:px-4 rounded-full border-box-cyan whitespace-nowrap">{String(currentSlide + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}</p>
 
                 {currentSlide === slides.length - 1 ? (
               <button
@@ -2632,8 +2632,8 @@ export default function MALWrapped() {
                 ) : (
                   <motion.button
                 onClick={() => setCurrentSlide(Math.min(slides.length - 1, currentSlide + 1))}
-                    className="p-1.5 sm:p-2 text-white rounded-full bg-black/30 backdrop-blur-sm"
-                    whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', scale: 1.1 }}
+                    className="p-1.5 sm:p-2 text-white rounded-full border-box-cyan"
+                    whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     transition={{ duration: 0.2 }}
               >
