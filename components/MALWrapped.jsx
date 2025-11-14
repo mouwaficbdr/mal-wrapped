@@ -772,7 +772,7 @@ export default function MALWrapped() {
                   el.style.transform = transform;
                 }
                 
-                // PRESERVE FILTER EFFECTS (blur, etc.) for abstract shapes and decorative elements
+                // PRESERVE FILTER EFFECTS (blur, etc.) for abstract shapes
                 const filter = computedStyle.filter;
                 if (filter && filter !== 'none') {
                   el.style.filter = filter;
@@ -820,9 +820,7 @@ export default function MALWrapped() {
               }
             });
             
-            // Explicitly ensure abstract shapes and decorative elements preserve their filters
-            const abstractShapes = clonedElement.querySelectorAll('[class*="abstract-shapes"]::before, [class*="abstract-shapes"]::after, .absolute[style*="blur"]');
-            // Since we can't query pseudo-elements, we'll handle them through parent elements
+            // Explicitly ensure abstract shapes preserve their filters (pseudo-elements)
             const elementsWithBlur = clonedElement.querySelectorAll('[class*="blur"]');
             elementsWithBlur.forEach(el => {
               const originalEl = Array.from(document.querySelectorAll('*')).find(orig => {
@@ -1263,16 +1261,6 @@ export default function MALWrapped() {
               {verticalText}
             </motion.p>
           )}
-          {/* Additional decorative elements on card background */}
-          <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 1 }}>
-            <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-white/15 via-white/8 to-transparent rounded-full blur-3xl" style={{ opacity: 0.9 }}></div>
-            <div className="absolute bottom-0 left-0 w-56 h-56 bg-gradient-to-tr from-white/15 via-white/8 to-transparent rounded-full blur-3xl" style={{ opacity: 0.9 }}></div>
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-gradient-radial from-white/12 via-white/6 to-transparent rounded-full blur-[60px]" style={{ opacity: 0.85 }}></div>
-            <div className="absolute top-1/4 right-1/4 w-40 h-40 bg-gradient-to-br from-white/12 to-transparent rounded-full blur-2xl" style={{ opacity: 0.75 }}></div>
-            <div className="absolute bottom-1/4 left-1/4 w-44 h-44 bg-gradient-to-tr from-white/12 to-transparent rounded-full blur-2xl" style={{ opacity: 0.75 }}></div>
-            <div className="absolute top-1/3 right-1/3 w-36 h-36 bg-gradient-to-bl from-white/10 to-transparent rounded-full blur-2xl" style={{ opacity: 0.7 }}></div>
-            <div className="absolute bottom-1/3 left-1/3 w-40 h-40 bg-gradient-to-tl from-white/10 to-transparent rounded-full blur-2xl" style={{ opacity: 0.7 }}></div>
-          </div>
           <motion.div 
             className="w-full relative z-20"
             variants={staggerContainer}
