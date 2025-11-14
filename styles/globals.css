@@ -175,7 +175,7 @@
     .number-md { font-size: 1.75rem; }
   }*/
   
-  @media (min-width: 1024px) {
+  /*@media (min-width: 1024px) {
     .heading-xl { font-size: 3rem; }
     .heading-lg { font-size: 2.5rem; }
     .body { font-size: 1.125rem; }
@@ -188,7 +188,7 @@
     .title-sm { font-size: 1rem; }
     .number-xl { font-size: 5rem; }
     .number-lg { font-size: 4rem; }
-  }
+  }*/
 }
 
 @layer utilities {
