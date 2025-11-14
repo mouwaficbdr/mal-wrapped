@@ -1676,13 +1676,13 @@ export default function MALWrapped() {
               </motion.h1>
             </div>
             <motion.h2 className="body-md font-regular text-white/90 mt-1 text-center whitespace-nowrap relative z-10" {...fadeSlideUp} data-framer-motion>
-              You have watched
+              You watched
             </motion.h2>
             <motion.div className="mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
               <p className="number-xl text-white ">
                 <AnimatedNumber value={stats.thisYearAnime.length} />
               </p>
-              <p className="body-md text-white/90 mt-2 font-medium">anime in {stats.selectedYear === 'all' ? 'All Time' : stats.selectedYear}</p>
+              <p className="body-md text-white/90 mt-2 font-regular">anime in{stats.selectedYear === 'all' ? 'All Time' : stats.selectedYear}</p>
             </motion.div>
             {animeCarouselItems.length > 0 && <div className="relative z-10"><ImageCarousel items={animeCarouselItems} maxItems={50} showHover={true} showNames={false} /></div>}
           </SlideLayout>
