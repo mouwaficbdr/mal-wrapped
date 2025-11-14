@@ -1008,14 +1008,14 @@ export default function MALWrapped() {
       <SlideLayout verticalText={verticalText}>
         <motion.div className="relative" {...fadeSlideUp} data-framer-motion>
           <div className="text-center relative z-10">
-            <motion.h1 className="heading-lg text-white font-black pb-2 px-2 inline-block whitespace-nowrap" {...fadeSlideUp} data-framer-motion>
+            <motion.h1 className="heading-md text-white font-black pb-1 px-2 inline-block whitespace-nowrap" {...fadeSlideUp} data-framer-motion>
               Your Favorite {type === 'anime' ? 'Anime' : 'Manga'}
             </motion.h1>
           </div>
-            <motion.h2 className="body-lg font-bold text-white/90 mt-2 text-center whitespace-nowrap relative z-10" {...fadeSlideUp} data-framer-motion>
+            <motion.h2 className="body-md font-bold text-white/90 mt-1 text-center whitespace-nowrap relative z-10" {...fadeSlideUp} data-framer-motion>
               The {type === 'anime' ? 'series' : 'manga'} you rated the highest.
             </motion.h2>
-          <div className="mt-4 flex flex-col gap-2 w-full">
+          <div className="mt-2 sm:mt-3 flex flex-col gap-1.5 sm:gap-2 w-full">
               {(() => {
                 const [featured, ...others] = top5Formatted;
                 return (
@@ -1038,7 +1038,7 @@ export default function MALWrapped() {
                         const featuredImage = (
                           <motion.div 
                             className="border-box-cyan flex-shrink-0 rounded-xl overflow-hidden shadow-xl relative" 
-                            style={{ boxSizing: 'border-box', aspectRatio: '2/3', maxHeight: '275px', padding: '2px' }}
+                            style={{ boxSizing: 'border-box', aspectRatio: '2/3', maxHeight: '200px', padding: '2px' }}
                             transition={{ duration: 0.3 }}
                           >
                             <div className="bg-transparent rounded-xl w-full h-full overflow-hidden">
@@ -1061,13 +1061,13 @@ export default function MALWrapped() {
                         ) : featuredImage;
                       })()}
                       <motion.div 
-                        className="p-2 flex flex-col justify-left flex-grow min-w-0 text-left"
+                        className="p-1.5 sm:p-2 flex flex-col justify-left flex-grow min-w-0 text-left"
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.5, delay: 0.2 }}
                       >
                       <p className="body-sm tracking-widest text-white font-black">#1 Favorite</p>
-                      <h3 className="title-lg mt-2 truncate font-black text-white text-left">{featured.title}</h3>
+                      <h3 className="title-md mt-1.5 sm:mt-2 truncate font-black text-white text-left">{featured.title}</h3>
                       {featured.studio && <p className="body-md text-white truncate font-bold text-left">{featured.studio}</p>}
                       {featured.author && <p className="body-md text-white truncate font-bold text-left">{featured.author}</p>}
                       <div className="flex items-left justify-left body-md text-yellow-300 mt-2 font-bold">
@@ -1179,7 +1179,7 @@ export default function MALWrapped() {
       
       return (
         <motion.div 
-          className={`w-full h-full relative px-3 sm:px-4 md:p-6 lg:p-8 flex flex-col items-center justify-center slide-card overflow-hidden abstract-shapes abstract-shapes-${shapeType} ${bgColorClasses[bgColor] || 'bg-black'}`}
+          className={`w-full h-full relative px-2 sm:px-3 md:px-4 lg:px-6 py-2 sm:py-3 md:py-4 lg:py-6 flex flex-col items-center justify-center slide-card overflow-hidden abstract-shapes abstract-shapes-${shapeType} ${bgColorClasses[bgColor] || 'bg-black'}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
@@ -1197,9 +1197,9 @@ export default function MALWrapped() {
           )}
           {/* Additional decorative elements on card */}
           <div className="absolute inset-0 pointer-events-none z-5">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/5 to-transparent rounded-full blur-2xl"></div>
-            <div className="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-tr from-white/5 to-transparent rounded-full blur-2xl"></div>
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-radial from-white/3 via-white/1 to-transparent rounded-full blur-3xl"></div>
+            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-white/5 to-transparent rounded-full blur-2xl"></div>
+            <div className="absolute bottom-0 left-0 w-28 h-28 bg-gradient-to-tr from-white/5 to-transparent rounded-full blur-2xl"></div>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-gradient-radial from-white/3 via-white/1 to-transparent rounded-full blur-3xl"></div>
           </div>
           <motion.div 
             className="w-full relative z-20"
@@ -1299,9 +1299,9 @@ export default function MALWrapped() {
 
       if (visibleItems.length === 0) return null;
 
-      return (
+          return (
         <div 
-          className="mt-4 overflow-hidden relative flex justify-center"
+          className="mt-2 sm:mt-3 overflow-hidden relative flex justify-center"
           style={{ 
             maskImage: shouldScroll ? 'none' : 'linear-gradient(to right, black 0%, black 100%)',
             WebkitMaskImage: shouldScroll ? 'none' : 'linear-gradient(to right, black 0%, black 100%)'
@@ -1339,7 +1339,7 @@ export default function MALWrapped() {
                 >
                   <motion.div 
                     className="aspect-[2/3] w-full bg-transparent border border-white/5 rounded-lg overflow-hidden relative" 
-                    style={{ maxHeight: '275px', maxWidth: '100%', boxSizing: 'border-box' }}
+                    style={{ maxHeight: '200px', maxWidth: '100%', boxSizing: 'border-box' }}
                     whileHover={{ borderColor: '#ffffff' }}
                     transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                   >
