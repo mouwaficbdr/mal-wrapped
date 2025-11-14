@@ -157,7 +157,7 @@
   }
   
   /* Responsive adjustments */
-  @media (max-width: 640px) {
+  /*@media (max-width: 640px) {
     .heading-xl { font-size: 1.75rem; }
     .heading-lg { font-size: 1.5rem; }
     .heading-md { font-size: 1.25rem; }
@@ -173,7 +173,7 @@
     .number-xl { font-size: 3rem; }
     .number-lg { font-size: 2.5rem; }
     .number-md { font-size: 1.75rem; }
-  }
+  }*/
   
   @media (min-width: 1024px) {
     .heading-xl { font-size: 3rem; }
