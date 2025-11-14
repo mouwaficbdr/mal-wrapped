@@ -2558,16 +2558,16 @@ export default function MALWrapped() {
                 <select
                   value={selectedYear}
                   onChange={(e) => setSelectedYear(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
-                    className="w-full px-3 sm:px-4 py-1.5 sm:py-2 bg-black/50 rounded-lg text-xs sm:text-sm font-bold tracking-wider focus:outline-none transition-all hover:bg-black/70 appearance-none pr-8 sm:pr-10 text-white"
+                    className="w-full px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-br from-black via-white/5 to-black rounded-lg text-xs sm:text-sm font-bold tracking-wider focus:outline-none transition-all hover:from-black hover:via-white/8 hover:to-black appearance-none pr-8 sm:pr-10 text-white"
                     style={{ 
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
                       color: '#ffffff'
                     }}
                   >
-                    <option value="2023" style={{ background: '#0A0A0A', color: '#ffffff' }}>2023</option>
-                    <option value="2024" style={{ background: '#0A0A0A', color: '#ffffff' }}>2024</option>
-                    <option value="2025" style={{ background: '#0A0A0A', color: '#ffffff' }}>2025</option>
-                    <option value="all" style={{ background: '#0A0A0A', color: '#ffffff' }}>ALL TIME</option>
+                    <option value="2023" style={{ background: '#000000', color: '#ffffff' }}>2023</option>
+                    <option value="2024" style={{ background: '#000000', color: '#ffffff' }}>2024</option>
+                    <option value="2025" style={{ background: '#000000', color: '#ffffff' }}>2025</option>
+                    <option value="all" style={{ background: '#000000', color: '#ffffff' }}>ALL TIME</option>
                 </select>
                   <div className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 pointer-events-none z-10">
                     <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2575,7 +2575,7 @@ export default function MALWrapped() {
                     </svg>
                   </div>
                 </div>
-                <button onClick={handleDownloadPNG} className="p-1.5 sm:p-2 text-white rounded-full bg-black/20 backdrop-blur-sm hover:bg-black/40 transition-all" title="Download Slide">
+                <button onClick={handleDownloadPNG} className="p-1.5 sm:p-2 text-white rounded-full border-box-cyan transition-all" title="Download Slide">
                   <Download className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
               </div>
@@ -2621,8 +2621,8 @@ export default function MALWrapped() {
                     className="border-box-cyan text-white font-bold transition-all text-xs sm:text-sm md:text-base rounded-full" style={{ padding: '2px', borderRadius: '9999px' }}
                   >
                     <motion.span 
-                      className="bg-black/20 rounded-full px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-3 block"
-                      whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.3)', scale: 1.05 }}
+                      className="bg-gradient-to-br from-black via-white/5 to-black rounded-full px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-3 block"
+                      whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       transition={{ duration: 0.2 }}
                     >
