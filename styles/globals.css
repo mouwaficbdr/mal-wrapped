@@ -296,10 +296,14 @@
     border-color: rgba(255, 255, 255, 0.2) !important;
   }
 
-  /* Stop animations when capturing but preserve filters */
+  /* Stop animations when capturing but preserve filters and transforms */
   .slide-card.capturing [data-framer-motion] {
     animation: none !important;
     opacity: 1 !important;
+  }
+  
+  /* Only remove transform if it's not an animated shape with blur */
+  .slide-card.capturing [data-framer-motion]:not([style*="filter"]):not([style*="blur"]) {
     transform: none !important;
   }
   
@@ -307,6 +311,20 @@
   .slide-card.capturing [class*="blur"],
   .slide-card.capturing .abstract-shapes::before,
   .slide-card.capturing .abstract-shapes::after {
+    filter: inherit !important;
+  }
+
+  /* Explicitly preserve inline filter styles on animated shapes during capture */
+  .slide-card.capturing [style*="filter"],
+  .slide-card.capturing [style*="blur"] {
+    filter: inherit !important;
+  }
+
+  /* Ensure all motion.div elements with blur are visible during capture */
+  .slide-card.capturing [data-framer-motion][style*="filter"],
+  .slide-card.capturing [data-framer-motion][style*="blur"] {
+    opacity: 1 !important;
+    visibility: visible !important;
     filter: inherit !important;
   }
 }

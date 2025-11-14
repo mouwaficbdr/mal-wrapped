@@ -751,14 +751,16 @@ export default function MALWrapped() {
               const originalEl = document.querySelector(`[data-framer-motion-id="${el.getAttribute('data-framer-motion-id')}"]`) || 
                                 Array.from(document.querySelectorAll('*')).find(orig => {
                                   if (!orig.className) return false;
-                                  return orig.className === el.className && 
+                                  const origClass = orig.className?.toString() || '';
+                                  const elClass = el.className?.toString() || '';
+                                  return origClass === elClass && 
                                          orig.tagName === el.tagName &&
                                          orig.getBoundingClientRect().width === el.getBoundingClientRect().width;
                                 }) || el;
               try {
                 const computedStyle = window.getComputedStyle(originalEl);
                 
-                // Preserve opacity in final state
+                // Preserve opacity in final state (use midpoint of animation for smooth appearance)
                 const opacity = computedStyle.opacity;
                 if (opacity && opacity !== '0') {
                   el.style.opacity = opacity;
@@ -766,16 +768,39 @@ export default function MALWrapped() {
                   el.style.opacity = '1';
                 }
                 
-                // Preserve transforms in final state (for positioned elements)
+                // PRESERVE FILTER EFFECTS (blur, etc.) for abstract shapes - this is critical
+                // First check inline style, then computed style
+                const inlineFilter = el.style.filter || el.getAttribute('style')?.match(/filter:\s*([^;]+)/)?.[1];
+                const filter = inlineFilter && inlineFilter !== 'none' ? inlineFilter : computedStyle.filter;
+                
+                // Preserve transforms in final state - but use initial transform for animated elements
+                // This ensures animated shapes appear in their resting state, not mid-animation
+                const hasInlineFilter = filter && filter !== 'none';
                 const transform = computedStyle.transform;
-                if (transform && transform !== 'none' && transform !== 'matrix(1, 0, 0, 1, 0, 0)') {
+                // For elements with blur filters (abstract shapes), use their initial transform
+                if (hasInlineFilter) {
+                  // Keep the transform that was set in the style attribute
+                  const inlineTransform = el.style.transform || el.getAttribute('style')?.match(/transform:\s*([^;]+)/)?.[1];
+                  if (inlineTransform) {
+                    // Parse transform to get base rotation/position
+                    const transformMatch = inlineTransform.match(/rotate\(([^)]+)\)/);
+                    if (transformMatch) {
+                      const baseRotate = transformMatch[1];
+                      const translateYMatch = inlineTransform.match(/translateY\(([^)]+)\)/);
+                      if (translateYMatch && translateYMatch[1].includes('-50%')) {
+                        el.style.transform = `rotate(${baseRotate.split('deg')[0]}deg) translateY(-50%)`;
+                      } else {
+                        el.style.transform = `rotate(${baseRotate})`;
+                      }
+                    }
+                  }
+                } else if (transform && transform !== 'none' && transform !== 'matrix(1, 0, 0, 1, 0, 0)') {
                   el.style.transform = transform;
                 }
-                
-                // PRESERVE FILTER EFFECTS (blur, etc.) for abstract shapes
-                const filter = computedStyle.filter;
                 if (filter && filter !== 'none') {
                   el.style.filter = filter;
+                  // Force filter rendering
+                  el.setAttribute('style', el.getAttribute('style') + `; filter: ${filter} !important;`);
                 }
                 
                 // Also check for backdrop-filter
@@ -792,31 +817,47 @@ export default function MALWrapped() {
                   el.style.color = '#ffffff';
                 }
               } catch (e) {
-                // If we can't get computed style, try to preserve filters from class names
-                const classes = el.className || '';
-                if (classes.includes('blur-')) {
-                  // Extract blur value from class
-                  if (classes.includes('blur-3xl')) {
-                    el.style.filter = 'blur(64px)';
-                  } else if (classes.includes('blur-2xl')) {
-                    el.style.filter = 'blur(40px)';
-                  } else if (classes.includes('blur-xl')) {
-                    el.style.filter = 'blur(24px)';
-                  } else if (classes.includes('blur-lg')) {
-                    el.style.filter = 'blur(16px)';
-                  } else if (classes.includes('blur-md')) {
-                    el.style.filter = 'blur(12px)';
-                  } else if (classes.includes('blur-sm')) {
-                    el.style.filter = 'blur(4px)';
+                // If we can't get computed style, preserve filters from inline styles or class names
+                const inlineFilter = el.style.filter;
+                if (inlineFilter && inlineFilter !== 'none') {
+                  el.style.filter = inlineFilter;
+                  el.setAttribute('style', el.getAttribute('style') + `; filter: ${inlineFilter} !important;`);
+                } else {
+                  const classes = el.className || '';
+                  if (classes.includes('blur-')) {
+                    // Extract blur value from class
+                    if (classes.includes('blur-3xl')) {
+                      el.style.filter = 'blur(64px)';
+                    } else if (classes.includes('blur-2xl')) {
+                      el.style.filter = 'blur(40px)';
+                    } else if (classes.includes('blur-xl')) {
+                      el.style.filter = 'blur(24px)';
+                    } else if (classes.includes('blur-lg')) {
+                      el.style.filter = 'blur(16px)';
+                    } else if (classes.includes('blur-md')) {
+                      el.style.filter = 'blur(12px)';
+                    } else if (classes.includes('blur-sm')) {
+                      el.style.filter = 'blur(4px)';
+                    }
                   }
-                }
-                // Check for custom blur values
-                if (classes.includes('blur-[60px]')) {
-                  el.style.filter = 'blur(60px)';
+                  // Check for custom blur values
+                  if (classes.includes('blur-[60px]')) {
+                    el.style.filter = 'blur(60px)';
+                  }
                 }
                 
                 el.style.opacity = '1';
                 el.style.visibility = 'visible';
+              }
+            });
+            
+            // Explicitly ensure all elements with inline filter styles preserve them
+            const elementsWithInlineFilters = clonedElement.querySelectorAll('[style*="filter"]');
+            elementsWithInlineFilters.forEach(el => {
+              const filterMatch = el.getAttribute('style')?.match(/filter:\s*([^;]+)/);
+              if (filterMatch && filterMatch[1] && filterMatch[1] !== 'none') {
+                el.style.filter = filterMatch[1];
+                el.setAttribute('style', el.getAttribute('style') + `; filter: ${filterMatch[1]} !important;`);
               }
             });
           }
@@ -1240,6 +1281,126 @@ export default function MALWrapped() {
               {verticalText}
             </motion.p>
           )}
+          {/* Colorful abstract shapes background on all cards - animated */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 1 }}>
+            {/* Large layered organic shape (left side) */}
+            <motion.div 
+              className="absolute left-0 top-1/2 -translate-y-1/2 w-96 h-96 opacity-60"
+              style={{
+                background: 'radial-gradient(ellipse at center, rgba(255, 0, 100, 0.4) 0%, rgba(200, 0, 150, 0.3) 30%, rgba(100, 0, 200, 0.2) 60%, transparent 100%)',
+                clipPath: 'polygon(0% 20%, 40% 0%, 100% 30%, 80% 70%, 40% 100%, 0% 80%)',
+                filter: 'blur(60px)'
+              }}
+              animate={{
+                transform: ['rotate(-15deg) translateY(-50%)', 'rotate(-10deg) translateY(-50%)', 'rotate(-20deg) translateY(-50%)', 'rotate(-15deg) translateY(-50%)'],
+                opacity: [0.6, 0.7, 0.5, 0.6]
+              }}
+              transition={{
+                duration: 8,
+                repeat: Infinity,
+                ease: 'easeInOut'
+              }}
+              data-framer-motion
+            ></motion.div>
+            
+            {/* Pixelated green lines (bottom left) */}
+            <motion.div 
+              className="absolute bottom-0 left-0 w-full h-32 opacity-50"
+              style={{
+                background: 'repeating-linear-gradient(45deg, rgba(0, 255, 100, 0.4) 0px, rgba(0, 255, 100, 0.4) 20px, transparent 20px, transparent 40px)',
+                clipPath: 'polygon(0% 0%, 100% 0%, 80% 100%, 0% 100%)',
+                filter: 'blur(15px)'
+              }}
+              animate={{
+                x: ['0%', '-10%', '0%'],
+                opacity: [0.5, 0.6, 0.5]
+              }}
+              transition={{
+                duration: 6,
+                repeat: Infinity,
+                ease: 'easeInOut'
+              }}
+              data-framer-motion
+            ></motion.div>
+            
+            {/* Rainbow gradient rectangle (top right) */}
+            <motion.div 
+              className="absolute top-0 right-0 w-96 h-64 opacity-50"
+              style={{
+                background: 'linear-gradient(135deg, rgba(138, 43, 226, 0.5) 0%, rgba(75, 0, 130, 0.4) 20%, rgba(0, 0, 255, 0.3) 40%, rgba(0, 255, 255, 0.3) 60%, rgba(0, 255, 0, 0.3) 80%, rgba(255, 255, 0, 0.4) 100%)',
+                clipPath: 'polygon(20% 0%, 100% 0%, 100% 80%, 0% 100%)',
+                filter: 'blur(40px)'
+              }}
+              animate={{
+                transform: ['translateY(0%)', 'translateY(-5%)', 'translateY(0%)'],
+                opacity: [0.5, 0.6, 0.5]
+              }}
+              transition={{
+                duration: 7,
+                repeat: Infinity,
+                ease: 'easeInOut'
+              }}
+              data-framer-motion
+            ></motion.div>
+            
+            {/* Rainbow wavy lines (right side) */}
+            <motion.div 
+              className="absolute top-1/4 right-0 w-80 h-96 opacity-60"
+              style={{
+                background: 'linear-gradient(180deg, rgba(255, 0, 0, 0.3) 0%, rgba(255, 165, 0, 0.3) 16%, rgba(255, 255, 0, 0.3) 33%, rgba(0, 255, 0, 0.3) 50%, rgba(0, 0, 255, 0.3) 66%, rgba(75, 0, 130, 0.3) 83%, rgba(238, 130, 238, 0.3) 100%)',
+                clipPath: 'polygon(0% 0%, 100% 20%, 100% 80%, 0% 100%)',
+                filter: 'blur(50px)'
+              }}
+              animate={{
+                x: ['0%', '5%', '0%'],
+                opacity: [0.6, 0.7, 0.6]
+              }}
+              transition={{
+                duration: 9,
+                repeat: Infinity,
+                ease: 'easeInOut'
+              }}
+              data-framer-motion
+            ></motion.div>
+            
+            {/* Additional purple glow (center) */}
+            <motion.div 
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] opacity-40"
+              style={{
+                background: 'radial-gradient(circle, rgba(138, 43, 226, 0.3) 0%, rgba(75, 0, 130, 0.2) 50%, transparent 100%)',
+                filter: 'blur(80px)'
+              }}
+              animate={{
+                scale: [1, 1.1, 1],
+                opacity: [0.4, 0.5, 0.4]
+              }}
+              transition={{
+                duration: 10,
+                repeat: Infinity,
+                ease: 'easeInOut'
+              }}
+              data-framer-motion
+            ></motion.div>
+            
+            {/* Additional colorful accent (bottom right) */}
+            <motion.div 
+              className="absolute bottom-1/4 right-1/4 w-64 h-64 opacity-45"
+              style={{
+                background: 'radial-gradient(circle, rgba(255, 165, 0, 0.4) 0%, rgba(255, 69, 0, 0.3) 50%, transparent 100%)',
+                filter: 'blur(50px)'
+              }}
+              animate={{
+                transform: ['rotate(0deg)', 'rotate(10deg)', 'rotate(-10deg)', 'rotate(0deg)'],
+                opacity: [0.45, 0.55, 0.45]
+              }}
+              transition={{
+                duration: 12,
+                repeat: Infinity,
+                ease: 'easeInOut'
+              }}
+              data-framer-motion
+            ></motion.div>
+          </div>
           <motion.div 
             className="w-full relative z-20"
             variants={staggerContainer}
