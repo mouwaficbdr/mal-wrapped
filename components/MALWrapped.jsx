@@ -1676,7 +1676,7 @@ export default function MALWrapped() {
               </motion.h1>
             </div>
             <motion.h2 className="body-md font-regular text-white/90 mt-1 text-center whitespace-nowrap relative z-10" {...fadeSlideUp} data-framer-motion>
-              You have {type === 'anime' ? 'watched' : 'read'}
+              You have watched
             </motion.h2>
             <motion.div className="mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
               <p className="number-xl text-white ">
