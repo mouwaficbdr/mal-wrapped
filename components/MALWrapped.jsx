@@ -436,7 +436,7 @@ export default function MALWrapped() {
     const hiddenGemsRaw = completedAnime
       .filter(item => {
         const score = item.list_status.score;
-        const popularity = item.node?.num_list_users || 0;
+        const popularity = item.node?.num_list_users;
         return score >= 7 && popularity < 100000;
       })
       .sort((a, b) => {
@@ -565,7 +565,7 @@ export default function MALWrapped() {
     const hiddenGemsMangaRaw = completedManga
       .filter(item => {
         const score = item.list_status.score;
-        const popularity = item.node?.num_list_users || 0;
+        const popularity = item.node?.num_list_users;
         return score >= 7 && popularity < 100000;
       })
       .sort((a, b) => {
