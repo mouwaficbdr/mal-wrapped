@@ -975,11 +975,6 @@ export default function MALWrapped() {
     return (
       <SlideLayout verticalText={verticalText}>
         <motion.div className="relative" {...fadeSlideUp} data-framer-motion>
-          <div className="text-center relative z-10">
-            <motion.h1 className="heading-md text-white font-semibold pb-1 px-2 inline-block whitespace-nowrap" {...fadeSlideUp} data-framer-motion>
-              Your Favorite {type === 'anime' ? 'Anime' : 'Manga'}
-            </motion.h1>
-          </div>
             <motion.h2 className="body-md font-regular text-white/90 mt-1 text-center whitespace-nowrap relative z-10" {...fadeSlideUp} data-framer-motion>
               The {type === 'anime' ? 'series' : 'manga'} you rated the highest.
             </motion.h2>
@@ -1034,9 +1029,8 @@ export default function MALWrapped() {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.5, delay: 0.2 }}
                       >
-                      <p className="body-sm tracking-widest text-white font-semibold">#1 Favorite</p>
                       <h3 className="title-md mt-1.5 sm:mt-2 truncate font-semibold text-white text-left">{featured.title}</h3>
-                      {featured.studio && <p className="body-md text-white truncate font-medium text-left">{featured.studio}</p>}
+                      {featured.studio && <p className="body-sm text-white truncate font-regular text-left">{featured.studio}</p>}
                       {featured.author && <p className="body-md text-white truncate font-medium text-left">{featured.author}</p>}
                       <div className="flex items-left justify-left body-md text-yellow-300 mt-2 font-medium">
                           <span className="mr-0.5 sm:mr-1">★</span>
@@ -1047,7 +1041,7 @@ export default function MALWrapped() {
                             {featured.genres.slice(0, 2).map(g => (
                             <motion.span 
                               key={g} 
-                              className="border-box-cyan body-sm tracking-wider text-white px-2 py-0.5 rounded-lg font-semibold" 
+                              className="border-box-cyan mono tracking-wider text-white/90 px-2 py-0.5 rounded-lg font-regular" 
                               style={{ border: '1px solid rgba(255, 255, 255, 0.2)' }}
                               initial={{ opacity: 0, scale: 0.8 }}
                               animate={{ opacity: 1, scale: 1 }}
