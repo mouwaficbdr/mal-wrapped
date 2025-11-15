@@ -1675,35 +1675,32 @@ export default function MALWrapped() {
               <p className="number-xl text-white ">
                 <AnimatedNumber value={stats.thisYearAnime.length} />
               </p>
-              <p className="body-md text-white/90 mt-2 font-regular">anime</p>
+              <p className="body-md text-white/90 mt-2 font-regular">anime, now that's dedication.</p>
             </motion.div>
             {animeCarouselItems.length > 0 && <div className="relative z-10"><ImageCarousel items={animeCarouselItems} maxItems={50} showHover={true} showNames={false} /></div>}
-            <motion.div className="mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
-              <p className="body-md text-white/90 mt-2 font-regular">Now that's dedication.</p>
-            </motion.div>
           </SlideLayout>
         );
 
       case 'anime_time':
         return (
           <SlideLayout verticalText="TIME-ANALYSIS" bgColor="green">
-            <div className="text-center relative">
-              <motion.h1 className="relative z-10 heading-md text-white font-semibold pb-2 px-2 inline-block whitespace-nowrap" {...fadeSlideUp} data-framer-motion>
-              Anime Stats
-              </motion.h1>
-            </div>
+            <motion.h2 className="body-md font-regular text-white/90 mt-1 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
+            That's
+            </motion.h2>
             <motion.div className="mt-4 space-y-4 relative z-10" {...fadeSlideUp} data-framer-motion>
               <div className="text-center">
                 <p className="number-lg text-white ">
                   <AnimatedNumber value={stats.totalEpisodes || 0} />
                 </p>
-                <p className="body-md text-white/90 mt-2 font-medium">Episodes</p>
+                <p className="body-md text-white/90 mt-2 font-regular">episodes</p>
+                <p className="body-sm text-white/50 mt-2 font-regular">and</p>
               </div>
               <div className="text-center">
                 <p className="number-lg text-white ">
                   <AnimatedNumber value={stats.totalSeasons || 0} />
                 </p>
-                <p className="body-md text-white/90 mt-2 font-medium">Seasons</p>
+                <p className="body-md text-white/90 mt-2 font-regular">seasons</p>
+                <p className="body-sm text-white/50 mt-2 font-regular">or basically,</p>
               </div>
               <div className="text-center">
                 {stats.watchDays > 0 ? (
@@ -1711,15 +1708,15 @@ export default function MALWrapped() {
                     <p className="number-lg text-white ">
                       <AnimatedNumber value={stats.watchDays} />
                     </p>
-                    <p className="body-md text-white/90 mt-2 font-medium">Days</p>
-                    <p className="body-sm text-white/80 mt-2 font-semibold">or <AnimatedNumber value={stats.watchTime} /> hours</p>
-                  </>
+                    <p className="body-md text-white/90 mt-2 font-medium">days</p>
+                    <p className="body-sm text-white/50 mt-2 font-regular">of your life gone.</p>                  </>
                 ) : (
                   <>
                     <p className="number-lg text-white ">
                       <AnimatedNumber value={stats.watchTime} />
                     </p>
-                    <p className="heading-md text-white/90 mt-2 font-medium">Hours</p>
+                    <p className="heading-md text-white/90 mt-2 font-medium">hours</p>
+                    <p className="body-sm text-white/50 mt-2 font-regular">of your life gone.</p>
                   </>
                 )}
               </div>
@@ -1749,17 +1746,15 @@ export default function MALWrapped() {
         const otherGenres = stats.topGenres?.slice(1, 5) || [];
         return (
           <SlideLayout verticalText="GENRE-MATRIX" bgColor="yellow">
-            <div className="text-center relative">
-              <motion.h1 className="relative z-10 heading-md text-white font-semibold pb-2 px-2 inline-block whitespace-nowrap" {...fadeSlideUp} data-framer-motion>
-              Most Watched Genre
-              </motion.h1>
-            </div>
+            <motion.h2 className="body-md font-regular text-white/90 mt-1 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
+            But you kept coming back to the same genre,
+            </motion.h2>
             {topGenre ? (
               <>
                 <motion.div className="mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
-                  <p className="body-sm text-white font-semibold mb-2">#1</p>
-                  <p className="heading-lg font-semibold text-white ">{topGenre}</p>
-                  <p className="body-md text-white/80 mt-2 font-semibold">{stats.topGenres[0][1]} anime</p>
+                  <p className="body-sm text-white/90 font-medium mb-2">#1</p>
+                  <p className="heading-lg font-semibold text-white/90 ">{topGenre}</p>
+                  <p className="mono text-white/50 mt-2 font-regular">{stats.topGenres[0][1]} anime watched</p>
                 </motion.div>
                 {genreAnime.length > 0 && <div className="relative z-10"><ImageCarousel items={genreAnime} maxItems={30} showHover={true} showNames={false} /></div>}
                 {otherGenres.length > 0 && (
@@ -1771,9 +1766,9 @@ export default function MALWrapped() {
                           whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
                           transition={{ duration: 0.2 }}
                         >
-                          <p className="body-sm text-white font-semibold mb-2">#{idx + 2}</p>
-                          <p className="heading-sm font-semibold text-white">{genreName}</p>
-                          <p className="body-sm text-white/80 font-semibold">{count} anime</p>
+                          <p className="body-sm text-white/90 font-medium mb-2">#{idx + 2}</p>
+                          <p className="heading-sm font-semibold text-white/90">{genreName}</p>
+                          <p className="mono text-white/50 font-regular">{count} anime watched</p>
                       </motion.div>
                       </motion.div>
                     ))}
