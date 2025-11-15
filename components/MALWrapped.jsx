@@ -1610,45 +1610,125 @@ export default function MALWrapped() {
 
     switch (slide.id) {
       case 'welcome':
+        const yearText = stats.selectedYear === 'all' ? 'ALL TIME' : stats.selectedYear;
         return (
           <SlideLayout verticalText="INITIALIZE" bgColor="pink">
-            <div className="text-center relative w-full h-full flex flex-col items-center justify-center">
-              {/* Colorful abstract shapes background */}
+            <div className="text-center relative w-full h-full flex flex-col items-center justify-center" style={{ background: '#32CD32' }}>
+              {/* Abstract shapes background */}
               <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 1 }}>
-                {/* Large layered organic shape (left side) */}
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-96 h-96 opacity-60" style={{
-                  background: 'radial-gradient(ellipse at center, rgba(255, 0, 100, 0.4) 0%, rgba(200, 0, 150, 0.3) 30%, rgba(100, 0, 200, 0.2) 60%, transparent 100%)',
-                  clipPath: 'polygon(0% 20%, 40% 0%, 100% 30%, 80% 70%, 40% 100%, 0% 80%)',
-                  transform: 'rotate(-15deg)',
+                {/* Light green wavy line (upper left) */}
+                <div className="absolute top-20 left-10 w-64 h-32 opacity-40" style={{
+                  background: 'radial-gradient(ellipse, rgba(144, 238, 144, 0.6) 0%, transparent 70%)',
+                  clipPath: 'path("M 0 50 Q 50 20, 100 40 T 200 35 T 300 45")',
+                  filter: 'blur(40px)'
+                }}></div>
+                
+                {/* Purple spiky shape (right side) */}
+                <div className="absolute top-1/4 right-1/4 w-80 h-80 opacity-50" style={{
+                  background: 'linear-gradient(135deg, rgba(144, 238, 144, 0.5) 0%, rgba(255, 255, 0, 0.4) 100%)',
+                  clipPath: 'polygon(50% 0%, 80% 20%, 100% 50%, 80% 80%, 50% 100%, 20% 80%, 0% 50%, 20% 20%)',
+                  filter: 'blur(60px)',
+                  border: '2px solid rgba(138, 43, 226, 0.3)'
+                }}></div>
+                
+                {/* Orange/blue gradient shape (bottom left) */}
+                <div className="absolute bottom-1/4 left-1/4 w-96 h-96 opacity-50" style={{
+                  background: 'radial-gradient(circle, rgba(255, 165, 0, 0.5) 0%, rgba(135, 206, 250, 0.4) 50%, rgba(255, 255, 255, 0.3) 100%)',
                   filter: 'blur(80px)'
                 }}></div>
                 
-                {/* Rainbow gradient rectangle (top right) */}
-                <div className="absolute top-0 right-0 w-96 h-64 opacity-50" style={{
-                  background: 'linear-gradient(135deg, rgba(138, 43, 226, 0.5) 0%, rgba(75, 0, 130, 0.4) 20%, rgba(0, 0, 255, 0.3) 40%, rgba(0, 255, 255, 0.3) 60%, rgba(0, 255, 0, 0.3) 80%, rgba(255, 255, 0, 0.4) 100%)',
-                  clipPath: 'polygon(20% 0%, 100% 0%, 100% 80%, 0% 100%)',
-                  filter: 'blur(70px)'
-                }}></div>
-                
-                {/* Purple glow (center) */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] opacity-40" style={{
-                  background: 'radial-gradient(circle, rgba(138, 43, 226, 0.3) 0%, rgba(75, 0, 130, 0.2) 50%, transparent 100%)',
-                  filter: 'blur(100px)'
-                }}></div>
-                
-                {/* Rainbow accent (bottom right) */}
-                <div className="absolute bottom-1/4 right-1/4 w-80 h-80 opacity-50" style={{
-                  background: 'linear-gradient(135deg, rgba(255, 0, 0, 0.3) 0%, rgba(255, 165, 0, 0.3) 25%, rgba(255, 255, 0, 0.3) 50%, rgba(0, 255, 0, 0.3) 75%, rgba(0, 0, 255, 0.3) 100%)',
+                {/* Light blue/white shape (bottom right) */}
+                <div className="absolute bottom-1/3 right-1/3 w-72 h-72 opacity-40" style={{
+                  background: 'radial-gradient(circle, rgba(135, 206, 250, 0.5) 0%, rgba(255, 255, 255, 0.4) 100%)',
                   filter: 'blur(70px)'
                 }}></div>
               </div>
               
               <div className="relative z-20">
-              <motion.div {...fadeIn} data-framer-motion>
-                  <h1 className="heading-md font-semibold text-white mb-2 tracking-tight">{stats.selectedYear === 'all' ? 'ALL TIME' : stats.selectedYear}</h1>
-                  <h2 className="heading-md font-semibold text-white tracking-tight">Wrapped</h2>
-                  <p className="text-xl sm:text-2xl md:text-3xl font-semibold text-white mt-6">A look back at your {stats.selectedYear === 'all' ? 'anime journey' : 'year'}, <span className="text-white font-medium">{username || 'a'}</span>.</p>
-              </motion.div>
+                <motion.div {...fadeIn} data-framer-motion>
+                  {/* Glitch text effect for "2025 Wrapped" */}
+                  <div className="relative inline-block">
+                    {/* Base text - black */}
+                    <h1 className="heading-xl sm:text-6xl md:text-7xl font-bold text-black mb-2 tracking-tight relative z-10" style={{ 
+                      fontFamily: 'sans-serif',
+                      textShadow: 'none'
+                    }}>
+                      {yearText}
+                    </h1>
+                    {/* Glitch layer 1 - light blue offset */}
+                    <h1 className="heading-xl sm:text-6xl md:text-7xl font-bold absolute top-0 left-0 mb-2 tracking-tight pointer-events-none" style={{ 
+                      fontFamily: 'sans-serif',
+                      color: '#87CEEB',
+                      transform: 'translate(2px, -1px)',
+                      zIndex: 9,
+                      opacity: 0.8
+                    }}>
+                      {yearText}
+                    </h1>
+                    {/* Glitch layer 2 - purple offset */}
+                    <h1 className="heading-xl sm:text-6xl md:text-7xl font-bold absolute top-0 left-0 mb-2 tracking-tight pointer-events-none" style={{ 
+                      fontFamily: 'sans-serif',
+                      color: '#8A2BE2',
+                      transform: 'translate(-1px, 2px)',
+                      zIndex: 8,
+                      opacity: 0.7
+                    }}>
+                      {yearText}
+                    </h1>
+                    {/* Glitch layer 3 - orange offset */}
+                    <h1 className="heading-xl sm:text-6xl md:text-7xl font-bold absolute top-0 left-0 mb-2 tracking-tight pointer-events-none" style={{ 
+                      fontFamily: 'sans-serif',
+                      color: '#FFA500',
+                      transform: 'translate(1px, 1px)',
+                      zIndex: 7,
+                      opacity: 0.6
+                    }}>
+                      {yearText}
+                    </h1>
+                  </div>
+                  
+                  <div className="relative inline-block mt-2">
+                    {/* Base text - black */}
+                    <h2 className="heading-xl sm:text-6xl md:text-7xl font-bold text-black tracking-tight relative z-10" style={{ 
+                      fontFamily: 'sans-serif',
+                      textShadow: 'none'
+                    }}>
+                      Wrapped
+                    </h2>
+                    {/* Glitch layer 1 - light blue offset */}
+                    <h2 className="heading-xl sm:text-6xl md:text-7xl font-bold absolute top-0 left-0 tracking-tight pointer-events-none" style={{ 
+                      fontFamily: 'sans-serif',
+                      color: '#87CEEB',
+                      transform: 'translate(2px, -1px)',
+                      zIndex: 9,
+                      opacity: 0.8
+                    }}>
+                      Wrapped
+                    </h2>
+                    {/* Glitch layer 2 - purple offset */}
+                    <h2 className="heading-xl sm:text-6xl md:text-7xl font-bold absolute top-0 left-0 tracking-tight pointer-events-none" style={{ 
+                      fontFamily: 'sans-serif',
+                      color: '#8A2BE2',
+                      transform: 'translate(-1px, 2px)',
+                      zIndex: 8,
+                      opacity: 0.7
+                    }}>
+                      Wrapped
+                    </h2>
+                    {/* Glitch layer 3 - orange offset */}
+                    <h2 className="heading-xl sm:text-6xl md:text-7xl font-bold absolute top-0 left-0 tracking-tight pointer-events-none" style={{ 
+                      fontFamily: 'sans-serif',
+                      color: '#FFA500',
+                      transform: 'translate(1px, 1px)',
+                      zIndex: 7,
+                      opacity: 0.6
+                    }}>
+                      Wrapped
+                    </h2>
+                  </div>
+                  
+                  <p className="text-xl sm:text-2xl md:text-3xl font-semibold text-black mt-6">A look back at your {stats.selectedYear === 'all' ? 'anime journey' : 'year'}, <span className="font-medium">{username || 'a'}</span>.</p>
+                </motion.div>
               </div>
             </div>
           </SlideLayout>
@@ -2591,45 +2671,127 @@ export default function MALWrapped() {
           )}
 
           {!isAuthenticated && !isLoading && (
-            <div className="text-center p-4 relative w-full h-full flex flex-col items-center justify-center">
-              {/* Colorful abstract shapes background */}
+            <div className="text-center p-4 relative w-full h-full flex flex-col items-center justify-center" style={{ background: '#32CD32' }}>
+              {/* Abstract shapes background */}
               <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
-                {/* Large layered organic shape (left side) */}
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-96 h-96 opacity-60 rounded-full" style={{
-                  background: 'radial-gradient(ellipse at center, rgba(255, 0, 100, 0.4) 0%, rgba(200, 0, 150, 0.3) 30%, rgba(100, 0, 200, 0.2) 60%, transparent 100%)',
-                  transform: 'rotate(-15deg)',
-                  filter: 'blur(120px)'
+                {/* Light green wavy line (upper left) */}
+                <div className="absolute top-20 left-10 w-64 h-32 opacity-40" style={{
+                  background: 'radial-gradient(ellipse, rgba(144, 238, 144, 0.6) 0%, transparent 70%)',
+                  clipPath: 'path("M 0 50 Q 50 20, 100 40 T 200 35 T 300 45")',
+                  filter: 'blur(40px)'
                 }}></div>
                 
-                {/* Rainbow gradient rectangle (top right) */}
-                <div className="absolute top-0 right-0 w-96 h-64 opacity-50 rounded-3xl" style={{
-                  background: 'linear-gradient(135deg, rgba(138, 43, 226, 0.5) 0%, rgba(75, 0, 130, 0.4) 20%, rgba(0, 0, 255, 0.3) 40%, rgba(0, 255, 255, 0.3) 60%, rgba(0, 255, 0, 0.3) 80%, rgba(255, 255, 0, 0.4) 100%)',
-                  filter: 'blur(120px)'
+                {/* Purple spiky shape (right side) */}
+                <div className="absolute top-1/4 right-1/4 w-80 h-80 opacity-50" style={{
+                  background: 'linear-gradient(135deg, rgba(144, 238, 144, 0.5) 0%, rgba(255, 255, 0, 0.4) 100%)',
+                  clipPath: 'polygon(50% 0%, 80% 20%, 100% 50%, 80% 80%, 50% 100%, 20% 80%, 0% 50%, 20% 20%)',
+                  filter: 'blur(60px)',
+                  border: '2px solid rgba(138, 43, 226, 0.3)'
                 }}></div>
                 
-                {/* Purple glow (center) */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] opacity-40 rounded-full" style={{
-                  background: 'radial-gradient(circle, rgba(138, 43, 226, 0.3) 0%, rgba(75, 0, 130, 0.2) 50%, transparent 100%)',
-                  filter: 'blur(140px)'
+                {/* Orange/blue gradient shape (bottom left) */}
+                <div className="absolute bottom-1/4 left-1/4 w-96 h-96 opacity-50" style={{
+                  background: 'radial-gradient(circle, rgba(255, 165, 0, 0.5) 0%, rgba(135, 206, 250, 0.4) 50%, rgba(255, 255, 255, 0.3) 100%)',
+                  filter: 'blur(80px)'
                 }}></div>
                 
-                {/* Rainbow accent (bottom right) */}
-                <div className="absolute bottom-1/4 right-1/4 w-80 h-80 opacity-50 rounded-full" style={{
-                  background: 'linear-gradient(135deg, rgba(255, 0, 0, 0.3) 0%, rgba(255, 165, 0, 0.3) 25%, rgba(255, 255, 0, 0.3) 50%, rgba(0, 255, 0, 0.3) 75%, rgba(0, 0, 255, 0.3) 100%)',
-                  filter: 'blur(120px)'
+                {/* Light blue/white shape (bottom right) */}
+                <div className="absolute bottom-1/3 right-1/3 w-72 h-72 opacity-40" style={{
+                  background: 'radial-gradient(circle, rgba(135, 206, 250, 0.5) 0%, rgba(255, 255, 255, 0.4) 100%)',
+                  filter: 'blur(70px)'
                 }}></div>
               </div>
               
               <div className="relative z-10">
-                <motion.h1 className="heading-md font-semibold tracking-tight text-white mb-2" {...fadeIn100} data-framer-motion>{selectedYear === 'all' ? 'ALL TIME' : selectedYear}</motion.h1>
-                <motion.h2 className="heading-md font-semibold tracking-tight text-white" {...fadeIn} data-framer-motion>Wrapped</motion.h2>
-                <motion.p className="mt-6 text-lg sm:text-xl text-white/80 max-w-md mx-auto" {...fadeIn300} data-framer-motion>Enter your MyAnimeList username to see your year in review.</motion.p>
+                <motion.div {...fadeIn100} data-framer-motion>
+                  {/* Glitch text effect for "2025 Wrapped" */}
+                  <div className="relative inline-block">
+                    {/* Base text - black */}
+                    <h1 className="heading-xl sm:text-6xl md:text-7xl font-bold text-black mb-2 tracking-tight relative z-10" style={{ 
+                      fontFamily: 'sans-serif',
+                      textShadow: 'none'
+                    }}>
+                      {selectedYear === 'all' ? 'ALL TIME' : selectedYear}
+                    </h1>
+                    {/* Glitch layer 1 - light blue offset */}
+                    <h1 className="heading-xl sm:text-6xl md:text-7xl font-bold absolute top-0 left-0 mb-2 tracking-tight pointer-events-none" style={{ 
+                      fontFamily: 'sans-serif',
+                      color: '#87CEEB',
+                      transform: 'translate(2px, -1px)',
+                      zIndex: 9,
+                      opacity: 0.8
+                    }}>
+                      {selectedYear === 'all' ? 'ALL TIME' : selectedYear}
+                    </h1>
+                    {/* Glitch layer 2 - purple offset */}
+                    <h1 className="heading-xl sm:text-6xl md:text-7xl font-bold absolute top-0 left-0 mb-2 tracking-tight pointer-events-none" style={{ 
+                      fontFamily: 'sans-serif',
+                      color: '#8A2BE2',
+                      transform: 'translate(-1px, 2px)',
+                      zIndex: 8,
+                      opacity: 0.7
+                    }}>
+                      {selectedYear === 'all' ? 'ALL TIME' : selectedYear}
+                    </h1>
+                    {/* Glitch layer 3 - orange offset */}
+                    <h1 className="heading-xl sm:text-6xl md:text-7xl font-bold absolute top-0 left-0 mb-2 tracking-tight pointer-events-none" style={{ 
+                      fontFamily: 'sans-serif',
+                      color: '#FFA500',
+                      transform: 'translate(1px, 1px)',
+                      zIndex: 7,
+                      opacity: 0.6
+                    }}>
+                      {selectedYear === 'all' ? 'ALL TIME' : selectedYear}
+                    </h1>
+                  </div>
+                  
+                  <div className="relative inline-block mt-2">
+                    {/* Base text - black */}
+                    <h2 className="heading-xl sm:text-6xl md:text-7xl font-bold text-black tracking-tight relative z-10" style={{ 
+                      fontFamily: 'sans-serif',
+                      textShadow: 'none'
+                    }}>
+                      Wrapped
+                    </h2>
+                    {/* Glitch layer 1 - light blue offset */}
+                    <h2 className="heading-xl sm:text-6xl md:text-7xl font-bold absolute top-0 left-0 tracking-tight pointer-events-none" style={{ 
+                      fontFamily: 'sans-serif',
+                      color: '#87CEEB',
+                      transform: 'translate(2px, -1px)',
+                      zIndex: 9,
+                      opacity: 0.8
+                    }}>
+                      Wrapped
+                    </h2>
+                    {/* Glitch layer 2 - purple offset */}
+                    <h2 className="heading-xl sm:text-6xl md:text-7xl font-bold absolute top-0 left-0 tracking-tight pointer-events-none" style={{ 
+                      fontFamily: 'sans-serif',
+                      color: '#8A2BE2',
+                      transform: 'translate(-1px, 2px)',
+                      zIndex: 8,
+                      opacity: 0.7
+                    }}>
+                      Wrapped
+                    </h2>
+                    {/* Glitch layer 3 - orange offset */}
+                    <h2 className="heading-xl sm:text-6xl md:text-7xl font-bold absolute top-0 left-0 tracking-tight pointer-events-none" style={{ 
+                      fontFamily: 'sans-serif',
+                      color: '#FFA500',
+                      transform: 'translate(1px, 1px)',
+                      zIndex: 7,
+                      opacity: 0.6
+                    }}>
+                      Wrapped
+                    </h2>
+                  </div>
+                </motion.div>
+                <motion.p className="mt-6 text-lg sm:text-xl text-black/80 max-w-md mx-auto" {...fadeIn300} data-framer-motion>Enter your MyAnimeList username to see your year in review.</motion.p>
               <motion.div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center" {...fadeIn} data-framer-motion>
                   <motion.button
                   onClick={handleBegin}
-                    className="bg-white text-black font-medium text-lg px-8 py-3 rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-black text-white font-medium text-lg px-8 py-3 rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={!CLIENT_ID || CLIENT_ID === '<your_client_id_here>'}
-                    whileHover={{ scale: 1.05, backgroundColor: '#f5f5f5' }}
+                    whileHover={{ scale: 1.05, backgroundColor: '#333' }}
                     whileTap={{ scale: 0.95 }}
                     transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
                 >
