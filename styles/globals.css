@@ -177,15 +177,15 @@
 
   .mono{
     font-family: 'Space Mono', -apple-system, BlinkMacSystemFont, sans-serif;
-    font-size: 1.25rem;
-    font-weight: 300;
-    line-height: 1.5;
+    font-size: 1.5rem;
+    font-weight: 350;
+    line-height: 1.6;
     color: #ffffff;
     text-wrap: balance;
   }
   
   /* Responsive adjustments */
-  /*@media (max-width: 640px) {
+  @media (max-width: 640px) {
     .heading-xl { font-size: 1.75rem; }
     .heading-lg { font-size: 1.5rem; }
     .heading-md { font-size: 1.25rem; }
@@ -201,7 +201,7 @@
     .number-xl { font-size: 3rem; }
     .number-lg { font-size: 2.5rem; }
     .number-md { font-size: 1.75rem; }
-  }*/
+  }
   
   /*@media (min-width: 1024px) {
     .heading-xl { font-size: 3rem; }

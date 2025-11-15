@@ -1752,8 +1752,7 @@ export default function MALWrapped() {
             {topGenre ? (
               <>
                 <motion.div className="mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
-                  <p className="body-sm text-white/90 font-medium mb-2">#1</p>
-                  <p className="heading-lg font-semibold text-white/90 ">{topGenre}</p>
+                  <p className="heading-lg font-semibold text-white/90 ">1. {topGenre}</p>
                   <p className="mono text-white/50 mt-2 font-regular">{stats.topGenres[0][1]} anime watched</p>
                 </motion.div>
                 {genreAnime.length > 0 && <div className="relative z-10"><ImageCarousel items={genreAnime} maxItems={30} showHover={true} showNames={false} /></div>}
@@ -1766,8 +1765,7 @@ export default function MALWrapped() {
                           whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
                           transition={{ duration: 0.2 }}
                         >
-                          <p className="body-sm text-white/90 font-medium mb-2">#{idx + 2}</p>
-                          <p className="heading-sm font-semibold text-white/90">{genreName}</p>
+                          <p className="heading-sm font-semibold text-white/90">{idx + 2}.{genreName}</p>
                           <p className="mono text-white/50 font-regular">{count} anime watched</p>
                       </motion.div>
                       </motion.div>
