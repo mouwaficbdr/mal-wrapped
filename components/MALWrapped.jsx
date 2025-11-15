@@ -889,13 +889,13 @@ export default function MALWrapped() {
       <SlideLayout verticalText={verticalText}>
         {phase === 0 ? (
           <motion.div className="text-center relative overflow-hidden" {...fadeSlideUp} data-framer-motion>
-            <motion.h1 className="heading-md font-medium text-white" {...pulse} data-framer-motion>{type === 'anime' ? '🎬' : '📚'}</motion.h1>
-            <h2 className="heading-lg font-semibold text-white mt-4">Your favorite {type === 'anime' ? 'anime' : 'manga'} {yearText} is...</h2>
+            <motion.h1 className="number-xl font-regular text-white" {...pulse} data-framer-motion>{type === 'anime' ? '🎬' : '📚'}</motion.h1>
+            <h2 className="body-md font-regular text-white/90 mt-4">{type === 'anime' ? 'But one show beat everything else and became your absolute pick' : 'One series topped everything and became your standout read'} {yearText} is...</h2>
           </motion.div>
         ) : phase === 1 && topItem ? (
           <motion.div className="text-center relative overflow-hidden" {...fadeSlideUp} data-framer-motion>
-            <h1 className="heading-md font-medium text-white mb-4">Your #1 Favorite</h1>
-            <div className="flex flex-col md:flex-row items-center justify-center gap-4">
+            <h1 className="body-md font-regular text-white/90 mb-4">It is</h1>
+            <div className="flex flex-col items-center justify-center gap-4">
               <motion.div 
                 className="w-32 md:w-48 aspect-[2/3] bg-transparent rounded-lg overflow-hidden" 
                 style={{ boxSizing: 'border-box', border: '1px solid white' }}
@@ -914,12 +914,12 @@ export default function MALWrapped() {
                 )}
               </motion.div>
               <div className="text-left">
-                <h3 className="title-lg mb-2">{topItem.node?.title}</h3>
+                <h3 className="title-lg text-white/90 font-semibold mb-2">{topItem.node?.title}</h3>
                 {type === 'anime' && topItem.node?.studios?.[0]?.name && (
-                  <p className="body-md text-white mb-2 font-medium">{topItem.node.studios[0].name}</p>
+                  <p className="body-lg text-white/50 mb-2 font-regular">{topItem.node.studios[0].name}</p>
                 )}
                 {type === 'manga' && topItem.node?.authors?.[0] && (
-                  <p className="body-md text-white mb-2 font-medium">
+                  <p className="body-lg text-white/50 mb-2 font-regular">
                     {`${topItem.node.authors[0].node?.first_name || ''} ${topItem.node.authors[0].node?.last_name || ''}`.trim()}
                   </p>
                 )}
@@ -931,7 +931,7 @@ export default function MALWrapped() {
             </div>
           </motion.div>
         ) : (
-          <div className="text-white/50">No favorite {type} found</div>
+          <div className="body-md font-regular text-white/50">No favorite {type} found</div>
         )}
       </SlideLayout>
     );
@@ -1747,7 +1747,7 @@ export default function MALWrapped() {
         return (
           <SlideLayout verticalText="GENRE-MATRIX" bgColor="yellow">
             <motion.h2 className="body-md font-regular text-white/90 mt-1 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
-            But you kept coming back to the same genre,
+            But you kept coming back to the same genres,
             </motion.h2>
             {topGenre ? (
               <>

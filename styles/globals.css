@@ -177,9 +177,9 @@
 
   .mono{
     font-family: 'Space Mono', -apple-system, BlinkMacSystemFont, sans-serif;
-    font-size: 1.5rem;
-    font-weight: 350;
-    line-height: 1.6;
+    font-size: 16px;
+    font-weight: 300;
+    line-height: 1.2;
     color: #ffffff;
     text-wrap: balance;
   }
