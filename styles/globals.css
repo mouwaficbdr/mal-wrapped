@@ -34,6 +34,8 @@
     line-height: 1.1;
     letter-spacing: -0.02em;
     color: #ffffff;
+    text-wrap: balance;
+
   }
   
   .heading-lg {
@@ -43,6 +45,8 @@
     line-height: 1.2;
     letter-spacing: -0.01em;
     color: #ffffff;
+    text-wrap: balance;
+
   }
   
   .heading-md {
@@ -52,6 +56,8 @@
     line-height: 1.3;
     letter-spacing: -0.01em;
     color: #ffffff;
+    text-wrap: balance;
+
   }
   
   .heading-sm {
@@ -60,6 +66,8 @@
     font-weight: 500;
     line-height: 1.4;
     color: #ffffff;
+    text-wrap: balance;
+
   }
   
   /* Body Styles - DM Sans */
@@ -69,6 +77,8 @@
     font-weight: 300;
     line-height: 1.6;
     color: #ffffff;
+    text-wrap: balance;
+
   }
   
   .body-lg {
@@ -77,6 +87,8 @@
     font-weight: 400;
     line-height: 1.6;
     color: #ffffff;
+    text-wrap: balance;
+
   }
   
   .body-md {
@@ -85,7 +97,6 @@
     font-weight: 350;
     line-height: 1.6;
     color: #ffffff;
-    overflow-wrap: break-word;
     text-wrap: balance;
   }
   
@@ -95,6 +106,7 @@
     font-weight: 300;
     line-height: 1.5;
     color: #ffffff;
+    text-wrap: balance;
   }
   
   /* Title Styles - For series names, anime/manga titles (Accent - Sora) */
@@ -103,7 +115,8 @@
     font-size: 2.5rem;
     font-weight: 700;
     line-height: 1.2;
-    color: #ffffff;
+    color: #ffffff; 
+    text-wrap: balance;
   }
   
   .title-lg {
@@ -112,6 +125,7 @@
     font-weight: 650;
     line-height: 1.3;
     color: #ffffff;
+    text-wrap: balance;
   }
   
   .title-md {
@@ -119,7 +133,8 @@
     font-size: 1rem;
     font-weight: 600;
     line-height: 1.4;
-    color: #ffffff;
+    color: #ffffff; 
+    text-wrap: balance;
   }
   
   .title-sm {
@@ -127,7 +142,8 @@
     font-size: 0.875rem;
     font-weight: 550;
     line-height: 1.4;
-    color: #ffffff;
+    color: #ffffff; 
+    text-wrap: balance;
   }
   
   /* Number Styles - Accent (Sora) */
@@ -138,6 +154,7 @@
     line-height: 1;
     color: #ffffff;
     letter-spacing: -0.02em;
+    text-wrap: balance;
   }
   
   .number-lg {
@@ -146,7 +163,8 @@
     font-weight: 550;
     line-height: 1;
     color: #ffffff;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.02em;  
+    text-wrap: balance;
   }
   
   .number-md {
@@ -155,7 +173,8 @@
     font-weight: 500;
     line-height: 1;
     color: #ffffff;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.01em;  
+    text-wrap: balance;
   }
   
   /* Responsive adjustments */
