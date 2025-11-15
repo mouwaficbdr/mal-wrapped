@@ -1646,18 +1646,12 @@ export default function MALWrapped() {
               <div className="relative z-20">
               <motion.div {...fadeIn} data-framer-motion>
                   <div className="relative inline-block">
-                    <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white/60 mb-0 tracking-tight relative z-10" style={{ 
-                      fontFamily: 'sans-serif',
-                      textShadow: 'none',
+                    <h1 className="wrapped-brand text-white/60 mb-0 relative z-10" style={{ 
                       marginBottom: '-0.2em'
                     }}>
                       MyAnimeList
                     </h1>
-                    <h2 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold text-white tracking-tight relative z-10" style={{ 
-                      fontFamily: 'sans-serif',
-                      textShadow: 'none',
-                      lineHeight: '0.9'
-                    }}>
+                    <h2 className="wrapped-title text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-white relative z-10">
                       {stats.selectedYear === 'all' ? 'Wrapped' : stats.selectedYear + ' Wrapped'}
                     </h2>
                   </div>
@@ -2637,18 +2631,12 @@ export default function MALWrapped() {
               <div className="relative z-10">
                 <motion.div {...fadeIn100} data-framer-motion>
                   <div className="relative inline-block">
-                    <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white/60 mb-0 tracking-tight relative z-10" style={{ 
-                      fontFamily: 'sans-serif',
-                      textShadow: 'none',
+                    <h1 className="wrapped-brand text-white/60 mb-0 relative z-10" style={{ 
                       marginBottom: '-0.2em'
                     }}>
                       MyAnimeList
                     </h1>
-                    <h2 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold text-white tracking-tight relative z-10" style={{ 
-                      fontFamily: 'sans-serif',
-                      textShadow: 'none',
-                      lineHeight: '0.9'
-                    }}>
+                    <h2 className="wrapped-title text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-white relative z-10">
                       {selectedYear === 'all' ? 'Wrapped' : selectedYear + ' Wrapped'}
                     </h2>
                   </div>

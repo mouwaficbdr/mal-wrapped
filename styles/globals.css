@@ -184,6 +184,36 @@
     text-wrap: balance;
   }
   
+  /* Wrapped Title Styles - Using heading font (Sora) */
+  .wrapped-brand {
+    font-family: 'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 1.125rem;
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    text-shadow: none;
+  }
+  
+  .wrapped-title {
+    font-family: 'Sora', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 700;
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+    text-shadow: none;
+  }
+  
+  @media (min-width: 640px) {
+    .wrapped-brand {
+      font-size: 1.25rem;
+    }
+  }
+  
+  @media (min-width: 768px) {
+    .wrapped-brand {
+      font-size: 1.5rem;
+    }
+  }
+  
   /* Responsive adjustments */
   @media (max-width: 640px) {
     .heading-xl { font-size: 1.75rem; }
