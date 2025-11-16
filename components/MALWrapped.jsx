@@ -2703,26 +2703,56 @@ export default function MALWrapped() {
           )}
 
           {isLoading && (
-            <div className="text-center">
-              <motion.div 
-                className="text-white mb-6 flex items-center justify-center"
-                animate={{ rotate: 360 }}
-                transition={{ 
-                  duration: 2, 
-                  repeat: Infinity, 
-                  ease: "linear" 
-                }}
-              >
-                <div className="text-6xl">🎬</div>
-              </motion.div>
-              <motion.h1 
-                className="text-3xl text-white tracking-widest"
-                initial={{ opacity: 0, y: 10 }}
+            <div className="text-center w-full max-w-2xl mx-auto px-4">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
+                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
               >
-                {loadingProgress || 'Generating your report...'}
-              </motion.h1>
+                <motion.h1 
+                  className="text-4xl md:text-5xl font-light text-white mb-8 tracking-tight"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.8, delay: 0.2 }}
+                >
+                  {loadingProgress || 'Generating your report...'}
+                </motion.h1>
+                
+                {/* Animated dots */}
+                <div className="flex items-center justify-center gap-2 mb-8">
+                  {[0, 1, 2].map((index) => (
+                    <motion.div
+                      key={index}
+                      className="w-2 h-2 rounded-full bg-white/60"
+                      animate={{
+                        scale: [1, 1.2, 1],
+                        opacity: [0.6, 1, 0.6],
+                      }}
+                      transition={{
+                        duration: 1.2,
+                        repeat: Infinity,
+                        delay: index * 0.2,
+                        ease: "easeInOut"
+                      }}
+                    />
+                  ))}
+                </div>
+
+                {/* Progress bar */}
+                <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                  <motion.div
+                    className="h-full bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500"
+                    initial={{ width: "0%" }}
+                    animate={{ width: "100%" }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                      repeatType: "reverse"
+                    }}
+                  />
+                </div>
+              </motion.div>
             </div>
           )}
 
