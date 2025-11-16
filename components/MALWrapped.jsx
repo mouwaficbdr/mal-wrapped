@@ -890,7 +890,7 @@ export default function MALWrapped() {
         {phase === 0 ? (
           <motion.div className="text-center relative overflow-hidden" {...fadeSlideUp} data-framer-motion>
             <motion.h1 className="number-xl font-regular text-white" {...pulse} data-framer-motion>{type === 'anime' ? '🎬' : '📚'}</motion.h1>
-            <h2 className="body-md font-regular text-white mt-4">{type === 'anime' ? 'But one show rose above everything this time.' : 'But only one series became your top read this time.'} {yearText} is...</h2>
+            <h2 className="body-md font-regular text-white mt-4">{type === 'anime' ? 'But one show rose above<br>everything this time.' : 'But only one series became<br>your top read this time.'}</h2>
           </motion.div>
         ) : phase === 1 && topItem ? (
           <motion.div className="text-center relative overflow-hidden" {...fadeSlideUp} data-framer-motion>
@@ -1669,23 +1669,24 @@ export default function MALWrapped() {
         }));
         return (
           <SlideLayout verticalText="ANIME-LOG" bgColor="blue">
-            <motion.h2 className="body-md font-regular text-white mt-1 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
+            <motion.h2 className="body-md font-regular text-white text-center relative z-10" {...fadeSlideUp} data-framer-motion>
             {stats.selectedYear === 'all' ? 'Overall' : 'In ' + stats.selectedYear}, you binged through
             </motion.h2>
             <motion.div className="mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
               <p className="number-xl text-white ">
                 <AnimatedNumber value={stats.thisYearAnime.length} /> anime
               </p>
-              <p className="body-md text-white mt-2 font-regular">Now that's dedication.</p>
+              
             </motion.div>
             {animeCarouselItems.length > 0 && <div className="relative z-10"><ImageCarousel items={animeCarouselItems} maxItems={50} showHover={true} showNames={false} /></div>}
+            <p className="body-sm text-white mt-2 font-regular">Now that's dedication.</p>
           </SlideLayout>
         );
 
       case 'anime_time':
         return (
           <SlideLayout verticalText="TIME-ANALYSIS" bgColor="green">
-            <motion.h2 className="body-md font-regular text-white mt-1 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
+            <motion.h2 className="body-md font-regular text-white  text-center relative z-10" {...fadeSlideUp} data-framer-motion>
             That adds up to
             </motion.h2>
             <motion.div className="mt-4 space-y-4 relative z-10" {...fadeSlideUp} data-framer-motion>
@@ -1747,7 +1748,7 @@ export default function MALWrapped() {
         const otherGenres = stats.topGenres?.slice(1, 5) || [];
         return (
           <SlideLayout verticalText="GENRE-MATRIX" bgColor="yellow">
-            <motion.h2 className="body-md font-regular text-white mt-1 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
+            <motion.h2 className="body-md font-regular text-white text-center relative z-10" {...fadeSlideUp} data-framer-motion>
             But you kept coming back to the same genres
             </motion.h2>
             {topGenre ? (
@@ -1775,8 +1776,7 @@ export default function MALWrapped() {
                   </div>
                   
                 )}
-                <motion.h2 className="body-md font-regular text-white mt-1 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
-                You know what you love.
+                <motion.h2 className="body-sm font-regular text-white mt-1 text-center relative z-10" {...fadeSlideUp} data-framer-motion>You know what you love.
             </motion.h2>
               </>
               
