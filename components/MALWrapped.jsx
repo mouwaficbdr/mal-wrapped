@@ -1690,21 +1690,20 @@ export default function MALWrapped() {
             That adds up to
             </motion.h2>
             <motion.div className="mt-4 space-y-4 relative z-10" {...fadeSlideUp} data-framer-motion>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="text-center">
-                  <p className="number-lg text-white ">
-                    <AnimatedNumber value={stats.totalEpisodes || 0} />
-                  </p>
-                  <p className="body-md text-white mt-2 font-regular">episodes</p>
-                </div>
-                <div className="text-center">
-                  <p className="number-lg text-white ">
-                    <AnimatedNumber value={stats.totalSeasons || 0} />
-                  </p>
-                  <p className="body-md text-white mt-2 font-regular">seasons</p>
-                </div>
+              <div className="text-center">
+                <p className="number-lg text-white ">
+                  <AnimatedNumber value={stats.totalEpisodes || 0} />
+                </p>
+                <p className="body-md text-white mt-2 font-regular">episodes</p>
+                <p className="body-sm text-white/50 mt-2 font-regular">and</p>
               </div>
-              <p className="body-sm text-white/50 text-center font-regular">or basically,</p>
+              <div className="text-center">
+                <p className="number-lg text-white ">
+                  <AnimatedNumber value={stats.totalSeasons || 0} />
+                </p>
+                <p className="body-md text-white mt-2 font-regular">seasons</p>
+                <p className="body-sm text-white/50 mt-2 font-regular">or basically,</p>
+              </div>
               <div className="text-center">
                 {stats.watchDays > 0 ? (
                   <>
@@ -2063,19 +2062,17 @@ export default function MALWrapped() {
             </div>
             <motion.div className="mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
               <div className="space-y-4">
-                <div className="grid grid-rows gap-4">
-                  <div>
-                    <p className="number-lg text-white ">
-                      <AnimatedNumber value={stats.totalChapters || 0} />
-                    </p>
-                    <p className="heading-sm text-white mt-2 font-regular">Chapters</p>
-                  </div>
-                  <div>
-                    <p className="number-lg text-white ">
-                      <AnimatedNumber value={stats.totalVolumes || 0} />
-                    </p>
-                    <p className="heading-sm text-white mt-2 font-regular">Volumes</p>
-                  </div>
+                <div>
+                  <p className="number-lg text-white ">
+                    <AnimatedNumber value={stats.totalChapters || 0} />
+                  </p>
+                  <p className="heading-sm text-white mt-2 font-regular">Chapters</p>
+                </div>
+                <div>
+                  <p className="number-lg text-white ">
+                    <AnimatedNumber value={stats.totalVolumes || 0} />
+                  </p>
+                  <p className="heading-sm text-white mt-2 font-regular">Volumes</p>
                 </div>
                 {stats.mangaDays > 0 ? (
                   <div>
