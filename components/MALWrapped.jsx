@@ -890,11 +890,11 @@ export default function MALWrapped() {
         {phase === 0 ? (
           <motion.div className="text-center relative overflow-hidden" {...fadeSlideUp} data-framer-motion>
             <motion.h1 className="number-xl font-regular text-white" {...pulse} data-framer-motion>{type === 'anime' ? '🎬' : '📚'}</motion.h1>
-            <h2 className="body-md font-regular text-white/90 mt-4">{type === 'anime' ? 'But one show beat everything else and became your absolute pick' : 'One series topped everything and became your standout read'} {yearText} is...</h2>
+            <h2 className="body-md font-regular text-white mt-4">{type === 'anime' ? 'But one show beat everything else and became your absolute pick' : 'One series topped everything and became your standout read'} {yearText} is...</h2>
           </motion.div>
         ) : phase === 1 && topItem ? (
           <motion.div className="text-center relative overflow-hidden" {...fadeSlideUp} data-framer-motion>
-            <h1 className="body-md font-regular text-white/90 mb-4">It is</h1>
+            <h1 className="body-md font-regular text-white mb-4">It is</h1>
             <div className="flex flex-col items-center justify-center gap-4">
               <motion.div 
                 className="w-32 md:w-48 aspect-[2/3] bg-transparent rounded-lg overflow-hidden" 
@@ -914,7 +914,7 @@ export default function MALWrapped() {
                 )}
               </motion.div>
               <div className="text-left">
-                <h3 className="title-lg text-white/90 font-semibold mb-2">{topItem.node?.title}</h3>
+                <h3 className="title-lg text-white font-semibold mb-2">{topItem.node?.title}</h3>
                 {type === 'anime' && topItem.node?.studios?.[0]?.name && (
                   <p className="body-lg text-white/50 mb-2 font-regular">{topItem.node.studios[0].name}</p>
                 )}
@@ -975,7 +975,7 @@ export default function MALWrapped() {
     return (
       <SlideLayout verticalText={verticalText}>
         <motion.div className="relative" {...fadeSlideUp} data-framer-motion>
-            <motion.h2 className="body-md font-regular text-white/90 mt-1 text-center whitespace-nowrap relative z-10" {...fadeSlideUp} data-framer-motion>
+            <motion.h2 className="body-md font-regular text-white mt-1 text-center whitespace-nowrap relative z-10" {...fadeSlideUp} data-framer-motion>
               The {type === 'anime' ? 'series' : 'manga'} you rated the highest.
             </motion.h2>
           <div className="mt-2 sm:mt-3 flex flex-col gap-1.5 sm:gap-2 w-full">
@@ -1041,7 +1041,7 @@ export default function MALWrapped() {
                             {featured.genres.slice(0, 2).map(g => (
                             <motion.span 
                               key={g} 
-                              className="border-box-cyan mono tracking-wider text-white/90 px-2 py-0.5 rounded-lg font-regular" 
+                              className="border-box-cyan mono tracking-wider text-white px-2 py-0.5 rounded-lg font-regular" 
                               style={{ border: '1px solid rgba(255, 255, 255, 0.2)' }}
                               initial={{ opacity: 0, scale: 0.8 }}
                               animate={{ opacity: 1, scale: 1 }}
@@ -1670,14 +1670,14 @@ export default function MALWrapped() {
         }));
         return (
           <SlideLayout verticalText="ANIME-LOG" bgColor="blue">
-            <motion.h2 className="body-md font-regular text-white/90 mt-1 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
+            <motion.h2 className="body-md font-regular text-white mt-1 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
             {stats.selectedYear === 'all' ? 'Overall' : 'In ' + stats.selectedYear}, you binged through
             </motion.h2>
             <motion.div className="mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
               <p className="number-xl text-white ">
-                <AnimatedNumber value={stats.thisYearAnime.length} />
+                <AnimatedNumber value={stats.thisYearAnime.length} /> anime
               </p>
-              <p className="body-md text-white/90 mt-2 font-regular">anime, now that's dedication.</p>
+              <p className="body-md text-white mt-2 font-regular">Now that's dedication.</p>
             </motion.div>
             {animeCarouselItems.length > 0 && <div className="relative z-10"><ImageCarousel items={animeCarouselItems} maxItems={50} showHover={true} showNames={false} /></div>}
           </SlideLayout>
@@ -1686,22 +1686,22 @@ export default function MALWrapped() {
       case 'anime_time':
         return (
           <SlideLayout verticalText="TIME-ANALYSIS" bgColor="green">
-            <motion.h2 className="body-md font-regular text-white/90 mt-1 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
-            That's
+            <motion.h2 className="body-md font-regular text-white mt-1 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
+            That adds up to
             </motion.h2>
             <motion.div className="mt-4 space-y-4 relative z-10" {...fadeSlideUp} data-framer-motion>
               <div className="text-center">
                 <p className="number-lg text-white ">
                   <AnimatedNumber value={stats.totalEpisodes || 0} />
                 </p>
-                <p className="body-md text-white/90 mt-2 font-regular">episodes</p>
+                <p className="body-md text-white mt-2 font-regular">episodes</p>
                 <p className="body-sm text-white/50 mt-2 font-regular">and</p>
               </div>
               <div className="text-center">
                 <p className="number-lg text-white ">
                   <AnimatedNumber value={stats.totalSeasons || 0} />
                 </p>
-                <p className="body-md text-white/90 mt-2 font-regular">seasons</p>
+                <p className="body-md text-white mt-2 font-regular">seasons</p>
                 <p className="body-sm text-white/50 mt-2 font-regular">or basically,</p>
               </div>
               <div className="text-center">
@@ -1710,14 +1710,14 @@ export default function MALWrapped() {
                     <p className="number-lg text-white ">
                       <AnimatedNumber value={stats.watchDays} />
                     </p>
-                    <p className="body-md text-white/90 mt-2 font-medium">days</p>
+                    <p className="body-md text-white mt-2 font-medium">days</p>
                     <p className="body-sm text-white/50 mt-2 font-regular">of your life gone.</p>                  </>
                 ) : (
                   <>
                     <p className="number-lg text-white ">
                       <AnimatedNumber value={stats.watchTime} />
                     </p>
-                    <p className="heading-md text-white/90 mt-2 font-medium">hours</p>
+                    <p className="heading-md text-white mt-2 font-medium">hours</p>
                     <p className="body-sm text-white/50 mt-2 font-regular">of your life gone.</p>
                   </>
                 )}
@@ -1748,14 +1748,14 @@ export default function MALWrapped() {
         const otherGenres = stats.topGenres?.slice(1, 5) || [];
         return (
           <SlideLayout verticalText="GENRE-MATRIX" bgColor="yellow">
-            <motion.h2 className="body-md font-regular text-white/90 mt-1 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
+            <motion.h2 className="body-md font-regular text-white mt-1 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
             But you kept coming back to the same genres,
             </motion.h2>
             {topGenre ? (
               <>
                 <motion.div className="mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
-                  <p className="heading-lg font-semibold text-white/90 ">1. {topGenre}</p>
-                  <p className="mono text-white/50 mt-2 font-regular">{stats.topGenres[0][1]} anime watched</p>
+                  <p className="heading-lg font-semibold text-white ">1. {topGenre}</p>
+                  <p className="body-sm text-white/50 mt-2 font-regular">{stats.topGenres[0][1]} entries</p>
                 </motion.div>
                 {genreAnime.length > 0 && <div className="relative z-10"><ImageCarousel items={genreAnime} maxItems={30} showHover={true} showNames={false} /></div>}
                 {otherGenres.length > 0 && (
@@ -1767,8 +1767,8 @@ export default function MALWrapped() {
                           whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
                           transition={{ duration: 0.2 }}
                         >
-                          <p className="heading-sm font-semibold text-white/90">{idx + 2}.{genreName}</p>
-                          <p className="mono text-white/50 font-regular">{count} anime watched</p>
+                          <p className="heading-sm font-semibold text-white">{idx + 2}. {genreName}</p>
+                          <p className="body-sm text-white/50 font-regular">{count} entries</p>
                       </motion.div>
                       </motion.div>
                     ))}
@@ -1940,7 +1940,7 @@ export default function MALWrapped() {
                 Hidden Gems
               </motion.h1>
             </div>
-            <motion.h2 className="body-lg font-medium text-white/90 mt-2 text-center whitespace-nowrap relative z-10" {...fadeSlideUp} data-framer-motion>
+            <motion.h2 className="body-lg font-medium text-white mt-2 text-center whitespace-nowrap relative z-10" {...fadeSlideUp} data-framer-motion>
               High-rated anime with low popularity
             </motion.h2>
             {gems.length > 0 ? (
@@ -1962,7 +1962,7 @@ export default function MALWrapped() {
         }));
         return (
           <SlideLayout verticalText="DIDNT-LAND" bgColor="red">
-            <motion.h2 className="body-md font-regular text-white/90 mt-2 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
+            <motion.h2 className="body-md font-regular text-white mt-2 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
               Shows that didn't land with you
             </motion.h2>
             {didntLand.length > 0 ? (
@@ -1988,7 +1988,7 @@ export default function MALWrapped() {
                 Planned to Watch
               </motion.h1>
             </div>
-            <motion.h2 className="body-lg font-medium text-white/90 mt-2 text-center whitespace-nowrap relative z-10" {...fadeSlideUp} data-framer-motion>
+            <motion.h2 className="body-lg font-medium text-white mt-2 text-center whitespace-nowrap relative z-10" {...fadeSlideUp} data-framer-motion>
               5 shows you plan to watch {stats.selectedYear === 'all' ? '' : 'this year'}.
             </motion.h2>
             {plannedAnimeItems.length > 0 ? (
@@ -2040,7 +2040,7 @@ export default function MALWrapped() {
               <p className="number-xl text-white ">
                 <AnimatedNumber value={stats.totalManga} />
               </p>
-              <p className="heading-sm text-white/90 mt-2 font-regular">Manga Series</p>
+              <p className="heading-sm text-white mt-2 font-regular">Manga Series</p>
             </motion.div>
             {allMangaItems.length > 0 && <ImageCarousel items={allMangaItems} maxItems={50} showHover={true} showNames={false} />}
           </SlideLayout>
@@ -2060,20 +2060,20 @@ export default function MALWrapped() {
                   <p className="number-lg text-white ">
                     <AnimatedNumber value={stats.totalChapters || 0} />
                   </p>
-                  <p className="heading-sm text-white/90 mt-2 font-regular">Chapters</p>
+                  <p className="heading-sm text-white mt-2 font-regular">Chapters</p>
                 </div>
                 <div>
                   <p className="number-lg text-white ">
                     <AnimatedNumber value={stats.totalVolumes || 0} />
                   </p>
-                  <p className="heading-sm text-white/90 mt-2 font-regular">Volumes</p>
+                  <p className="heading-sm text-white mt-2 font-regular">Volumes</p>
                 </div>
                 {stats.mangaDays > 0 ? (
                   <div>
                     <p className="number-lg text-white ">
                       <AnimatedNumber value={stats.mangaDays} />
                     </p>
-                    <p className="heading-sm text-white/90 mt-2 font-regular">Days</p>
+                    <p className="heading-sm text-white mt-2 font-regular">Days</p>
                     <p className="body-md text-white/80 mt-2 font-regular">(or <AnimatedNumber value={stats.mangaHours || 0} /> hours)</p>
                   </div>
                 ) : (
@@ -2081,7 +2081,7 @@ export default function MALWrapped() {
                     <p className="number-lg text-white ">
                       <AnimatedNumber value={stats.mangaHours || 0} />
                     </p>
-                    <p className="heading-md text-white/90 mt-2 font-medium">Hours</p>
+                    <p className="heading-md text-white mt-2 font-medium">Hours</p>
                   </div>
                 )}
               </div>
@@ -2296,7 +2296,7 @@ export default function MALWrapped() {
                 Hidden Gems
               </motion.h1>
             </div>
-            <motion.h2 className="body-md font-regular text-white/90 mt-2 text-center whitespace-nowrap relative z-10" {...fadeSlideUp} data-framer-motion>
+            <motion.h2 className="body-md font-regular text-white mt-2 text-center whitespace-nowrap relative z-10" {...fadeSlideUp} data-framer-motion>
               High-rated manga with low popularity
             </motion.h2>
             {mangaGems.length > 0 ? (
@@ -2318,7 +2318,7 @@ export default function MALWrapped() {
         }));
         return (
           <SlideLayout verticalText="DIDNT-LAND" bgColor="red">
-            <motion.h2 className="body-md font-regular text-white/90 mt-2 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
+            <motion.h2 className="body-md font-regular text-white mt-2 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
             But even great readers hit a few misses, and these were the ones that didn’t click.
             </motion.h2>
             {mangaDidntLand.length > 0 ? (
@@ -2339,7 +2339,7 @@ export default function MALWrapped() {
         }));
         return (
           <SlideLayout verticalText="PLANNED" bgColor="green">
-            <motion.h2 className="body-md font-regular text-white/90 mt-2 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
+            <motion.h2 className="body-md font-regular text-white mt-2 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
               Mangas you planned to read {stats.selectedYear === 'all' ? '' : 'this year'}, but haven't yet.
             </motion.h2>
             {plannedMangaItems.length > 0 ? (
@@ -2377,7 +2377,7 @@ export default function MALWrapped() {
                     whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.3)' }}
                     transition={{ duration: 0.2 }}
                   >
-                  <p className="body-sm text-white/90 mb-0.5 sm:mb-1 font-medium text-xs sm:text-sm">Top 5 Anime</p>
+                  <p className="body-sm text-white mb-0.5 sm:mb-1 font-medium text-xs sm:text-sm">Top 5 Anime</p>
                   <div className="space-y-0 flex-grow">
                     {stats.topRated.slice(0, 5).map((a, i) => (
                         <p key={a.node.id} className="py-0 px-1 sm:px-2">
@@ -2399,7 +2399,7 @@ export default function MALWrapped() {
                     whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.3)' }}
                     transition={{ duration: 0.2 }}
                   >
-                  <p className="body-sm text-white/90 mb-0.5 sm:mb-1 font-medium text-xs sm:text-sm">Top 5 Manga</p>
+                  <p className="body-sm text-white mb-0.5 sm:mb-1 font-medium text-xs sm:text-sm">Top 5 Manga</p>
                   <div className="space-y-0 flex-grow">
                     {stats.topManga.slice(0, 5).map((m, i) => (
                         <p key={m.node.id} className="py-0 px-1 sm:px-2">
@@ -2423,7 +2423,7 @@ export default function MALWrapped() {
                     whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.3)' }}
                     transition={{ duration: 0.2 }}
                   >
-                  <p className="body-sm text-white/90 mb-0.5 sm:mb-1 font-medium text-xs sm:text-sm">Episodes Watched</p>
+                  <p className="body-sm text-white mb-0.5 sm:mb-1 font-medium text-xs sm:text-sm">Episodes Watched</p>
                   <p className="number-md text-white  text-lg sm:text-xl md:text-2xl">
                     {stats.totalEpisodes || 0}
                   </p>
@@ -2441,7 +2441,7 @@ export default function MALWrapped() {
                     whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.3)' }}
                     transition={{ duration: 0.2 }}
                   >
-                  <p className="body-sm text-white/90 mb-0.5 sm:mb-1 font-medium text-xs sm:text-sm">Chapters Read</p>
+                  <p className="body-sm text-white mb-0.5 sm:mb-1 font-medium text-xs sm:text-sm">Chapters Read</p>
                   <p className="number-md text-white  text-lg sm:text-xl md:text-2xl">
                     {stats.totalChapters || 0}
                   </p>
@@ -2460,7 +2460,7 @@ export default function MALWrapped() {
                   whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.3)' }}
                   transition={{ duration: 0.2 }}
                 >
-                <p className="body-sm text-white/90 mb-0.5 sm:mb-1 font-medium text-xs sm:text-sm">Total Time Spent</p>
+                <p className="body-sm text-white mb-0.5 sm:mb-1 font-medium text-xs sm:text-sm">Total Time Spent</p>
                 <p className="number-lg text-white  text-xl sm:text-2xl md:text-3xl">
                   {totalDays > 0 ? (
                     <>
@@ -2488,7 +2488,7 @@ export default function MALWrapped() {
                     whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.3)' }}
                     transition={{ duration: 0.2 }}
                   >
-                  <p className="body-sm text-white/90 mb-0.5 sm:mb-1 font-medium text-xs sm:text-sm">Top Studio</p>
+                  <p className="body-sm text-white mb-0.5 sm:mb-1 font-medium text-xs sm:text-sm">Top Studio</p>
                   <p className="heading-md text-white truncate font-semibold text-xs sm:text-sm md:text-base">{stats.topStudios?.[0]?.[0] || 'N/A'}</p>
                   </motion.div>
                 </motion.div>
@@ -2504,7 +2504,7 @@ export default function MALWrapped() {
                     whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.3)' }}
                     transition={{ duration: 0.2 }}
                   >
-                  <p className="body-sm text-white/90 mb-0.5 sm:mb-1 font-medium text-xs sm:text-sm">Top Author</p>
+                  <p className="body-sm text-white mb-0.5 sm:mb-1 font-medium text-xs sm:text-sm">Top Author</p>
                   <p className="heading-md text-white truncate font-semibold text-xs sm:text-sm md:text-base">{stats.topAuthors?.[0]?.[0] || 'N/A'}</p>
                   </motion.div>
                 </motion.div>
@@ -2586,7 +2586,7 @@ export default function MALWrapped() {
       <div ref={slideRef} className="w-full max-w-5xl bg-black rounded-2xl shadow-2xl shadow-black/50 flex flex-col justify-center relative overflow-hidden slide-card" style={{ zIndex: 10, height: '100dvh', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
         <div className="z-10 w-full h-full flex flex-col items-center justify-center">
           {error && (
-            <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500/90 text-white px-6 py-3 rounded-lg z-50">
+            <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-lg z-50">
               {error}
             </div>
           )}
