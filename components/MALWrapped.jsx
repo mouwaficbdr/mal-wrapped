@@ -289,12 +289,14 @@ export default function MALWrapped() {
         }
         
         allAnime = [...allAnime, ...data.data];
+        setLoadingProgress(`Loaded ${allAnime.length} anime...`);
         
         // Update progress: 25% to 60% for anime loading
         if (data.paging?.next) {
-          // Estimate total based on current progress
-          const progressRatio = allAnime.length / (allAnime.length + limit);
-          const animeProgress = 25 + (35 * Math.min(progressRatio, 0.95));
+          // Estimate progress based on items loaded (assume roughly similar batch sizes)
+          // Use a logarithmic scale to slow down as we approach the end
+          const estimatedProgress = Math.min(0.95, 1 - Math.pow(0.9, allAnime.length / 100));
+          const animeProgress = 25 + (35 * estimatedProgress);
           setLoadingProgressPercent(Math.min(animeProgress, 60));
         } else {
           setLoadingProgressPercent(60);
@@ -302,7 +304,6 @@ export default function MALWrapped() {
         
         if (!data.paging?.next) break;
         offset += limit;
-        setLoadingProgress(`Loaded ${allAnime.length} anime...`);
       }
 
       console.log(`Total anime loaded: ${allAnime.length}`);
@@ -335,11 +336,14 @@ export default function MALWrapped() {
         
         if (!data.data || data.data.length === 0) break;
         allManga = [...allManga, ...data.data];
+        setLoadingProgress(`Loaded ${allManga.length} manga...`);
         
         // Update progress: 65% to 95% for manga loading
         if (data.paging?.next) {
-          const progressRatio = allManga.length / (allManga.length + limit);
-          const mangaProgress = 65 + (30 * Math.min(progressRatio, 0.95));
+          // Estimate progress based on items loaded (assume roughly similar batch sizes)
+          // Use a logarithmic scale to slow down as we approach the end
+          const estimatedProgress = Math.min(0.95, 1 - Math.pow(0.9, allManga.length / 100));
+          const mangaProgress = 65 + (30 * estimatedProgress);
           setLoadingProgressPercent(Math.min(mangaProgress, 95));
         } else {
           setLoadingProgressPercent(95);
@@ -347,7 +351,6 @@ export default function MALWrapped() {
         
         if (!data.paging?.next) break;
         offset += limit;
-        setLoadingProgress(`Loaded ${allManga.length} manga...`);
       }
       
       setLoadingProgressPercent(100);
