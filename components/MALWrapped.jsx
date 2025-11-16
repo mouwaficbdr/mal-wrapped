@@ -160,6 +160,7 @@ export default function MALWrapped() {
       { id: 'didnt_land_anime' },
       { id: 'planned_anime' },
     ] : []),
+    { id: 'anime_to_manga_transition' },
     { id: 'manga_count' },
     ...(hasManga ? [
       { id: 'manga_time' },
@@ -2061,6 +2062,22 @@ export default function MALWrapped() {
           </SlideLayout>
         );
 
+      case 'anime_to_manga_transition':
+        return (
+          <SlideLayout verticalText="TRANSITION" bgColor="black">
+            <motion.div className="text-center relative z-10" {...fadeSlideUp} data-framer-motion>
+              <motion.h1 className="wrapped-title font-regular text-white mb-6" {...pulse} data-framer-motion>
+                📚
+              </motion.h1>
+              <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+                Now let's see what you've been reading
+              </motion.h2>
+              <motion.h3 className="body-sm font-regular text-white/50 mt-4 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+                From screens to pages
+              </motion.h3>
+            </motion.div>
+          </SlideLayout>
+        );
 
       case 'manga_count':
         // Get manga from stats - we need to access filtered manga
@@ -2454,8 +2471,8 @@ export default function MALWrapped() {
         const totalDays = Math.floor(totalTimeSpent / 24);
         return (
           <SlideLayout verticalText="FINAL-REPORT" bgColor="blue">
-            <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
-            From Screens to Pages: Your {stats.selectedYear === 'all' ? 'All Time' : stats.selectedYear} MAL Wrapped
+            <motion.h2 className="heading-md font-semibold text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+            My {stats.selectedYear === 'all' ? 'All Time' : stats.selectedYear} MyAnimeList Wrapped
             </motion.h2>
             <motion.div className="mt-2 sm:mt-4 flex flex-col gap-1 sm:gap-1.5 text-white w-full max-h-full overflow-hidden relative z-10" {...fadeSlideUp} data-framer-motion>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-1.5">
