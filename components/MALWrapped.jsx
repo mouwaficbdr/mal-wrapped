@@ -1948,21 +1948,22 @@ export default function MALWrapped() {
         }));
         return (
           <SlideLayout verticalText="HIDDEN-GEMS" bgColor="blue">
-            <div className="text-center relative">
-              <motion.h1 className="relative z-10 heading-md text-white font-semibold pb-2 px-2 inline-block " {...fadeSlideUp} data-framer-motion>
-                Hidden Gems
-              </motion.h1>
-            </div>
-            <motion.h2 className="body-lg font-medium text-white mt-2 text-center  relative z-10" {...fadeSlideUp} data-framer-motion>
-              High-rated anime with low popularity
+            <motion.h2 className="body-md font-regular text-white text-center  relative z-10" {...fadeSlideUp} data-framer-motion>
+            You found some underrated gems most missed
             </motion.h2>
             {gems.length > 0 ? (
               <motion.div className="relative z-10" {...fadeSlideUp} data-framer-motion>
                 <GridImages items={gems} maxItems={5} />
+                <motion.h2 className="body-sm font-regular text-white mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>The best finds are always off the beaten path.
+            </motion.h2>
               </motion.div>
+              
+              
             ) : (
               <motion.div className="mt-4 text-center text-white/50" {...fadeSlideUp} data-framer-motion>No hidden gems found</motion.div>
             )}
+
+            
           </SlideLayout>
         );
 
