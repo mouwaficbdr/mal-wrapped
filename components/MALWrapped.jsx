@@ -1115,7 +1115,7 @@ export default function MALWrapped() {
                 );
               })()}
             </div>
-            <motion.h2 className="body-sm font-regular text-white mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>A lineup only you could assemble.</motion.h2>
+            <motion.h2 className="body-sm font-regular text-white mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>A lineup only you could assemble</motion.h2>
         </motion.div>
       </SlideLayout>
     );
@@ -1777,7 +1777,7 @@ export default function MALWrapped() {
                   </div>
                   
                 )}
-                <motion.h2 className="body-sm font-regular text-white mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>You know what you love.
+                <motion.h2 className="body-sm font-regular text-white mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>You know what you love
             </motion.h2>
               </>
               
@@ -1858,8 +1858,8 @@ export default function MALWrapped() {
                   </div>
                   
                 )}
-                <motion.h2 className="body-sm font-regular text-white text-center MT-4 relative z-10" {...fadeSlideUp} data-framer-motion>
-                Loyalty this strong deserves acknowledgment.
+                <motion.h2 className="body-sm font-regular text-white text-center mt-4 relative z-10" {...fadeSlideUp} data-framer-motion>
+                Loyalty this strong deserves acknowledgment
             </motion.h2>
               </>
             ) : (
@@ -1954,7 +1954,7 @@ export default function MALWrapped() {
             {gems.length > 0 ? (
               <motion.div className="relative z-10" {...fadeSlideUp} data-framer-motion>
                 <GridImages items={gems} maxItems={5} />
-                <motion.h2 className="body-sm font-regular text-white mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>The best finds are always off the beaten path.
+                <motion.h2 className="body-sm font-regular text-white mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>Certified sleeper agent.
             </motion.h2>
               </motion.div>
               
