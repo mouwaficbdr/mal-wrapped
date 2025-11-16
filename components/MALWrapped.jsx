@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Download } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, LogOut } from 'lucide-react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 
 function generateCodeVerifier(length = 128) {
@@ -685,6 +685,18 @@ export default function MALWrapped() {
     const pathname = window.location.pathname;
     const normalizedPath = pathname === '/' ? '/' : pathname.replace(/\/$/, '');
     return origin + normalizedPath;
+  }
+
+  function handleLogout() {
+    localStorage.removeItem('mal_access_token');
+    localStorage.removeItem('mal_refresh_token');
+    setIsAuthenticated(false);
+    setStats(null);
+    setAnimeList([]);
+    setMangaList([]);
+    setUserData(null);
+    setCurrentSlide(0);
+    window.history.replaceState({}, document.title, window.location.pathname);
   }
 
   async function handleDownloadPNG() {
@@ -2725,30 +2737,35 @@ export default function MALWrapped() {
           {isAuthenticated && stats && slides.length > 0 && (
             <div className="w-full h-full flex flex-col overflow-hidden">
               {/* Top Bar - Year Selector and Download */}
-              <div className="flex-shrink-0 px-3 sm:px-4 md:px-6 pt-3 pb-2 flex items-center justify-center gap-2 sm:gap-3">
-                <div className="relative min-w-[120px] sm:min-w-[140px]">
-                <select
-                  value={selectedYear}
-                  onChange={(e) => setSelectedYear(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
-                    className="w-full px-3 sm:px-4 py-1.5 sm:py-2 text-white rounded-full border-box-cyan transition-all rounded-lg text-xs sm:text-sm font-medium tracking-wider focus:outline-none appearance-none pr-8 sm:pr-10"
-                    style={{ 
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
-                      color: '#ffffff'
-                    }}
-                  >
-                    <option value="2023" style={{ background: 'rgba(255, 255, 255, 0.05)', color: '#ffffff' }}>2023</option>
-                    <option value="2024" style={{ background: 'rgba(255, 255, 255, 0.05)', color: '#ffffff' }}>2024</option>
-                    <option value="2025" style={{ background: 'rgba(255, 255, 255, 0.05)', color: '#ffffff' }}>2025</option>
-                    <option value="all" style={{ background: 'rgba(255, 255, 255, 0.05)', color: '#ffffff' }}>All Time</option>
-                </select>
-                  <div className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 pointer-events-none z-10">
-                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
+              <div className="flex-shrink-0 px-3 sm:px-4 md:px-6 pt-3 pb-2 flex items-center justify-between gap-2 sm:gap-3">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="relative min-w-[120px] sm:min-w-[140px]">
+                  <select
+                    value={selectedYear}
+                    onChange={(e) => setSelectedYear(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
+                      className="w-full px-3 sm:px-4 py-1.5 sm:py-2 text-white rounded-full border-box-cyan transition-all rounded-lg text-xs sm:text-sm font-medium tracking-wider focus:outline-none appearance-none pr-8 sm:pr-10"
+                      style={{ 
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        color: '#ffffff'
+                      }}
+                    >
+                      <option value="2023" style={{ background: 'rgba(255, 255, 255, 0.05)', color: '#ffffff' }}>2023</option>
+                      <option value="2024" style={{ background: 'rgba(255, 255, 255, 0.05)', color: '#ffffff' }}>2024</option>
+                      <option value="2025" style={{ background: 'rgba(255, 255, 255, 0.05)', color: '#ffffff' }}>2025</option>
+                      <option value="all" style={{ background: 'rgba(255, 255, 255, 0.05)', color: '#ffffff' }}>All Time</option>
+                  </select>
+                    <div className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 pointer-events-none z-10">
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
                   </div>
+                  <button onClick={handleDownloadPNG} className="p-1.5 sm:p-2 text-white rounded-full border-box-cyan transition-all" title="Download Slide">
+                    <Download className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </button>
                 </div>
-                <button onClick={handleDownloadPNG} className="p-1.5 sm:p-2 text-white rounded-full border-box-cyan transition-all" title="Download Slide">
-                  <Download className="w-4 h-4 sm:w-5 sm:h-5" />
+                <button onClick={handleLogout} className="p-1.5 sm:p-2 text-white rounded-full border-box-cyan transition-all" title="Logout">
+                  <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
               </div>
               
@@ -2788,7 +2805,7 @@ export default function MALWrapped() {
                 <p className="text-white/60 text-xs sm:text-sm md:text-base font-mono py-1.5 sm:py-2 px-2 sm:px-4 rounded-full border-box-cyan ">{String(currentSlide + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}</p>
 
                 {currentSlide === slides.length - 1 ? (
-              <button
+                  <motion.button
                     onClick={async () => {
                       try {
                         // First download the image
@@ -2812,17 +2829,13 @@ export default function MALWrapped() {
                         }
                       }
                     }}
-                    className="border-box-cyan text-white font-medium transition-all text-xs sm:text-sm md:text-base rounded-full" style={{ padding: '2px', borderRadius: '9999px' }}
+                    className="p-1.5 sm:p-2 text-white rounded-full border-box-cyan transition-all"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    transition={{ duration: 0.2 }}
                   >
-                    <motion.span 
-                      className="bg-black rounded-full px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-3 block"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      Share
-                    </motion.span>
-                  </button>
+                    <span className="text-xs sm:text-sm md:text-base font-medium">Share</span>
+                  </motion.button>
                 ) : (
                   <motion.button
                 onClick={() => setCurrentSlide(Math.min(slides.length - 1, currentSlide + 1))}
