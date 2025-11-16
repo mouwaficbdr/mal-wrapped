@@ -139,9 +139,6 @@
     line-height: 1.2;
     color: #ffffff; 
     text-wrap: balance;
-    max-width: 24rem;
-    margin-left: auto;
-    margin-right: auto;
   }
   
   .title-lg {
@@ -151,9 +148,6 @@
     line-height: 1.3;
     color: #ffffff;
     text-wrap: balance;
-    max-width: 24rem;
-    margin-left: auto;
-    margin-right: auto;
   }
   
   .title-md {
@@ -163,9 +157,6 @@
     line-height: 1.4;
     color: #ffffff; 
     text-wrap: balance;
-    max-width: 24rem;
-    margin-left: auto;
-    margin-right: auto;
   }
   
   .title-sm {
@@ -175,9 +166,6 @@
     line-height: 1.4;
     color: #ffffff; 
     text-wrap: balance;
-    max-width: 24rem;
-    margin-left: auto;
-    margin-right: auto;
   }
   
   /* Number Styles - Accent (Sora) */
@@ -189,9 +177,6 @@
     color: #ffffff;
     letter-spacing: -0.02em;
     text-wrap: balance;
-    max-width: 24rem;
-    margin-left: auto;
-    margin-right: auto;
   }
   
   .number-lg {
@@ -202,9 +187,6 @@
     color: #ffffff;
     letter-spacing: -0.02em;  
     text-wrap: balance;
-    max-width: 24rem;
-    margin-left: auto;
-    margin-right: auto;
   }
   
   .number-md {
@@ -215,9 +197,6 @@
     color: #ffffff;
     letter-spacing: -0.01em;  
     text-wrap: balance;
-    max-width: 24rem;
-    margin-left: auto;
-    margin-right: auto;
   }
 
   .mono{
@@ -227,9 +206,6 @@
     line-height: 1.2;
     color: #ffffff;
     text-wrap: balance;
-    max-width: 24rem;
-    margin-left: auto;
-    margin-right: auto;
   }
   
   /* Wrapped Title Styles - Using heading font (Sora) */
