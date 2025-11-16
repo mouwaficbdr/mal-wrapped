@@ -2704,8 +2704,25 @@ export default function MALWrapped() {
 
           {isLoading && (
             <div className="text-center">
-              <motion.div className="text-white mb-4 text-4xl" {...pulse} data-framer-motion>*</motion.div>
-              <h1 className="text-3xl text-white tracking-widest">{loadingProgress || 'Generating your report...'}</h1>
+              <motion.div 
+                className="text-white mb-6 flex items-center justify-center"
+                animate={{ rotate: 360 }}
+                transition={{ 
+                  duration: 2, 
+                  repeat: Infinity, 
+                  ease: "linear" 
+                }}
+              >
+                <div className="text-6xl">🎬</div>
+              </motion.div>
+              <motion.h1 
+                className="text-3xl text-white tracking-widest"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                {loadingProgress || 'Generating your report...'}
+              </motion.h1>
             </div>
           )}
 
