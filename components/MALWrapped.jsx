@@ -911,7 +911,7 @@ export default function MALWrapped() {
         {phase === 0 ? (
           <motion.div className="text-center relative overflow-hidden" {...fadeSlideUp} data-framer-motion>
             <motion.h1 className="wrapped-title font-regular text-white" {...pulse} data-framer-motion>{type === 'anime' ? '🎬' : '📚'}</motion.h1>
-            <h2 className="body-md font-regular text-white mt-4 text-container">{type === 'anime' ? 'But one show rose above everything' : 'But one manga became your top read'}</h2>
+            <h2 className="body-md font-regular text-white mt-4 text-container">{type === 'anime' ? 'But one show rose above everything' : 'But one manga kept you turning pages nonstop'}</h2>
           </motion.div>
         ) : phase === 1 && topItem ? (
           <motion.div className="text-center relative overflow-hidden" {...fadeSlideUp} data-framer-motion>
@@ -921,7 +921,7 @@ export default function MALWrapped() {
                 style={{ boxSizing: 'border-box', border: '1px solid white' }}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.6, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.6, delay: 0.8, ease: [0.22, 1, 0.36, 1] }}
               >
                 {topItem.node?.main_picture?.large && (
                   <motion.img 
@@ -996,7 +996,7 @@ export default function MALWrapped() {
       <SlideLayout verticalText={verticalText}>
         <motion.div className="relative" {...fadeSlideUp} data-framer-motion>
             <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
-              {type === 'anime' ? 'and your top rated shows followed right behind' : 'And these manga earned your highest ratings'}
+              {type === 'anime' ? 'Including your top pick, these shows stole the spotlight' : 'Including your top read, these manga ruled your shelves'}
             </motion.h2>
               <div className="mt-2 sm:mt-3 flex flex-col gap-1.5 sm:gap-2 w-full">
               {(() => {
@@ -1136,7 +1136,7 @@ export default function MALWrapped() {
                 );
               })()}
             </div>
-            <motion.h2 className="body-sm font-regular text-white/50 mt-4 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>A lineup only you could assemble</motion.h2>
+            <motion.h2 className="body-sm font-regular text-white/50 mt-4 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>A lineup worth bragging about</motion.h2>
         </motion.div>
       </SlideLayout>
     );
@@ -1723,7 +1723,7 @@ export default function MALWrapped() {
               
             </motion.div>
             {animeCarouselItems.length > 0 && <div className="relative z-10"><ImageCarousel items={animeCarouselItems} maxItems={50} showHover={true} showNames={false} /></div>}
-            <motion.h3 className="body-sm font-regular text-white/50 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+            <motion.h3 className="body-sm font-regular mt-4 text-white/50 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
             Now that's dedication
             </motion.h3>
           </SlideLayout>
@@ -1981,7 +1981,7 @@ export default function MALWrapped() {
                 );
               })}
             </div>
-            <motion.h3 className="body-sm font-regular text-white mt-4 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>You caught every wave right on time
+            <motion.h3 className="body-sm font-regular text-white/50 mt-4 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>You caught every wave right on time
             </motion.h3>
           </SlideLayout>
         );
@@ -2119,7 +2119,7 @@ export default function MALWrapped() {
               </p>
             </motion.div>
             {allMangaItems.length > 0 && <ImageCarousel items={allMangaItems} maxItems={50} showHover={true} showNames={false} />}
-            <motion.h3 className="body-sm font-regular text-white/50 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+            <motion.h3 className="body-sm font-regular mt-4 text-white/50 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
             That’s some serious reading energy
             </motion.h3>
           </SlideLayout>
@@ -2153,7 +2153,7 @@ export default function MALWrapped() {
                       <AnimatedNumber value={stats.mangaDays} />
                     </p>
                     <p className="body-md text-white font-regular">days</p>
-                <p className="body-sm text-white/50 mt-2 font-regular">flipping through pages</p>  
+                <p className="body-sm text-white/50 mt-2 font-regular">spent flipping pages</p>  
                   </div>
                 ) : (
                   <div>
@@ -2161,7 +2161,7 @@ export default function MALWrapped() {
                       <AnimatedNumber value={stats.mangaHours || 0} />
                     </p>
                     <p className="heading-md text-white mt-2 font-medium">hours</p>
-                    <p className="body-sm text-white/50 mt-2 font-regular">flipping through pages</p> 
+                    <p className="body-sm text-white/50 mt-2 font-regular">spent flipping pages</p> 
                   </div>
                 )}
               </div>
@@ -2225,7 +2225,7 @@ export default function MALWrapped() {
         return (
           <SlideLayout verticalText="GENRE-MATRIX" bgColor="yellow">
           <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
-          A handful of genres kept winning your attention
+          These genres kept you hooked the most
             </motion.h2>
             {topMangaGenre ? (
               <>
@@ -2251,7 +2251,7 @@ export default function MALWrapped() {
                   </div>
                 )}
                 <motion.h3 className="body-sm font-regular text-white/50 text-center text-container relative z-10 mt-4" {...fadeSlideUp} data-framer-motion>
-                When you like something, you commit
+                Clearly, you have a type
             </motion.h3>
               </>
               
@@ -2431,18 +2431,18 @@ export default function MALWrapped() {
         return (
           <SlideLayout verticalText="PLANNED" bgColor="green">
             <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
-              You planned to read these, but haven't yet
+            Your reading backlog continued to grow
             </motion.h2>
             {plannedMangaItems.length > 0 ? (
               <motion.div {...fadeSlideUp} data-framer-motion>
                 <GridImages items={plannedMangaItems} maxItems={5} />
                 <motion.h3 className="body-sm font-regular text-white/50 text-center text-container relative z-10 mt-4" {...fadeSlideUp} data-framer-motion>
-                A journey for another day?
+                You better get reading after this Wrapped
             </motion.h3>
               </motion.div>
             ) : (
               <motion.h3 className="body-sm font-regular text-white/50 text-center text-container relative z-10 mt-4" {...fadeSlideUp} data-framer-motion>
-                No manga added to your plan-to-read list.
+                No manga added to your plan-to-read list
             </motion.h3>
             )}
           </SlideLayout>
