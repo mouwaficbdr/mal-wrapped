@@ -1858,7 +1858,7 @@ export default function MALWrapped() {
                   </div>
                   
                 )}
-                <motion.h2 className="body-sm font-regular text-white text-center  relative z-10" {...fadeSlideUp} data-framer-motion>
+                <motion.h2 className="body-sm font-regular text-white text-center MT-4 relative z-10" {...fadeSlideUp} data-framer-motion>
                 Loyalty this strong deserves acknowledgment.
             </motion.h2>
               </>
@@ -1875,9 +1875,9 @@ export default function MALWrapped() {
         return (
           <SlideLayout verticalText="SEASONAL" bgColor="pink">
             <div className="text-center relative">
-              <motion.h1 className="relative z-10 heading-md text-white font-semibold pb-2 px-2 inline-block " {...fadeSlideUp} data-framer-motion>
-                Seasonal Highlights
-              </motion.h1>
+              <motion.h2 className="body-md font-regular text-white text-center  relative z-10" {...fadeSlideUp} data-framer-motion>
+              Each season dropped something special
+            </motion.h2>
             </div>
             <div className="mt-2 sm:mt-4 flex flex-col md:grid md:grid-cols-2 gap-1.5 sm:gap-2 relative z-10">
               {seasons.map(season => {
@@ -1934,6 +1934,8 @@ export default function MALWrapped() {
                 );
               })}
             </div>
+            <motion.h2 className="body-sm font-regular text-white mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>What a ride that was.
+            </motion.h2>
           </SlideLayout>
         );
 
