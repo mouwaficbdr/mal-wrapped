@@ -99,11 +99,11 @@ const hoverScale = {
 
 const hoverImage = {
   scale: 1.1,
-  transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] }
+  transition: { duration: 0.3, ease: "easeOut" }
 };
 
 // Animated Number Component using Framer Motion
-function AnimatedNumber({ value, duration = 2, className = '' }) {
+function AnimatedNumber({ value, duration = 1.5, className = '' }) {
   const numValue = Number(value) || 0;
   const [displayValue, setDisplayValue] = useState(0);
 
@@ -124,8 +124,9 @@ function AnimatedNumber({ value, duration = 2, className = '' }) {
       const elapsed = Date.now() - startTime;
       const progress = Math.min(elapsed / (duration * 1000), 1);
       
-      // Ease-out function: starts fast, slows down
-      const eased = 1 - Math.pow(1 - progress, 3);
+      // Gentler ease-out function: starts fast, slows down but not too much
+      // Using quadratic ease-out instead of cubic for less extreme slowdown
+      const eased = 1 - Math.pow(1 - progress, 2);
       
       const currentValue = startValue + (endValue - startValue) * eased;
       setDisplayValue(currentValue);
@@ -1475,20 +1476,23 @@ export default function MALWrapped() {
                   }}
                 >
                   <motion.div 
-                    className="aspect-[2/3] w-full bg-transparent border border-white/5 rounded-lg overflow-hidden relative" 
+                    className="aspect-[2/3] w-full bg-transparent border border-white/5 rounded-lg overflow-visible relative" 
                     style={{ maxHeight: '275px', maxWidth: '100%', boxSizing: 'border-box' }}
                     whileHover={{ borderColor: '#ffffff' }}
                     transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                   >
-                    {item.coverImage && (
-                      <motion.img 
-                        src={item.coverImage} 
-                        alt={item.title || ''} 
-                        crossOrigin="anonymous" 
-                        className="w-full h-full object-cover rounded-lg"
-                        whileHover={hoverImage}
-                      />
-                    )}
+                    <div className="w-full h-full rounded-lg overflow-hidden">
+                      {item.coverImage && (
+                        <motion.img 
+                          src={item.coverImage} 
+                          alt={item.title || ''} 
+                          crossOrigin="anonymous" 
+                          className="w-full h-full object-cover rounded-lg pointer-events-auto"
+                          whileHover={hoverImage}
+                          style={{ transformOrigin: 'center' }}
+                        />
+                      )}
+                    </div>
                     {showHover && hoveredItem === actualIndex && item.title && (
                       <motion.div 
                         className="absolute inset-0 bg-black/80 flex items-center justify-center p-2 z-10 rounded-lg"
@@ -1530,7 +1534,7 @@ export default function MALWrapped() {
                   onMouseLeave={() => showHover && setHoveredItem(null)}
                 >
                   {malUrl ? (
-                    <a href={malUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+                    <a href={malUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="w-full">
                       {content}
                     </a>
                   ) : (
@@ -2143,7 +2147,7 @@ export default function MALWrapped() {
                 data-framer-motion
               >
                 <img 
-                  src="/manga-character.png" 
+                  src="/manga-character.webp" 
                   alt="Manga character"
                   className="w-32 h-32 md:w-40 md:h-40 object-contain"
                 />
