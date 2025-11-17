@@ -3245,40 +3245,27 @@ export default function MALWrapped() {
               
               {/* Slide Content */}
               <div key={currentSlide} className="w-full flex-grow flex items-center justify-center overflow-y-auto py-2 sm:py-4 relative" style={{ zIndex: 0 }}>
-                {(() => {
-                  const currentSlideId = slides[currentSlide]?.id;
-                  const isDrumrollOrTop5 = currentSlideId === 'drumroll_anime' || currentSlideId === 'drumroll_manga' || currentSlideId === 'top_5_anime' || currentSlideId === 'top_5_manga';
-                  
-                  return (
-                    <>
-                      {/* Top gradient fade - inside content area, fades from top towards navigation */}
-                      {!isDrumrollOrTop5 && (
-                        <div 
-                          className="absolute top-0 left-0 right-0 h-32 sm:h-40 pointer-events-none"
-                          style={{
-                            zIndex: 15,
-                            background: 'linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.95) 20%, rgba(0, 0, 0, 0.8) 50%, rgba(0, 0, 0, 0.4) 80%, rgba(0, 0, 0, 0) 100%)'
-                          }}
-                        />
-                      )}
-                      
-                      <div className="w-full h-full relative overflow-y-auto">
-                        <SlideContent slide={slides[currentSlide]} mangaListData={mangaList} />
-                      </div>
-                      
-                      {/* Bottom gradient fade - inside content area, fades from bottom towards navigation */}
-                      {!isDrumrollOrTop5 && (
-                        <div 
-                          className="absolute bottom-0 left-0 right-0 h-32 sm:h-40 pointer-events-none"
-                          style={{
-                            zIndex: 15,
-                            background: 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.95) 20%, rgba(0, 0, 0, 0.8) 50%, rgba(0, 0, 0, 0.4) 80%, rgba(0, 0, 0, 0) 100%)'
-                          }}
-                        />
-                      )}
-                    </>
-                  );
-                })()}
+                {/* Top gradient fade - inside content area, fades from top towards navigation */}
+                <div 
+                  className="absolute top-0 left-0 right-0 h-32 sm:h-40 pointer-events-none"
+                  style={{
+                    zIndex: 15,
+                    background: 'linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.95) 20%, rgba(0, 0, 0, 0.8) 50%, rgba(0, 0, 0, 0.4) 80%, rgba(0, 0, 0, 0) 100%)'
+                  }}
+                />
+                
+                <div className="w-full h-full relative overflow-y-auto" style={{ zIndex: 20 }}>
+                  <SlideContent slide={slides[currentSlide]} mangaListData={mangaList} />
+                </div>
+                
+                {/* Bottom gradient fade - inside content area, fades from bottom towards navigation */}
+                <div 
+                  className="absolute bottom-0 left-0 right-0 h-32 sm:h-40 pointer-events-none"
+                  style={{
+                    zIndex: 15,
+                    background: 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.95) 20%, rgba(0, 0, 0, 0.8) 50%, rgba(0, 0, 0, 0.4) 80%, rgba(0, 0, 0, 0) 100%)'
+                  }}
+                />
               </div>
               
               {/* Bottom Controls */}
