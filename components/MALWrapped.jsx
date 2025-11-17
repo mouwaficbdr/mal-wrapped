@@ -1368,8 +1368,12 @@ export default function MALWrapped() {
       const visibleItems = uniqueItems.slice(0, maxItems);
       
       // Update gap size and items per view based on screen width
+      const [isMobile, setIsMobile] = useState(false);
+      
       useEffect(() => {
         const updateResponsive = () => {
+          const mobile = window.innerWidth < 768;
+          setIsMobile(mobile);
           if (window.innerWidth >= 640) {
             setGapSize('8px');
             setItemsPerView(5);
@@ -1388,26 +1392,47 @@ export default function MALWrapped() {
       // Only duplicate items if we have more items than can fit in viewport (for infinite scroll)
       // Otherwise, just show the unique items
       const shouldScroll = visibleItems.length > itemsPerView;
+      // Reduce duplication on mobile for better performance
+      const duplicationCount = isMobile ? 2 : 3;
       const duplicatedItems = shouldScroll 
-        ? [...visibleItems, ...visibleItems, ...visibleItems]
+        ? Array(duplicationCount).fill(visibleItems).flat()
         : visibleItems;
       
       // Center items when there are fewer than itemsPerView
       const shouldCenter = !shouldScroll && visibleItems.length < itemsPerView;
       
+      // Delay animation start to prevent initial lag
+      const [animationStarted, setAnimationStarted] = useState(false);
+      
       useEffect(() => {
-        // Only animate if we have more items than viewport and not hovered
-        if (visibleItems.length <= itemsPerView || isHovered) {
+        // Delay animation start slightly to allow initial render to complete
+        const startTimer = setTimeout(() => {
+          setAnimationStarted(true);
+        }, 300);
+        
+        return () => clearTimeout(startTimer);
+      }, []);
+      
+      useEffect(() => {
+        // Only animate if we have more items than viewport, not hovered, and animation has started
+        if (visibleItems.length <= itemsPerView || isHovered || !animationStarted) {
           return;
         }
         
-        const scrollSpeed = 0.15;
+        const scrollSpeed = isMobile ? 0.1 : 0.15; // Slower on mobile for better performance
         let animationFrame;
+        let lastTime = performance.now();
         
-        const animate = () => {
+        const animate = (currentTime) => {
+          const deltaTime = currentTime - lastTime;
+          lastTime = currentTime;
+          
+          // Use time-based animation for smoother performance
+          const deltaPercent = (scrollSpeed * deltaTime) / 16.67; // Normalize to 60fps
+          
           setScrollPosition((prev) => {
             const maxScroll = (visibleItems.length * itemWidth);
-            const next = prev + scrollSpeed;
+            const next = prev + deltaPercent;
             if (next >= maxScroll) {
               return 0;
             }
@@ -1417,8 +1442,12 @@ export default function MALWrapped() {
         };
         
         animationFrame = requestAnimationFrame(animate);
-        return () => cancelAnimationFrame(animationFrame);
-      }, [visibleItems.length, itemsPerView, isHovered, itemWidth]);
+        return () => {
+          if (animationFrame) {
+            cancelAnimationFrame(animationFrame);
+          }
+        };
+      }, [visibleItems.length, itemsPerView, isHovered, itemWidth, animationStarted, isMobile]);
 
       const getMALUrl = (item) => {
         if (item.malId) {
@@ -1448,11 +1477,13 @@ export default function MALWrapped() {
           <div 
             className="flex"
             style={{ 
-              transform: shouldScroll ? `translateX(-${scrollPosition}%)` : 'translateX(0)',
-              willChange: shouldScroll ? 'transform' : 'auto',
+              transform: shouldScroll && animationStarted ? `translate3d(-${scrollPosition}%, 0, 0)` : 'translate3d(0, 0, 0)',
+              willChange: shouldScroll && animationStarted ? 'transform' : 'auto',
               gap: gapSize,
               justifyContent: shouldCenter ? 'center' : 'flex-start',
-              width: shouldCenter ? 'auto' : '100%'
+              width: shouldCenter ? 'auto' : '100%',
+              backfaceVisibility: 'hidden',
+              perspective: '1000px'
             }}
           >
             {duplicatedItems.map((item, idx) => {
@@ -1462,12 +1493,12 @@ export default function MALWrapped() {
               const content = (
                 <motion.div 
                   className="flex flex-col flex-shrink-0 items-center w-full"
-                  initial={{ opacity: 0, scale: 0.9 }}
+                  initial={false}
                   animate={{ opacity: 1, scale: 1 }}
-                  transition={{ 
-                    duration: 0.4,
-                    delay: (idx % visibleItems.length) * 0.05,
-                    ease: [0.22, 1, 0.36, 1]
+                  style={{
+                    opacity: 1,
+                    transform: 'scale(1)',
+                    willChange: 'auto'
                   }}
                 >
                   <motion.div 
@@ -1484,6 +1515,8 @@ export default function MALWrapped() {
                           crossOrigin="anonymous" 
                           className="w-full h-full object-cover rounded-lg"
                           whileHover={hoverImage}
+                          loading="lazy"
+                          decoding="async"
                         />
                       )}
                     </div>
