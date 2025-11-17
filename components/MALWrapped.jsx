@@ -94,7 +94,7 @@ const staggerItem = {
 
 const hoverImage = {
   scale: 1.1,
-  transition: { duration: 0.5, ease: 'easeOut' }
+  transition: { duration: 0.3, ease: easeOut }
 };
 
 // Animated Number Component using Framer Motion
@@ -1473,9 +1473,9 @@ export default function MALWrapped() {
                 >
                   <motion.div 
                     className="aspect-[2/3] w-full bg-transparent border border-white/5 rounded-lg relative" 
-                    style={{ maxHeight: '275px', maxWidth: '100%', boxSizing: 'border-box', overflow: 'visible', padding: '1px' }}
+                    style={{ maxHeight: '275px', maxWidth: '100%', boxSizing: 'border-box', padding: '1px' }}
                     whileHover={{ borderColor: '#ffffff' }}
-                    transition={{ duration: 0.3, ease: 'easeOut' }}
+                    transition={{ duration: 0.3, ease: easeOut }}
                   >
                       {item.coverImage && (
                         <motion.img 
@@ -1590,7 +1590,7 @@ export default function MALWrapped() {
                     className="aspect-[2/3] bg-transparent border border-white/5 rounded-lg overflow-hidden relative" 
                     style={{ maxHeight: '275px', maxWidth: '183px', width: '100%', boxSizing: 'border-box' }}
                     whileHover={{ borderColor: '#ffffff' }}
-                    transition={{ duration: 0.3, eease: 'easeOut'}}
+                    transition={{ duration: 0.3, eease: easeOut}}
                   >
                   {item.coverImage && (
                     <motion.img 
@@ -1671,7 +1671,7 @@ export default function MALWrapped() {
           className="bg-transparent border border-white/5 rounded-lg overflow-hidden aspect-[2/3] relative" 
           style={{ boxSizing: 'border-box' }}
           whileHover={{ borderColor: '#ffffff' }}
-          transition={{ duration: 0.3, ease: 'easeOut'}}
+          transition={{ duration: 0.3, ease: easeOut}}
         >
           {rank && (
             <div className="absolute top-2 right-2 z-10 w-8 h-8 bg-black text-white rounded-full flex items-center justify-center font-medium text-lg">
@@ -2013,7 +2013,7 @@ export default function MALWrapped() {
                     <motion.div 
                       className="bg-black/20 rounded-xl p-1.5 sm:p-2 h-full"
                       whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
-                      transition={{ duration: 0.3, ease: 'easeOut' }}
+                      transition={{ duration: 0.3, ease: easeOut}}
                     >
                       <h3 className="heading-md font-semibold text-white mb-1 sm:mb-2 text-sm sm:text-base">{season}</h3>
                     {highlight && (
@@ -2822,7 +2822,7 @@ export default function MALWrapped() {
                     animate={{ width: `${loadingProgressPercent}%` }}
                     transition={{
                       duration: 0.3,
-                      ease: "easeOut"
+                      ease: easeOut
                     }}
                   />
                 </div>
