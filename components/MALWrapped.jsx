@@ -1201,14 +1201,14 @@ export default function MALWrapped() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
         >
-          {verticalText && (
+        {verticalText && (
             <motion.p 
               className="absolute top-1/2 -left-2 md:-left-2 -translate-y-1/2 text-white/30 font-medium tracking-[.3em] [writing-mode:vertical-lr] text-xs sm:text-sm md:text-base z-20 pointer-events-none"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              {verticalText}
+            {verticalText}
             </motion.p>
           )}
           {/* Colorful abstract shapes background on all cards - animated */}
@@ -1750,15 +1750,15 @@ export default function MALWrapped() {
                     whileHover={{ borderColor: '#ffffff' }}
                     transition={{ duration: 0.3, ease: smoothEase }}
                   >
-                      {item.coverImage && (
-                        <motion.img 
-                          src={item.coverImage} 
-                          alt={item.title || ''} 
-                          crossOrigin="anonymous" 
-                          className="w-full h-full object-cover rounded-lg"
-                          whileHover={hoverImage}
-                        />
-                      )}
+                    {item.coverImage && (
+                      <motion.img 
+                        src={item.coverImage} 
+                        alt={item.title || ''} 
+                        crossOrigin="anonymous" 
+                        className="w-full h-full object-cover rounded-lg"
+                        whileHover={hoverImage}
+                      />
+                    )}
                     {showHover && hoveredItem === actualIndex && item.title && (
                       <motion.div 
                         className="absolute inset-0 bg-black/80 flex items-center justify-center p-2 z-10 rounded-lg pointer-events-none"
@@ -2835,158 +2835,154 @@ export default function MALWrapped() {
       case 'finale':
         const totalTimeSpent = stats.totalTimeSpent || 0;
         const totalDays = Math.floor(totalTimeSpent / 24);
+        const userImage = userData?.picture || '/anime-character.webp';
         return (
           <SlideLayout verticalText="FINAL-REPORT" bgColor="blue">
-            <motion.h2 className="heading-md font-semibold text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
-            My {stats.selectedYear === 'all' ? 'All Time' : stats.selectedYear} MyAnimeList Wrapped
-            </motion.h2>
-            <motion.div className="mt-2 sm:mt-4 flex flex-col gap-1 sm:gap-1.5 text-white w-full max-h-full overflow-hidden relative z-10" {...fadeSlideUp} data-framer-motion>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-1.5">
-                <motion.div 
-                  className="border-box-cyan rounded-xl flex flex-col shadow-lg" 
-                  style={{ padding: '2px' }}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4 }}
-                >
+            <div className="w-full h-full flex flex-col items-center justify-center relative">
+              {/* Central Image with Abstract Shapes */}
+              <div className="relative w-48 h-48 sm:w-64 sm:h-64 md:w-80 md:h-80 mb-6 sm:mb-8 flex items-center justify-center">
+                {/* Abstract flowing shapes around image */}
+                <div className="absolute inset-0 pointer-events-none overflow-visible" style={{ zIndex: 0 }}>
                   <motion.div 
-                    className="bg-white/5 rounded-xl p-2 h-full"
-                    whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
-                    transition={{ duration: 0.2, ease: smoothEase }}
-                  >
-                  <p className="body-sm text-white/50 mb-0.5 sm:mb-1 font-regular text-xs sm:text-sm">Top 5 Anime</p>
-                  <div className="space-y-0 flex-grow">
-                    {stats.topRated.slice(0, 5).map((a, i) => (
-                        <p key={a.node.id} className="py-0 px-1 sm:px-2">
-                          <span className="font-medium text-white w-4 sm:w-6 inline-block text-xs sm:text-sm">{i+1}.</span><span className="heading-md text-white truncate font-medium text-xs sm:text-sm md:text-base">{a.node.title}</span>
-                      </p>
-                    ))}
-                  </div>
-                  </motion.div>
-                </motion.div>
-                <motion.div 
-                  className="border-box-cyan rounded-xl flex flex-col shadow-lg" 
-                  style={{ padding: '2px' }}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4 }}
-                >
+                    className="absolute -top-8 -left-8 w-32 h-32 sm:w-40 sm:h-40 opacity-60"
+                    style={{
+                      background: 'radial-gradient(circle, rgba(255, 107, 157, 0.8) 0%, rgba(196, 69, 105, 0.5) 40%, transparent 70%)',
+                      filter: 'blur(40px)',
+                      borderRadius: '50%'
+                    }}
+                    animate={{
+                      scale: [1, 1.2, 1],
+                      x: [-10, 10, -10],
+                      y: [-10, 10, -10]
+                    }}
+                    transition={{
+                      duration: 8,
+                      repeat: Infinity,
+                      ease: smoothEase
+                    }}
+                  />
                   <motion.div 
-                    className="bg-white/5 rounded-xl p-2 h-full"
-                    whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
-                    transition={{ duration: 0.2, ease: smoothEase }}
-                  >
-                  <p className="body-sm text-white.50 mb-0.5 sm:mb-1 font-regular text-xs sm:text-sm">Top 5 Manga</p>
-                  <div className="space-y-0 flex-grow">
-                    {stats.topManga.slice(0, 5).map((m, i) => (
-                        <p key={m.node.id} className="py-0 px-1 sm:px-2">
-                          <span className="font-medium text-white w-4 sm:w-6 inline-block text-xs sm:text-sm">{i+1}.</span><span className="heading-md text-white truncate font-medium text-xs sm:text-sm md:text-base">{m.node.title}</span>
-                      </p>
-                    ))}
-                  </div>
-                  </motion.div>
+                    className="absolute -bottom-8 -right-8 w-32 h-32 sm:w-40 sm:h-40 opacity-60"
+                    style={{
+                      background: 'radial-gradient(circle, rgba(138, 43, 226, 0.8) 0%, rgba(75, 0, 130, 0.5) 40%, transparent 70%)',
+                      filter: 'blur(40px)',
+                      borderRadius: '50%'
+                    }}
+                    animate={{
+                      scale: [1, 1.2, 1],
+                      x: [10, -10, 10],
+                      y: [10, -10, 10]
+                    }}
+                    transition={{
+                      duration: 10,
+                      repeat: Infinity,
+                      ease: smoothEase
+                    }}
+                  />
+                  <motion.div 
+                    className="absolute top-1/2 -right-12 w-24 h-24 sm:w-32 sm:h-32 opacity-50"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(0, 255, 255, 0.6) 0%, rgba(0, 255, 0, 0.4) 100%)',
+                      filter: 'blur(30px)',
+                      borderRadius: '50%'
+                    }}
+                    animate={{
+                      rotate: [0, 360],
+                      scale: [1, 1.3, 1]
+                    }}
+                    transition={{
+                      duration: 12,
+                      repeat: Infinity,
+                      ease: 'linear'
+                    }}
+                  />
+                </div>
+                
+                {/* Central Image */}
+                <motion.div
+                  className="relative z-10 w-full h-full rounded-full overflow-hidden border-4 border-white/20"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.6, ease: smoothEase }}
+                >
+                  <img 
+                    src={userImage} 
+                    alt={username || 'User'} 
+                    className="w-full h-full object-cover"
+                    crossOrigin="anonymous"
+                  />
                 </motion.div>
               </div>
-              <div className="grid grid-cols-2 gap-1 sm:gap-1.5">
-                <motion.div 
-                  className="border-box-cyan rounded-xl shadow-lg" 
-                  style={{ padding: '2px' }}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4 }}
-                >
-                  <motion.div 
-                    className="bg-white/5 rounded-xl p-2 h-full"
-                    whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
-                    transition={{ duration: 0.2, ease: smoothEase }}
-                  >
-                  <p className="body-sm text-white/50 mb-0.5 sm:mb-1 font-regular text-xs sm:text-sm">Episodes Watched</p>
-                  <p className="number-md text-white  text-lg sm:text-xl md:text-2xl">
-                    {stats.totalEpisodes || 0}
-                  </p>
-                  </motion.div>
-                </motion.div>
-                <motion.div 
-                  className="border-box-cyan rounded-xl shadow-lg" 
-                  style={{ padding: '2px' }}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4 }}
-                >
-                  <motion.div 
-                    className="bg-white/5 rounded-xl p-2 h-full"
-                    whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
-                    transition={{ duration: 0.2, ease: smoothEase }}
-                  >
-                  <p className="body-sm text-white/50 mb-0.5 sm:mb-1 font-regular text-xs sm:text-sm">Chapters Read</p>
-                  <p className="number-md text-white  text-lg sm:text-xl md:text-2xl">
-                    {stats.totalChapters || 0}
-                  </p>
-                  </motion.div>
-                </motion.div>
-                </div>
+
+              {/* Text Content Below - No Boxes */}
               <motion.div 
-                className="border-box-cyan rounded-xl shadow-lg" 
-                style={{ padding: '2px' }}
+                className="w-full max-w-2xl flex flex-col gap-4 sm:gap-6 text-white relative z-10"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
               >
-                <motion.div 
-                  className="bg-white/5 rounded-xl p-2 h-full"
-                  whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
-                  transition={{ duration: 0.2, ease: smoothEase }}
-                >
-                <p className="body-sm text-white/50 mb-0.5 sm:mb-1 font-regular text-xs sm:text-sm">Total Time Spent</p>
-                <p className="number-lg text-white  text-xl sm:text-2xl md:text-3xl">
-                  {totalDays > 0 ? (
-                    <>
-                      {totalDays} Days
-                      <span className="body-md text-white/50 ml-1 sm:ml-2 font-semibold text-xs sm:text-sm">or {totalTimeSpent} hours</span>
-                    </>
-                  ) : (
-                    <>
-                      {totalTimeSpent} Hours
-                    </>
-                  )}
-                </p>
-                </motion.div>
-              </motion.div>
-              <div className="grid grid-cols-2 gap-1 sm:gap-1.5">
-                <motion.div 
-                  className="border-box-cyan rounded-xl shadow-lg" 
-                  style={{ padding: '2px' }}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4 }}
-                >
-                  <motion.div 
-                    className="bg-white/5 rounded-xl p-2 h-full"
-                    whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
-                    transition={{ duration: 0.2, ease: smoothEase }}
-                  >
-                  <p className="body-sm text-white/50 mb-0.5 sm:mb-1 font-regular text-xs sm:text-sm">Top Studio</p>
-                  <p className="heading-md text-white truncate font-medium text-xs sm:text-sm md:text-base">{stats.topStudios?.[0]?.[0] || 'N/A'}</p>
-                  </motion.div>
-                </motion.div>
-                <motion.div 
-                  className="border-box-cyan rounded-xl shadow-lg" 
-                  style={{ padding: '2px' }}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4 }}
-                >
-                  <motion.div 
-                    className="bg-white/5 rounded-xl p-2 h-full"
-                    whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
-                    transition={{ duration: 0.2, ease: smoothEase }}
-                  >
-                  <p className="body-sm text-white/50 mb-0.5 sm:mb-1 font-regular text-xs sm:text-sm">Top Author</p>
-                  <p className="heading-md text-white truncate font-medium text-xs sm:text-sm md:text-base">{stats.topAuthors?.[0]?.[0] || 'N/A'}</p>
-                  </motion.div>
-                </motion.div>
+                <h2 className="heading-lg font-semibold text-white text-center">
+            My {stats.selectedYear === 'all' ? 'All Time' : stats.selectedYear} MyAnimeList Wrapped
+                </h2>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                  <div>
+                    <p className="body-sm text-white/50 mb-2 font-regular">Top 5 Anime</p>
+                    <div className="space-y-1">
+                      {stats.topRated.slice(0, 5).map((a, i) => (
+                        <p key={a.node.id} className="text-white">
+                          <span className="font-medium text-white/60 w-6 inline-block">{i+1}.</span>
+                          <span className="heading-md text-white font-medium">{a.node.title}</span>
+                        </p>
+                      ))}
+                    </div>
                   </div>
-            </motion.div>
+                  
+                  <div>
+                    <p className="body-sm text-white/50 mb-2 font-regular">Top 5 Manga</p>
+                    <div className="space-y-1">
+                      {stats.topManga.slice(0, 5).map((m, i) => (
+                        <p key={m.node.id} className="text-white">
+                          <span className="font-medium text-white/60 w-6 inline-block">{i+1}.</span>
+                          <span className="heading-md text-white font-medium">{m.node.title}</span>
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 sm:gap-6 mt-2">
+                  <div>
+                    <p className="body-sm text-white/50 mb-1 font-regular">Episodes Watched</p>
+                    <p className="number-lg text-white text-2xl sm:text-3xl font-bold">
+                      {stats.totalEpisodes || 0}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="body-sm text-white/50 mb-1 font-regular">Chapters Read</p>
+                    <p className="number-lg text-white text-2xl sm:text-3xl font-bold">
+                      {stats.totalChapters || 0}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="text-center mt-2">
+                  <p className="body-sm text-white/50 mb-1 font-regular">Total Time Spent</p>
+                  <p className="number-lg text-white text-3xl sm:text-4xl font-bold">
+                    {totalDays > 0 ? (
+                      <>
+                        {totalDays} Days
+                        <span className="body-md text-white/50 ml-2 font-semibold text-lg">or {totalTimeSpent} hours</span>
+                      </>
+                    ) : (
+                      <>
+                        {totalTimeSpent} Hours
+                      </>
+                    )}
+                  </p>
+                </div>
+              </motion.div>
+            </div>
           </SlideLayout>
         );
 
@@ -3283,8 +3279,8 @@ export default function MALWrapped() {
 
                 {currentSlide === slides.length - 1 ? (
                   <div className="relative" ref={shareMenuRef}>
-                    <motion.button
-                      onClick={async () => {
+                  <motion.button
+                    onClick={async () => {
                         // Check if mobile and Web Share API supports files
                         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
                         
@@ -3298,16 +3294,16 @@ export default function MALWrapped() {
                             }
                             
                             // Try to share using Web Share API with image file
-                            const shareData = {
-                              title: `My ${stats?.selectedYear || '2024'} MAL Wrapped`,
+                          const shareData = {
+                            title: `My ${stats?.selectedYear || '2024'} MAL Wrapped`,
                               text: `Check out my ${stats?.selectedYear || '2024'} MyAnimeList Wrapped!`,
                               files: [result.file],
                               url: window.location.href
-                            };
-                            
+                          };
+                          
                             // Check if we can share files (mobile/iOS)
                             if (navigator.canShare && navigator.canShare(shareData)) {
-                              await navigator.share(shareData);
+                            await navigator.share(shareData);
                               return;
                             }
                             
@@ -3321,9 +3317,9 @@ export default function MALWrapped() {
                               await navigator.share(fallbackShareData);
                               await handleDownloadPNG();
                               return;
-                            }
-                          } catch (error) {
-                            if (error.name !== 'AbortError') {
+                        }
+                      } catch (error) {
+                        if (error.name !== 'AbortError') {
                               console.log('Share not available or failed, downloading instead');
                               await handleDownloadPNG();
                             }
@@ -3343,12 +3339,12 @@ export default function MALWrapped() {
                         backgroundColor: 'rgba(64, 101, 204, 0.8)',
                         borderColor: 'rgba(64, 101, 204, 0.8)'
                       }}
-                      whileTap={{ scale: 0.9 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
-                      <span className="text-xs sm:text-sm md:text-base font-medium">Share</span>
-                    </motion.button>
+                    whileTap={{ scale: 0.9 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <span className="text-xs sm:text-sm md:text-base font-medium">Share</span>
+                  </motion.button>
                     
                     {/* Share Menu for Desktop */}
                     {showShareMenu && (
