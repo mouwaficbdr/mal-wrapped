@@ -961,14 +961,14 @@ export default function MALWrapped() {
             <h2 className="body-md font-regular text-white mt-4 text-container">{type === 'anime' ? 'But one show rose above everything' : 'But one manga kept you turning pages nonstop'}</h2>
           </motion.div>
         ) : phase === 1 && topItem ? (
-          <motion.div className="text-center relative overflow-hidden" {...fadeSlideUp} data-framer-motion>
+          <motion.div className="text-center relative overflow-hidden">
             <div className="flex flex-col items-center justify-center gap-4">
               <motion.div 
                 className="w-32 md:w-48 aspect-[2/3] bg-transparent rounded-lg overflow-hidden" 
                 style={{ boxSizing: 'border-box', border: '1px solid white' }}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: 0.3, ease: smoothEase }}
+                transition={{ duration: 0.3, delay: 0, ease: smoothEase }}
               >
                 {topItem.node?.main_picture?.large && (
                   <motion.img 
@@ -980,7 +980,12 @@ export default function MALWrapped() {
                   />
                 )}
               </motion.div>
-              <div className="text-left">
+              <motion.div 
+                className="text-left"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.2, ease: smoothEase }}
+              >
                 <h3 className="title-lg text-white font-semibold">{topItem.node?.title}</h3>
                 {type === 'anime' && topItem.node?.studios?.[0]?.name && (
                   <p className="body-sm text-white/50  font-regular">{topItem.node.studios[0].name}</p>
@@ -990,11 +995,11 @@ export default function MALWrapped() {
                     {`${topItem.node.authors[0].node?.first_name || ''} ${topItem.node.authors[0].node?.last_name || ''}`.trim()}
                   </p>
                 )}
-                <div className="flex items-left justify-left mono text-yellow-300 font-bold">
+                <div className="flex items-left justify-left mono text-yellow-300 font-bold mt-2">
                   <span className="mr-2">★</span>
                   <span>{topItem.list_status?.score?.toFixed(1)}</span>
                 </div>
-              </div>
+              </motion.div>
             </div>
           </motion.div>
         ) : (
@@ -1158,7 +1163,7 @@ export default function MALWrapped() {
                             </motion.div>
                             <div className="mt-2 text-center w-full min-w-0">
                               <h3 className="title-sm truncate font-semibold text-white">{item.title}</h3>
-                              <div className="flex items-center justify-center mono text-yellow-300 font-semibold">
+                              <div className="flex items-center justify-center mono text-yellow-300 font-semibold mt-2">
                                   <span className="mr-0.5 sm:mr-1 shrink-0">★</span>
                                   <span>{item.userRating.toFixed(1)}</span>
                                 </div>
@@ -1475,7 +1480,7 @@ export default function MALWrapped() {
                       >
                         <p className="title-sm text-center">{item.title}</p>
                         {item.userRating && (
-                          <div className="absolute bottom-2 right-2 text-yellow-300 mono font-semibold">
+                          <div className="absolute bottom-2 right-2 text-yellow-300 mono font-semibold mt-2">
                             ★ {item.userRating.toFixed(1)}
                           </div>
                         )}
@@ -1585,7 +1590,7 @@ export default function MALWrapped() {
                     <div className="mt-2 text-center w-full px-1">
                       <p className="title-sm truncate">{item.title}</p>
                     {item.userRating && (
-                      <p className="mono font-semibold text-yellow-300">★ {item.userRating.toFixed(1)}</p>
+                      <p className="mono font-semibold text-yellow-300 mt-2">★ {item.userRating.toFixed(1)}</p>
                     )}
                   </div>
                 )}
@@ -1634,7 +1639,7 @@ export default function MALWrapped() {
               <p className="body-md text-white/50">{item.count} entries</p>
             </div>
           </div>
-          {isTop && <span className="text-yellow-300 heading-md ml-3 shrink-0">★</span>}
+          {isTop && <span className="text-yellow-300 heading-md ml-3 shrink-0 mt-2">★</span>}
         </motion.div>
       );
     };
@@ -1966,6 +1971,18 @@ export default function MALWrapped() {
 
       case 'seasonal_highlights':
         const seasons = ['Winter', 'Spring', 'Summer', 'Fall'];
+        const hasAnySeasonalData = seasons.some(season => stats.seasonalHighlights?.[season]);
+        
+        if (!hasAnySeasonalData) {
+          return (
+            <SlideLayout verticalText="SEASONAL" bgColor="pink">
+              <motion.h3 className="body-sm font-regular text-white/50 mt-4 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+                You didn't follow any seasonal anime this time
+              </motion.h3>
+            </SlideLayout>
+          );
+        }
+        
         return (
           <SlideLayout verticalText="SEASONAL" bgColor="pink">
             <div className="text-center relative">
@@ -1976,10 +1993,13 @@ export default function MALWrapped() {
             <div className="mt-2 sm:mt-4 flex flex-col md:grid md:grid-cols-2 gap-1.5 sm:gap-2 relative z-10">
               {seasons.map(season => {
                 const seasonData = stats.seasonalHighlights?.[season];
-                if (!seasonData) return <motion.h3 className="body-sm font-regular text-white/50 mt-4 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>You didn’t follow any seasonal anime this time</motion.h3>
-                ;
+                if (!seasonData) return null;
                 const highlight = seasonData.highlight;
                 const seasonIndex = seasons.indexOf(season);
+                // Get year from highlight for "all time" view
+                const seasonYear = stats.selectedYear === 'all' && highlight?.node?.start_season?.year 
+                  ? ` ${highlight.node.start_season.year}` 
+                  : '';
                 return (
                   <motion.div 
                     key={season} 
@@ -1994,7 +2014,7 @@ export default function MALWrapped() {
                       whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
                       transition={{ duration: 0.3, ease: smoothEase}}
                     >
-                      <h3 className="heading-md font-semibold text-white mb-1 sm:mb-2 text-sm sm:text-base">{season}</h3>
+                      <h3 className="heading-md font-semibold text-white mb-1 sm:mb-2 text-sm sm:text-base">{season}{seasonYear}</h3>
                     {highlight && (
                       <>
                           <div className="flex gap-1.5 sm:gap-2">
@@ -2018,7 +2038,7 @@ export default function MALWrapped() {
                           <div className="flex-1 min-w-0">
                               <p className="title-md truncate font-semibold text-white text-xs sm:text-sm md:text-base">{highlight.node?.title}</p>
                               <p className="body-md text-white truncate font-medium text-xs sm:text-sm">{highlight.node?.studios?.[0]?.name || ''}</p>
-                              <p className="mono text-yellow-300 mt-1 sm:mt-2 font-semibold">★ {highlight.list_status?.score || 'N/A'}</p>
+                              <p className="mono text-yellow-300 mt-1 sm:mt-2 font-semibold mt-2">★ {highlight.list_status?.score || 'N/A'}</p>
                               <p className="body-sm text-white/80 mt-1 sm:mt-2 font-semibold text-xs sm:text-sm">{seasonData.totalAnime} anime</p>
                           </div>
                         </div>
@@ -2315,7 +2335,7 @@ export default function MALWrapped() {
                           whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
                           transition={{ duration: 0.2 }}
                         >
-                          <p className="heading-sm font-semibold text-white">{idx + 2}. {genreName}</p>
+                          <p className="heading-sm font-semibold text-white truncate">{idx + 2}. {genreName}</p>
                           <p className="mono text-white/50 font-regular">{count} manga</p>
                       </motion.div>
                       </motion.div>
