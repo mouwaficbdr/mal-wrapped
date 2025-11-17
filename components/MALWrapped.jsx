@@ -828,17 +828,20 @@ export default function MALWrapped() {
       };
       
       // Capture with snapdom - exclude navigation elements
-      const pngDataUrl = await snapdom.toPng(cardElement, {
+      const out = await snapdom(cardElement, {
         backgroundColor: '#0A0A0A',
         scale: 2,
         exclude: ['.flex-shrink-0', 'button', 'select'],
         plugins: [capturePlugin]
       });
       
+      // Export as PNG
+      const png = await out.toPng();
+      
       // Create download link
       const link = document.createElement('a');
       link.download = `mal-wrapped-${username || 'user'}-slide-${currentSlide + 1}.png`;
-      link.href = pngDataUrl;
+      link.href = png.src;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
