@@ -997,7 +997,7 @@ export default function MALWrapped() {
                 )}
                 <div className="flex items-left justify-left mono text-yellow-300 font-bold mt-1">
                   <span className="mr-2">★</span>
-                  <span>{topItem.list_status?.score?.toFixed(1)}</span>
+                  <span>{topItem.list_status?.score ? Math.round(topItem.list_status.score) : 'N/A'}</span>
                 </div>
               </motion.div>
             </div>
@@ -1048,7 +1048,7 @@ export default function MALWrapped() {
       <SlideLayout verticalText={verticalText}>
         <motion.div className="relative" {...fadeSlideUp} data-framer-motion>
             <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
-              {type === 'anime' ? 'Including your top pick, these shows stole the spotlight' : 'Including your top read, these manga ruled your shelves'}
+              {type === 'anime' ? 'Including your top pick, these anime stole the spotlight' : 'Including your top read, these manga ruled your shelves'}
             </motion.h2>
               <div className="mt-2 sm:mt-3 flex flex-col gap-1.5 sm:gap-2 w-full">
               {(() => {
@@ -1107,7 +1107,7 @@ export default function MALWrapped() {
                       {featured.author && <p className="body-sm text-white/50 truncate font-medium text-left">{featured.author}</p>}
                        <div className="flex items-left justify-left mono text-yellow-300 mt-1 font-semibold">
                           <span className="mr-0.5 sm:mr-1">★</span>
-                          <span>{featured.userRating.toFixed(1)}</span>
+                          <span>{Math.round(featured.userRating)}</span>
                         </div>
                         {featured.genres.length > 0 && (
                         <div className="mt-2 flex flex-wrap gap-2 justify-left items-left">
@@ -1167,7 +1167,7 @@ export default function MALWrapped() {
                               <h3 className="title-sm truncate font-semibold text-white">{item.title}</h3>
                               <div className="flex items-center justify-center mono text-yellow-300 font-semibold mt-1">
                                   <span className="mr-0.5 sm:mr-1 shrink-0">★</span>
-                                  <span>{item.userRating.toFixed(1)}</span>
+                                  <span>{Math.round(item.userRating)}</span>
                                 </div>
                               </div>
                             </motion.div>
@@ -1483,7 +1483,7 @@ export default function MALWrapped() {
                         <p className="title-sm text-center">{item.title}</p>
                         {item.userRating && (
                           <div className="absolute bottom-2 right-2 text-yellow-300 mono font-semibold mt-1">
-                            ★ {item.userRating.toFixed(1)}
+                            ★ {Math.round(item.userRating)}
                           </div>
                         )}
                       </motion.div>
@@ -1493,7 +1493,7 @@ export default function MALWrapped() {
                     <div className="mt-2 text-center">
                       <p className="title-sm truncate">{item.title}</p>
                       {item.userRating && (
-                        <p className="mono font-semibold text-yellow-300 mt-1">★ {item.userRating.toFixed(1)}</p>
+                        <p className="mono font-semibold text-yellow-300 mt-1">★ {Math.round(item.userRating)}</p>
                       )}
                     </div>
                   )}
@@ -1680,7 +1680,7 @@ export default function MALWrapped() {
           <h3 className="title-md truncate">{item.title}</h3>
           <div className="flex items-center mono text-yellow-300">
             <span className="mr-1">★</span>
-            <span>{item.userRating?.toFixed(1) || 'N/A'}</span>
+            <span>{item.userRating ? Math.round(item.userRating) : 'N/A'}</span>
           </div>
         </div>
       </motion.div>
@@ -1858,7 +1858,7 @@ export default function MALWrapped() {
               <>
                 <motion.div className="mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
                   <p className="heading-lg font-semibold text-white ">1. {topGenre}</p>
-                  <p className="mono text-white/50 font-regular">{stats.topGenres[0][1]} shows</p>
+                  <p className="mono text-white/50 font-regular">{stats.topGenres[0][1]} entries</p>
                 </motion.div>
                 {genreAnime.length > 0 && <div className="relative z-10"><ImageCarousel items={genreAnime} maxItems={10} showHover={true} showNames={false} /></div>}
                 {otherGenres.length > 0 && (
@@ -1871,7 +1871,7 @@ export default function MALWrapped() {
                           transition={{ duration: 0.2, ease: smoothEase }}
                         >
                           <p className="heading-sm font-semibold text-white truncate">{idx + 2}. {genreName}</p>
-                          <p className="mono text-white/50 font-regular">{count} shows</p>
+                          <p className="mono text-white/50 font-regular">{count} entries</p>
                       </motion.div>
                       </motion.div>
                     ))}
@@ -1939,7 +1939,7 @@ export default function MALWrapped() {
               <>
                 <motion.div className="mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
                   <p className="heading-lg font-semibold text-white ">1. {topStudio}</p>
-                  <p className="mono text-white/50 font-regular">{stats.topStudios[0][1]} shows watched</p>
+                  <p className="mono text-white/50 font-regular">{stats.topStudios[0][1]} entries</p>
                 </motion.div>
                 {studioAnime.length > 0 && (
                   <div className="relative z-10"><ImageCarousel items={studioAnime} maxItems={10} showHover={true} showNames={false} /></div>
@@ -1954,7 +1954,7 @@ export default function MALWrapped() {
                           transition={{ duration: 0.2, ease: smoothEase }}
                         >
                           <p className="heading-sm font-semibold text-white truncate">{idx + 2}. {studioName}</p>
-                          <p className="mono text-white/50 font-regular">{count} shows watched</p>
+                          <p className="mono text-white/50 font-regular">{count} entries</p>
                       </motion.div>
                       </motion.div>
                     ))}
@@ -2042,8 +2042,8 @@ export default function MALWrapped() {
                           <div className="flex-1 min-w-0">
                               <p className="title-md truncate font-semibold text-white text-xs sm:text-sm md:text-base">{highlight.node?.title}</p>
                               <p className="body-md text-white/50 truncate font-medium text-xs sm:text-sm">{highlight.node?.studios?.[0]?.name || ''}</p>
-                              <p className="mono text-yellow-300 mt-1 sm:mt-2 font-semibold mt-1">★ {highlight.list_status?.score || 'N/A'}</p>
-                              <p className="body-sm text-white/50 truncate mt-1 sm:mt-2 font-regular text-xs sm:text-sm">{seasonData.totalAnime} anime watched</p>
+                              <p className="mono text-yellow-300 mt-1 sm:mt-2 font-semibold mt-1">★ {highlight.list_status?.score ? Math.round(highlight.list_status.score) : 'Not Rated'}</p>
+                              <p className="body-sm text-white/50 truncate mt-1 sm:mt-2 font-regular text-xs sm:text-sm">{seasonData.totalAnime} entries</p>
                           </div>
                         </div>
                       </>
@@ -2327,7 +2327,7 @@ export default function MALWrapped() {
               <>
                 <motion.div className="mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
                   <p className="heading-lg font-semibold text-white ">1. {topMangaGenre[0]}</p>
-                  <p className="mono text-white/50 font-regular">{topMangaGenre[1]} manga</p>
+                  <p className="mono text-white/50 font-regular">{topMangaGenre[1]} entries</p>
                 </motion.div>
                 {mangaGenreItems.length > 0 && <div className="relative z-10"><ImageCarousel items={mangaGenreItems} maxItems={10} showHover={true} showNames={false} /></div>}
                 {otherMangaGenres.length > 0 && (
@@ -2340,7 +2340,7 @@ export default function MALWrapped() {
                           transition={{ duration: 0.2, ease: smoothEase }}
                         >
                           <p className="heading-sm font-semibold text-white truncate">{idx + 2}. {genreName}</p>
-                          <p className="mono text-white/50 font-regular">{count} manga read</p>
+                          <p className="mono text-white/50 font-regular">{count} entries</p>
                       </motion.div>
                       </motion.div>
                     ))}
@@ -2427,7 +2427,7 @@ export default function MALWrapped() {
               <>
                 <motion.div className="mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
                   <p className="heading-lg font-semibold text-white ">1. {topAuthor}</p>
-                  <p className="mono text-white/50 font-regular">{stats.topAuthors[0][1]} manga</p>
+                  <p className="mono text-white/50 font-regular">{stats.topAuthors[0][1]} entries</p>
                 </motion.div>
                 {authorManga.length > 0 && (
                   <div className="relative z-10"><ImageCarousel items={authorManga} maxItems={10} showHover={true} showNames={false} /></div>
@@ -2442,7 +2442,7 @@ export default function MALWrapped() {
                           transition={{ duration: 0.2 , ease: smoothEase }}
                         >
                           <p className="heading-sm font-semibold text-white truncate">{idx + 2}. {authorName}</p>
-                          <p className="mono text-white/50 font-regular">{count} manga read</p>
+                          <p className="mono text-white/50 font-regular">{count} entries</p>
                       </motion.div>
                       </motion.div>
                       
