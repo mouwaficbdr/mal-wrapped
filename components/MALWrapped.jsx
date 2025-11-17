@@ -91,15 +91,10 @@ const staggerItem = {
   }
 };
 
-// Hover animation variants
-const hoverScale = {
-  scale: 1.05,
-  transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] }
-};
 
 const hoverImage = {
   scale: 1.1,
-  transition: { duration: 0.3, ease: "easeOut" }
+  transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] }
 };
 
 // Animated Number Component using Framer Motion
@@ -1375,11 +1370,11 @@ export default function MALWrapped() {
       // Update gap size and items per view based on screen width
       useEffect(() => {
         const updateResponsive = () => {
-          if (window.innerWidth >= 768) {
-            setGapSize('2px');
+          if (window.innerWidth >= 640) {
+            setGapSize('8px');
             setItemsPerView(5);
           } else {
-            setGapSize('2px');
+            setGapSize('6px');
             setItemsPerView(3);
           }
         };
@@ -1481,15 +1476,14 @@ export default function MALWrapped() {
                     whileHover={{ borderColor: '#ffffff' }}
                     transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                   >
-                    <div className="w-full h-full rounded-lg overflow-hidden">
+                    <div className="w-full h-full rounded-lg overflow-visible">
                       {item.coverImage && (
                         <motion.img 
                           src={item.coverImage} 
                           alt={item.title || ''} 
                           crossOrigin="anonymous" 
-                          className="w-full h-full object-cover rounded-lg pointer-events-auto"
+                          className="w-full h-full object-cover rounded-lg"
                           whileHover={hoverImage}
-                          style={{ transformOrigin: 'center' }}
                         />
                       )}
                     </div>
@@ -1595,7 +1589,7 @@ export default function MALWrapped() {
                 >
                   <motion.div 
                     className="aspect-[2/3] bg-transparent border border-white/5 rounded-lg overflow-hidden relative" 
-                    style={{ maxHeight: '275px', maxWidth: '183px', width: '100%', boxSizing: 'border-box' }}
+                    style={{ maxHeight: '275px', width: '100%', boxSizing: 'border-box' }}
                     whileHover={{ borderColor: '#ffffff' }}
                     transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                   >
