@@ -827,11 +827,12 @@ export default function MALWrapped() {
         }
       };
       
-      // Capture with snapdom - exclude navigation elements
+      // Capture with snapdom - exclude only navigation containers using data attribute
       const out = await snapdom(cardElement, {
         backgroundColor: '#0A0A0A',
         scale: 2,
-        
+        exclude: ['[data-exclude-from-screenshot]'],
+        embedFonts: true,
         plugins: [capturePlugin]
       });
       
@@ -2869,7 +2870,7 @@ export default function MALWrapped() {
           {isAuthenticated && stats && slides.length > 0 && (
             <div className="w-full h-full flex flex-col overflow-hidden">
               {/* Top Bar - Year Selector and Download */}
-              <div className="flex-shrink-0 px-3 sm:px-4 md:px-6 pt-3 pb-2 flex items-center justify-between gap-2 sm:gap-3">
+              <div className="flex-shrink-0 px-3 sm:px-4 md:px-6 pt-3 pb-2 flex items-center justify-between gap-2 sm:gap-3" data-exclude-from-screenshot>
                 <div className="flex items-center gap-2 sm:gap-3">
                   <div className="relative min-w-[120px] sm:min-w-[140px]">
                   <select
@@ -2903,7 +2904,7 @@ export default function MALWrapped() {
               </div>
               
               {/* Progress Bar */}
-              <div className="flex-shrink-0 px-3 sm:px-4 md:px-6 pb-3 flex items-center gap-1 sm:gap-2">
+              <div className="flex-shrink-0 px-3 sm:px-4 md:px-6 pb-3 flex items-center gap-1 sm:gap-2" data-exclude-from-screenshot>
                 {slides.map((_, i) => {
                   const isCompleted = i < currentSlide;
                   const isActive = i === currentSlide;
@@ -2926,7 +2927,7 @@ export default function MALWrapped() {
               </div>
               
               {/* Bottom Controls */}
-              <div className="flex-shrink-0 w-full px-3 sm:px-4 md:px-6 pb-3 sm:pb-4 flex items-center justify-between gap-2">
+              <div className="flex-shrink-0 w-full px-3 sm:px-4 md:px-6 pb-3 sm:pb-4 flex items-center justify-between gap-2" data-exclude-from-screenshot>
               <button
                 onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))}
                 disabled={currentSlide === 0}
