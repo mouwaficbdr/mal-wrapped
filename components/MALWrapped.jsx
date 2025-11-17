@@ -2906,10 +2906,10 @@ export default function MALWrapped() {
                         color: '#ffffff'
                       }}
                     >
-                      <option value="2023" style={{ background: 'rgba(255, 255, 255, 0.05)', color: '#ffffff' }}>2023</option>
-                      <option value="2024" style={{ background: 'rgba(255, 255, 255, 0.05)', color: '#ffffff' }}>2024</option>
-                      <option value="2025" style={{ background: 'rgba(255, 255, 255, 0.05)', color: '#ffffff' }}>2025</option>
-                      <option value="all" style={{ background: 'rgba(255, 255, 255, 0.05)', color: '#ffffff' }}>All Time</option>
+                      <option value="2023" style={{ background: 'rgba(0, 0, 0, 0.85)', color: '#ffffff' }}>2023</option>
+                      <option value="2024" style={{ background: 'rgba(0, 0, 0, 0.85)', color: '#ffffff' }}>2024</option>
+                      <option value="2025" style={{ background: 'rgba(0, 0, 0, 0.85)', color: '#ffffff' }}>2025</option>
+                      <option value="all" style={{ background: 'rgba(0, 0, 0, 0.85)', color: '#ffffff' }}>All Time</option>
                   </select>
                     <div className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 pointer-events-none z-10">
                       <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2921,10 +2921,13 @@ export default function MALWrapped() {
                     <Download className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
                 </div>
-                <button onClick={handleLogout} className="p-1.5 sm:p-2 text-white rounded-full border-box-cyan transition-all flex items-center gap-1.5 sm:gap-2" title="Logout">
+                <motion.button onClick={handleLogout} className="p-1.5 sm:p-2 text-white rounded-full border-box-cyan transition-all flex items-center gap-1.5 sm:gap-2" title="Logout"  
+                whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    transition={{ duration: 0.2 }}>
                   <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
                   <span className="text-xs sm:text-sm font-medium hidden sm:inline">Logout</span>
-                </button>
+                </motion.button>
               </div>
               
               {/* Progress Bar */}
