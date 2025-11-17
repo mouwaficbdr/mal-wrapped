@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, Download, LogOut, Share2 } from 'lucide-react';
-import { easeInOut, motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+
+// Smooth easing function - no spring, no shrinking, very smooth
+const smoothEase = [0.25, 0.1, 0.25, 1];
 
 function generateCodeVerifier(length = 128) {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
@@ -24,25 +27,25 @@ const AUTH_URL = 'https://myanimelist.net/v1/oauth2/authorize';
 const fadeSlideUp = {
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.6, ease: easeInOut }
+  transition: { duration: 0.6, ease: smoothEase }
 };
 
 const fadeIn = {
   initial: { opacity: 0 },
   animate: { opacity: 1 },
-  transition: { duration: 0.6, ease: easeInOut }
+  transition: { duration: 0.6, ease: smoothEase }
 };
 
 const fadeIn100 = {
   initial: { opacity: 0 },
   animate: { opacity: 1 },
-  transition: { duration: 0.2, ease: easeInOut }
+  transition: { duration: 0.2, ease: smoothEase }
 };
 
 const fadeIn300 = {
   initial: { opacity: 0 },
   animate: { opacity: 1 },
-  transition: { duration: 0.4, ease: easeInOut }
+  transition: { duration: 0.4, ease: smoothEase }
 };
 
 const pulse = {
@@ -51,7 +54,7 @@ const pulse = {
     transition: {
       duration: 2,
       repeat: Infinity,
-      ease: easeInOut
+      ease: smoothEase
     }
   }
 };
@@ -62,7 +65,7 @@ const float = {
     transition: {
       duration: 8,
       repeat: Infinity,
-      ease: easeInOut
+      ease: smoothEase
     }
   }
 };
@@ -86,7 +89,7 @@ const staggerItem = {
     y: 0,
     transition: {
       duration: 0.5,
-      ease: easeInOut
+      ease: smoothEase
     }
   }
 };
@@ -94,7 +97,7 @@ const staggerItem = {
 
 const hoverImage = {
   scale: 1.1,
-  transition: { duration: 0.3, ease: easeInOut }
+  transition: { duration: 0.3, ease: smoothEase }
 };
 
 // Animated Number Component using Framer Motion
@@ -149,7 +152,7 @@ function AnimatedNumber({ value, duration = 1.5, className = '' }) {
       className={className}
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.3, ease: easeInOut }}
+      transition={{ duration: 0.3, ease: smoothEase }}
     >
       {Math.floor(displayValue).toLocaleString()}
     </motion.span>
@@ -772,8 +775,8 @@ export default function MALWrapped() {
           return new Promise((resolve, reject) => {
             img.onload = resolve;
             img.onerror = resolve; // Continue even if image fails
-            // Timeout after 3 seconds
-            setTimeout(resolve, 3000);
+            // Timeout after 500ms (reduced from 3 seconds)
+            setTimeout(resolve, 500);
           });
         })
       );
@@ -815,15 +818,42 @@ export default function MALWrapped() {
           }
           
           // Hide all navigation and control bars in cloned document
-          const flexShrinkBars = clonedDoc.querySelectorAll('.flex-shrink-0');
-          flexShrinkBars.forEach(bar => {
+          const hideElement = (el) => {
+            el.style.display = 'none';
+            el.style.visibility = 'hidden';
+            el.style.opacity = '0';
+            el.style.height = '0';
+            el.style.padding = '0';
+            el.style.margin = '0';
+            el.style.overflow = 'hidden';
+          };
+          
+          // Hide top navigation bar (year selector and download button)
+          const topBars = clonedDoc.querySelectorAll('.flex-shrink-0');
+          topBars.forEach(bar => {
             // Check if this is a control bar (has buttons, select, or progress indicators)
             const hasControls = bar.querySelector('button') || 
                                bar.querySelector('select') || 
                                bar.querySelectorAll('div[class*="rounded-full"]').length > 0 ||
                                bar.textContent.includes('/');
             if (hasControls) {
-              bar.style.display = 'none';
+              hideElement(bar);
+            }
+          });
+          
+          // Also hide any navigation elements by class or structure
+          const navElements = clonedDoc.querySelectorAll('[class*="flex-shrink-0"]');
+          navElements.forEach(el => {
+            if (el.querySelector('button') || el.querySelector('select')) {
+              hideElement(el);
+            }
+          });
+          
+          // Hide progress bar specifically
+          const progressBars = clonedDoc.querySelectorAll('[class*="flex-shrink-0"]');
+          progressBars.forEach(bar => {
+            if (bar.textContent.includes('/') || bar.querySelectorAll('div[class*="rounded-full"]').length > 0) {
+              hideElement(bar);
             }
           });
           
@@ -989,7 +1019,7 @@ export default function MALWrapped() {
                 style={{ boxSizing: 'border-box', border: '1px solid white' }}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.6, delay: 0.3, ease: easeInOut }}
+                transition={{ duration: 0.6, delay: 0.3, ease: smoothEase }}
               >
                 {topItem.node?.main_picture?.large && (
                   <motion.img 
@@ -1076,7 +1106,7 @@ export default function MALWrapped() {
                     style={{ padding: '2px' }}
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: 0.1, ease: easeInOut }}
+                    transition={{ duration: 0.3, delay: 0.1, ease: smoothEase }}
                   >
                     <motion.div 
                       className="bg-white/5 rounded-xl w-full h-full flex flex-row items-center"
@@ -1264,7 +1294,7 @@ export default function MALWrapped() {
               transition={{
                 duration: 8,
                 repeat: Infinity,
-                ease: easeInOut
+                ease: smoothEase
               }}
               data-framer-motion
               data-shape-blur
@@ -1286,7 +1316,7 @@ export default function MALWrapped() {
               transition={{
                 duration: 7,
                 repeat: Infinity,
-                ease: easeInOut
+                ease: smoothEase
               }}
               data-framer-motion
               data-shape-blur
@@ -1307,7 +1337,7 @@ export default function MALWrapped() {
               transition={{
                 duration: 10,
                 repeat: Infinity,
-                ease: easeInOut
+                ease: smoothEase
               }}
               data-framer-motion
               data-shape-blur
@@ -1328,7 +1358,7 @@ export default function MALWrapped() {
               transition={{
                 duration: 12,
                 repeat: Infinity,
-                ease: easeInOut
+                ease: smoothEase
               }}
               data-framer-motion
               data-shape-blur
@@ -1468,14 +1498,14 @@ export default function MALWrapped() {
                   transition={{ 
                     duration: 0.4,
                     delay: (idx % visibleItems.length) * 0.05,
-                    ease: easeInOut
+                    ease: smoothEase
                   }}
                 >
                   <motion.div 
                     className="aspect-[2/3] w-full bg-transparent border border-white/5 rounded-lg relative" 
                     style={{ maxHeight: '275px', maxWidth: '100%', boxSizing: 'border-box', overflow: 'hidden', padding: '1px' }}
                     whileHover={{ borderColor: '#ffffff' }}
-                    transition={{ duration: 0.3, ease: easeInOut }}
+                    transition={{ duration: 0.3, ease: smoothEase }}
                   >
                       {item.coverImage && (
                         <motion.img 
@@ -1583,14 +1613,14 @@ export default function MALWrapped() {
                   transition={{ 
                     duration: 0.5,
                     delay: idx * 0.08,
-                    ease: easeInOut
+                    ease: smoothEase
                   }}
                 >
                   <motion.div 
                     className="aspect-[2/3] bg-transparent border border-white/5 rounded-lg overflow-hidden relative" 
                     style={{ maxHeight: '275px', maxWidth: '183px', width: '100%', boxSizing: 'border-box' }}
                     whileHover={{ borderColor: '#ffffff' }}
-                    transition={{ duration: 0.3, eease: easeInOut}}
+                    transition={{ duration: 0.3, ease: smoothEase }}
                   >
                   {item.coverImage && (
                     <motion.img 
@@ -1640,7 +1670,7 @@ export default function MALWrapped() {
           transition={{ 
             duration: 0.4,
             delay: rank * 0.05,
-            ease: easeInOut
+            ease: smoothEase
           }}
           whileHover={{ 
             backgroundColor: 'rgba(255, 255, 255, 0.05)',
@@ -1671,7 +1701,7 @@ export default function MALWrapped() {
           className="bg-transparent border border-white/5 rounded-lg overflow-hidden aspect-[2/3] relative" 
           style={{ boxSizing: 'border-box' }}
           whileHover={{ borderColor: '#ffffff' }}
-          transition={{ duration: 0.3, ease: easeInOut}}
+          transition={{ duration: 0.3, ease: smoothEase }}
         >
           {rank && (
             <div className="absolute top-2 right-2 z-10 w-8 h-8 bg-black text-white rounded-full flex items-center justify-center font-medium text-lg">
@@ -2013,7 +2043,7 @@ export default function MALWrapped() {
                     <motion.div 
                       className="bg-black/20 rounded-xl p-1.5 sm:p-2 h-full"
                       whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
-                      transition={{ duration: 0.3, ease: easeInOut}}
+                      transition={{ duration: 0.3, ease: smoothEase }}
                     >
                       <h3 className="heading-md font-semibold text-white mb-1 sm:mb-2 text-sm sm:text-base">{season}</h3>
                     {highlight && (
@@ -2783,7 +2813,7 @@ export default function MALWrapped() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, ease: easeInOut }}
+                transition={{ duration: 0.6, ease: smoothEase }}
               >
                 <motion.h1 
                   className="text-4xl md:text-5xl font-light text-white mb-8 tracking-tight"
@@ -2808,7 +2838,7 @@ export default function MALWrapped() {
                         duration: 1.2,
                         repeat: Infinity,
                         delay: index * 0.2,
-                        ease: "easeInOut"
+                        ease: smoothEase
                       }}
                     />
                   ))}
@@ -2822,7 +2852,7 @@ export default function MALWrapped() {
                     animate={{ width: `${loadingProgressPercent}%` }}
                     transition={{
                       duration: 0.3,
-                      ease: easeInOut
+                      ease: smoothEase
                     }}
                   />
                 </div>
@@ -2879,7 +2909,7 @@ export default function MALWrapped() {
                   disabled={!CLIENT_ID || CLIENT_ID === '<your_client_id_here>'}
                     whileHover={{ scale: 1.05, backgroundColor: '#f5f5f5' }}
                     whileTap={{ scale: 0.95 }}
-                    transition={{ duration: 0.2, ease: easeInOut }}
+                    transition={{ duration: 0.2, ease: smoothEase }}
                 >
               Connect with MAL
                   </motion.button>
