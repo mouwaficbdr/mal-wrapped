@@ -2878,7 +2878,7 @@ export default function MALWrapped() {
                 transition={{ duration: 0.6, ease: smoothEase }}
               >
                 <motion.h1 
-                  className="title-lg font-regular text-white mb-8 tracking-tight"
+                  className="title-md font-regular text-white mb-8 tracking-tight"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.8, delay: 0.2 }}
@@ -2891,7 +2891,7 @@ export default function MALWrapped() {
                   <motion.div
                     className="h-full"
                     style={{
-                      background: 'linear-gradient(90deg, rgba(138, 43, 226, 0.3) 0%, rgba(75, 0, 130, 0.3) 20%, rgba(0, 0, 255, 0.3) 40%, rgba(0, 255, 255, 0.3) 60%, rgba(0, 255, 0, 0.3) 80%, rgba(255, 255, 0, 0.3) 100%)'
+                      background: 'linear-gradient(90deg, rgba(138, 43, 226, 0.6) 0%, rgba(75, 0, 130, 0.6) 20%, rgba(0, 0, 255, 0.6) 40%, rgba(0, 255, 255, 0.6) 60%, rgba(0, 255, 0, 0.6) 80%, rgba(255, 255, 0, 0.6) 100%)'
                     , filter: 'blur(10px)'
                     }}
                     initial={{ width: "0%" }}
