@@ -2891,8 +2891,8 @@ export default function MALWrapped() {
                   <motion.div
                     className="h-full"
                     style={{
-                      background: 'linear-gradient(90deg, rgba(138, 43, 226, 0.6) 0%, rgba(75, 0, 130, 0.6) 20%, rgba(0, 0, 255, 0.6) 40%, rgba(0, 255, 255, 0.6) 60%, rgba(0, 255, 0, 0.6) 80%, rgba(255, 255, 0, 0.6) 100%)'
-                    , filter: 'blur(10px)'
+                      background: 'linear-gradient(90deg, rgba(138, 43, 226, 0.8) 0%, rgba(75, 0, 130, 0.8) 20%, rgba(0, 0, 255, 0.8) 40%, rgba(0, 255, 255, 0.8) 60%, rgba(0, 255, 0, 0.8) 80%, rgba(255, 255, 0, 0.8) 100%)'
+                    , filter: 'blur(2px)'
                     }}
                     initial={{ width: "0%" }}
                     animate={{ width: `${loadingProgressPercent}%` }}
@@ -2965,7 +2965,7 @@ export default function MALWrapped() {
           )}
 
           {isAuthenticated && stats && slides.length > 0 && (
-            <div className="w-full h-full flex flex-col overflow-hidden">
+            <div className="w-full h-full flex flex-col overflow-hidden relative">
               {/* Top Bar - Year Selector and Download */}
               <div className="flex-shrink-0 px-3 sm:px-4 md:px-6 pt-3 pb-2 flex items-center justify-between gap-2 sm:gap-3" data-exclude-from-screenshot>
                 <div className="flex items-center gap-2 sm:gap-3">
@@ -3046,15 +3046,31 @@ export default function MALWrapped() {
                 })}
               </div>
               
+              {/* Top gradient fade */}
+              <div 
+                className="absolute top-0 left-0 right-0 h-16 pointer-events-none z-20"
+                style={{
+                  background: 'linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.8) 30%, rgba(0, 0, 0, 0) 100%)'
+                }}
+              />
+              
               {/* Slide Content */}
-              <div key={currentSlide} className="w-full flex-grow flex items-center justify-center overflow-y-auto py-2 sm:py-4">
+              <div key={currentSlide} className="w-full flex-grow flex items-center justify-center overflow-y-auto py-2 sm:py-4 relative">
                 <div className="w-full h-full relative overflow-y-auto">
                   <SlideContent slide={slides[currentSlide]} mangaListData={mangaList} />
                 </div>
               </div>
               
+              {/* Bottom gradient fade */}
+              <div 
+                className="absolute bottom-0 left-0 right-0 h-16 pointer-events-none z-20"
+                style={{
+                  background: 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.8) 30%, rgba(0, 0, 0, 0) 100%)'
+                }}
+              />
+              
               {/* Bottom Controls */}
-              <div className="flex-shrink-0 w-full px-3 sm:px-4 md:px-6 pb-3 sm:pb-4 flex items-center justify-between gap-2" data-exclude-from-screenshot>
+              <div className="flex-shrink-0 w-full px-3 sm:px-4 md:px-6 pb-3 sm:pb-4 flex items-center justify-between gap-2 relative z-30" data-exclude-from-screenshot>
               <button
                 onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))}
                 disabled={currentSlide === 0}
