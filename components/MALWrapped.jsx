@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, Download, LogOut, Share2 } from 'lucide-react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 
-// Smooth easing function - no spring, no shrinking, very smooth
 const smoothEase = [0.25, 0.1, 0.25, 1];
+
 
 function generateCodeVerifier(length = 128) {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
@@ -775,8 +775,8 @@ export default function MALWrapped() {
           return new Promise((resolve, reject) => {
             img.onload = resolve;
             img.onerror = resolve; // Continue even if image fails
-            // Timeout after 500ms (reduced from 3 seconds)
-            setTimeout(resolve, 500);
+            // Timeout after 3 seconds
+            setTimeout(resolve, 3000);
           });
         })
       );
@@ -784,7 +784,7 @@ export default function MALWrapped() {
       // Dynamically import snapdom
       const { snapdom } = await import('@zumer/snapdom');
       
-      // Create a plugin to stop animations and preserve styling
+      // Create a plugin to stop animations and hide navigation
       const capturePlugin = {
         name: 'mal-wrapped-capture',
         async afterClone(context) {
@@ -817,6 +817,19 @@ export default function MALWrapped() {
             });
           }
           
+          // Hide all navigation and control bars in cloned document
+          const flexShrinkBars = clonedDoc.querySelectorAll('.flex-shrink-0');
+          flexShrinkBars.forEach(bar => {
+            // Check if this is a control bar (has buttons, select, or progress indicators)
+            const hasControls = bar.querySelector('button') || 
+                               bar.querySelector('select') || 
+                               bar.querySelectorAll('div[class*="rounded-full"]').length > 0 ||
+                               bar.textContent.includes('/');
+            if (hasControls) {
+              bar.style.display = 'none';
+            }
+          });
+          
           // Ensure all images are properly displayed with correct sizing
           const clonedImages = clonedDoc.querySelectorAll('img');
           clonedImages.forEach(img => {
@@ -837,48 +850,13 @@ export default function MALWrapped() {
               }
             }
           });
-          
-          // Ensure fonts are loaded and applied for text elements, especially ratings
-          // Find rating elements and preserve their styling
-          const ratingElements = clonedDoc.querySelectorAll('.text-yellow-300, [class*="heading-sm"], [class*="body-sm"]');
-          ratingElements.forEach(el => {
-            // Check if this is a rating element
-            const isRating = el.textContent?.includes('★') || 
-                            el.textContent?.match(/\d+\.\d+\s*\/\s*10/) ||
-                            el.classList.contains('text-yellow-300');
-            
-            if (isRating) {
-              // Preserve font properties to prevent breaking
-              el.style.whiteSpace = 'nowrap';
-              el.style.display = 'inline-flex';
-              el.style.alignItems = 'center';
-              el.style.gap = '0.25rem';
-              // Ensure color is preserved
-              if (el.classList.contains('text-yellow-300')) {
-                el.style.color = '#fbbf24';
-              }
-            }
-          });
-          
-          // Also check all text nodes for rating patterns
-          const allTextElements = clonedDoc.querySelectorAll('*');
-          allTextElements.forEach(el => {
-            if (el.textContent && (el.textContent.includes('★') || el.textContent.match(/\d+\.\d+\s*\/\s*10/))) {
-              el.style.whiteSpace = 'nowrap';
-              if (!el.style.color && el.classList.contains('text-yellow-300')) {
-                el.style.color = '#fbbf24';
-              }
-            }
-          });
         }
       };
       
-      // Capture with snapdom - exclude navigation elements
+      // Capture with snapdom
       const out = await snapdom(cardElement, {
         backgroundColor: '#0A0A0A',
         scale: 2,
-        exclude: ['.flex-shrink-0', 'button', 'select'],
-        excludeMode: 'remove',
         plugins: [capturePlugin]
       });
       
@@ -1615,7 +1593,7 @@ export default function MALWrapped() {
                     className="aspect-[2/3] bg-transparent border border-white/5 rounded-lg overflow-hidden relative" 
                     style={{ maxHeight: '275px', maxWidth: '183px', width: '100%', boxSizing: 'border-box' }}
                     whileHover={{ borderColor: '#ffffff' }}
-                    transition={{ duration: 0.3, ease: smoothEase }}
+                    transition={{ duration: 0.3, eease: smoothEase}}
                   >
                   {item.coverImage && (
                     <motion.img 
@@ -1696,7 +1674,7 @@ export default function MALWrapped() {
           className="bg-transparent border border-white/5 rounded-lg overflow-hidden aspect-[2/3] relative" 
           style={{ boxSizing: 'border-box' }}
           whileHover={{ borderColor: '#ffffff' }}
-          transition={{ duration: 0.3, ease: smoothEase }}
+          transition={{ duration: 0.3, ease: smoothEase}}
         >
           {rank && (
             <div className="absolute top-2 right-2 z-10 w-8 h-8 bg-black text-white rounded-full flex items-center justify-center font-medium text-lg">
@@ -2038,7 +2016,7 @@ export default function MALWrapped() {
                     <motion.div 
                       className="bg-black/20 rounded-xl p-1.5 sm:p-2 h-full"
                       whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
-                      transition={{ duration: 0.3, ease: smoothEase }}
+                      transition={{ duration: 0.3, ease: smoothEase}}
                     >
                       <h3 className="heading-md font-semibold text-white mb-1 sm:mb-2 text-sm sm:text-base">{season}</h3>
                     {highlight && (
@@ -2833,7 +2811,7 @@ export default function MALWrapped() {
                         duration: 1.2,
                         repeat: Infinity,
                         delay: index * 0.2,
-                        ease: smoothEase
+                        ease: "smoothEase"
                       }}
                     />
                   ))}
