@@ -766,25 +766,12 @@ export default function MALWrapped() {
     if (!slideRef.current || typeof window === 'undefined') return;
     
     try {
-      // Wait for all images to load
       const cardElement = slideRef.current;
-      const images = cardElement.querySelectorAll('img');
-      await Promise.all(
-        Array.from(images).map(img => {
-          if (img.complete) return Promise.resolve();
-          return new Promise((resolve, reject) => {
-            img.onload = resolve;
-            img.onerror = resolve; // Continue even if image fails
-            // Timeout after 3 seconds
-            setTimeout(resolve, 3000);
-          });
-        })
-      );
       
       // Dynamically import snapdom
       const { snapdom } = await import('@zumer/snapdom');
       
-      // Create a plugin to stop animations and hide navigation
+      // Create a plugin to stop animations
       const capturePlugin = {
         name: 'mal-wrapped-capture',
         async afterClone(context) {
@@ -817,19 +804,6 @@ export default function MALWrapped() {
             });
           }
           
-          // Hide all navigation and control bars in cloned document
-          const flexShrinkBars = clonedDoc.querySelectorAll('.flex-shrink-0');
-          flexShrinkBars.forEach(bar => {
-            // Check if this is a control bar (has buttons, select, or progress indicators)
-            const hasControls = bar.querySelector('button') || 
-                               bar.querySelector('select') || 
-                               bar.querySelectorAll('div[class*="rounded-full"]').length > 0 ||
-                               bar.textContent.includes('/');
-            if (hasControls) {
-              bar.style.display = 'none';
-            }
-          });
-          
           // Ensure all images are properly displayed with correct sizing
           const clonedImages = clonedDoc.querySelectorAll('img');
           clonedImages.forEach(img => {
@@ -853,20 +827,18 @@ export default function MALWrapped() {
         }
       };
       
-      // Capture with snapdom
-      const out = await snapdom(cardElement, {
+      // Capture with snapdom - exclude navigation elements
+      const pngDataUrl = await snapdom.toPng(cardElement, {
         backgroundColor: '#0A0A0A',
         scale: 2,
+        exclude: ['.flex-shrink-0', 'button', 'select'],
         plugins: [capturePlugin]
       });
-      
-      // Export as PNG image element
-      const png = await out.toPng();
       
       // Create download link
       const link = document.createElement('a');
       link.download = `mal-wrapped-${username || 'user'}-slide-${currentSlide + 1}.png`;
-      link.href = png.src;
+      link.href = pngDataUrl;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
