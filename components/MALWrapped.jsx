@@ -819,6 +819,7 @@ export default function MALWrapped() {
           
           // Hide all navigation and control bars in cloned document
           const hideElement = (el) => {
+            if (!el) return;
             el.style.display = 'none';
             el.style.visibility = 'hidden';
             el.style.opacity = '0';
@@ -826,7 +827,23 @@ export default function MALWrapped() {
             el.style.padding = '0';
             el.style.margin = '0';
             el.style.overflow = 'hidden';
+            el.style.position = 'absolute';
+            el.style.left = '-9999px';
           };
+          
+          // Hide all buttons and selects directly first
+          const allButtons = clonedDoc.querySelectorAll('button');
+          allButtons.forEach(btn => hideElement(btn));
+          
+          const allSelects = clonedDoc.querySelectorAll('select');
+          allSelects.forEach(sel => hideElement(sel));
+          
+          // Hide all SVG icons (download, logout, arrows)
+          const allSvgs = clonedDoc.querySelectorAll('svg');
+          allSvgs.forEach(svg => {
+            const parent = svg.closest('button, .flex-shrink-0');
+            if (parent) hideElement(parent);
+          });
           
           // Hide top navigation bar (year selector and download button)
           const topBars = clonedDoc.querySelectorAll('.flex-shrink-0');
@@ -834,6 +851,7 @@ export default function MALWrapped() {
             // Check if this is a control bar (has buttons, select, or progress indicators)
             const hasControls = bar.querySelector('button') || 
                                bar.querySelector('select') || 
+                               bar.querySelector('svg') ||
                                bar.querySelectorAll('div[class*="rounded-full"]').length > 0 ||
                                bar.textContent.includes('/');
             if (hasControls) {
@@ -844,7 +862,7 @@ export default function MALWrapped() {
           // Also hide any navigation elements by class or structure
           const navElements = clonedDoc.querySelectorAll('[class*="flex-shrink-0"]');
           navElements.forEach(el => {
-            if (el.querySelector('button') || el.querySelector('select')) {
+            if (el.querySelector('button') || el.querySelector('select') || el.querySelector('svg')) {
               hideElement(el);
             }
           });
@@ -1042,7 +1060,7 @@ export default function MALWrapped() {
                   </p>
                 )}
                 <div className="flex items-left justify-left heading-sm text-yellow-300 font-semibold">
-                  <span className="mr-2">★</span>
+                  <span className="mr-2" style={{ fontFamily: 'Arial, sans-serif' }}>★</span>
                   <span>{topItem.list_status?.score?.toFixed(1)} / 10</span>
                 </div>
               </div>
@@ -1151,7 +1169,7 @@ export default function MALWrapped() {
                       {featured.studio && <p className="body-sm text-white truncate font-regular text-left">{featured.studio}</p>}
                       {featured.author && <p className="body-md text-white truncate font-medium text-left">{featured.author}</p>}
                       <div className="flex items-left justify-left body-sm text-yellow-300 mt-2 font-semibold">
-                          <span className="mr-0.5 sm:mr-1">★</span>
+                          <span className="mr-0.5 sm:mr-1" style={{ fontFamily: 'Arial, sans-serif' }}>★</span>
                           <span>{featured.userRating.toFixed(1)} / 10</span>
                         </div>
                         {featured.genres.length > 0 && (
@@ -1210,7 +1228,7 @@ export default function MALWrapped() {
                             <div className="mt-2 text-center w-full min-w-0">
                               <h3 className="title-sm truncate font-semibold text-white">{item.title}</h3>
                               <div className="flex items-center justify-center body-sm text-yellow-300 font-semibold">
-                                  <span className="mr-0.5 sm:mr-1 shrink-0">★</span>
+                                  <span className="mr-0.5 sm:mr-1 shrink-0" style={{ fontFamily: 'Arial, sans-serif' }}>★</span>
                                   <span>{item.userRating.toFixed(1)}</span>
                                 </div>
                               </div>
@@ -1527,7 +1545,7 @@ export default function MALWrapped() {
                         <p className="title-sm text-center">{item.title}</p>
                         {item.userRating && (
                           <div className="absolute bottom-2 right-2 text-yellow-300 body-sm font-medium">
-                            ★ {item.userRating.toFixed(1)}
+                            <span style={{ fontFamily: 'Arial, sans-serif' }}>★</span> {item.userRating.toFixed(1)}
                           </div>
                         )}
                       </motion.div>
@@ -1537,7 +1555,7 @@ export default function MALWrapped() {
                     <div className="mt-2 text-center">
                       <p className="title-sm truncate">{item.title}</p>
                       {item.userRating && (
-                        <p className="body-sm text-yellow-300">★ {item.userRating.toFixed(1)}</p>
+                        <p className="body-sm text-yellow-300"><span style={{ fontFamily: 'Arial, sans-serif' }}>★</span> {item.userRating.toFixed(1)}</p>
                       )}
                     </div>
                   )}
@@ -1685,7 +1703,7 @@ export default function MALWrapped() {
               <p className="body-md text-white/50">{item.count} entries</p>
             </div>
           </div>
-          {isTop && <span className="text-yellow-300 heading-md ml-3 shrink-0">★</span>}
+          {isTop && <span className="text-yellow-300 heading-md ml-3 shrink-0" style={{ fontFamily: 'Arial, sans-serif' }}>★</span>}
         </motion.div>
       );
     };
@@ -1721,7 +1739,7 @@ export default function MALWrapped() {
         <div className="mt-2">
           <h3 className="title-md truncate">{item.title}</h3>
           <div className="flex items-center body-md text-yellow-300">
-            <span className="mr-1">★</span>
+            <span className="mr-1" style={{ fontFamily: 'Arial, sans-serif' }}>★</span>
             <span>{item.userRating?.toFixed(1) || 'N/A'}</span>
           </div>
         </div>
@@ -2069,7 +2087,7 @@ export default function MALWrapped() {
                           <div className="flex-1 min-w-0">
                               <p className="title-md truncate font-semibold text-white text-xs sm:text-sm md:text-base">{highlight.node?.title}</p>
                               <p className="body-md text-white truncate font-medium text-xs sm:text-sm">{highlight.node?.studios?.[0]?.name || ''}</p>
-                              <p className="body-md text-yellow-300 mt-1 sm:mt-2 font-medium text-xs sm:text-sm">★ {highlight.list_status?.score || 'N/A'}</p>
+                              <p className="body-md text-yellow-300 mt-1 sm:mt-2 font-medium text-xs sm:text-sm"><span style={{ fontFamily: 'Arial, sans-serif' }}>★</span> {highlight.list_status?.score || 'N/A'}</p>
                               <p className="body-sm text-white/80 mt-1 sm:mt-2 font-semibold text-xs sm:text-sm">{seasonData.totalAnime} anime</p>
                           </div>
                         </div>
