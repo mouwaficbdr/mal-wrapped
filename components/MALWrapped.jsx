@@ -108,7 +108,7 @@ function AnimatedNumber({ value, duration = 1.5, className = '' }) {
   const motionValue = useMotionValue(0);
   const spring = useSpring(motionValue, {
     damping: 20,
-    stiffness: 200,
+    stiffness: 100,
     mass: 1
   });
   const display = useTransform(spring, (latest) => Math.floor(latest).toLocaleString());
