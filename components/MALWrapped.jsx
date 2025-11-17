@@ -1571,11 +1571,14 @@ export default function MALWrapped() {
                   }}
                 >
                   <motion.div 
-                    className="aspect-[2/3] bg-transparent border border-white/5 rounded-lg overflow-hidden relative" 
+                    className="aspect-[2/3] bg-transparent border border-box-cyan rounded-lg overflow-hidden rounded-xl relative w-full shadow-lg" 
                     style={{ maxHeight: '275px', maxWidth: '183px', width: '100%', boxSizing: 'border-box' }}
                     whileHover={{ borderColor: '#ffffff' }}
-                    transition={{ duration: 0.3, eease: smoothEase}}
+                    transition={{ duration: 0.3, ease: smoothEase}}
                   >
+                    <div className="bg-transparent rounded-xl w-full h-full overflow-hidden relative">
+                                <div className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 z-10 w-5 h-5 sm:w-6 sm:h-6 bg-white text-black rounded-full flex items-center justify-center font-semibold text-xs sm:text-sm shadow-md">{index + 2}</div>
+                                
                   {item.coverImage && (
                     <motion.img 
                       src={item.coverImage} 
@@ -1585,6 +1588,7 @@ export default function MALWrapped() {
                       whileHover={hoverImage}
                     />
                   )}
+                  </div>
                 </motion.div>
                 {item.title && (
                     <div className="mt-2 text-center w-full px-1">
