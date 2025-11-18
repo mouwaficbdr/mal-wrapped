@@ -211,6 +211,14 @@ export default function MALWrapped() {
   const siteName = typeof window !== 'undefined'
     ? window.location.origin.replace(/^https?:\/\//, '')
     : 'myanimelist.net';
+  const currentSlideId = slides[currentSlide]?.id;
+  const isFinalSlide = currentSlideId === 'finale';
+  const topGradientBackground = isFinalSlide
+    ? 'linear-gradient(to bottom, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.6) 35%, rgba(0, 0, 0, 0.25) 70%, rgba(0, 0, 0, 0) 100%)'
+    : 'linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.95) 20%, rgba(0, 0, 0, 0.8) 50%, rgba(0, 0, 0, 0.4) 80%, rgba(0, 0, 0, 0) 100%)';
+  const bottomGradientBackground = isFinalSlide
+    ? 'linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.6) 35%, rgba(0, 0, 0, 0.25) 70%, rgba(0, 0, 0, 0) 100%)'
+    : 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.95) 20%, rgba(0, 0, 0, 0.8) 50%, rgba(0, 0, 0, 0.4) 80%, rgba(0, 0, 0, 0) 100%)';
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -773,6 +781,7 @@ export default function MALWrapped() {
     
     try {
       const cardElement = slideRef.current;
+      cardElement.classList.add('capturing');
       
       // Dynamically import snapdom
       const { snapdom } = await import('@zumer/snapdom');
@@ -854,6 +863,10 @@ export default function MALWrapped() {
     } catch (err) {
       console.error('Error generating PNG:', err);
       throw err;
+    } finally {
+      if (slideRef.current) {
+        slideRef.current.classList.remove('capturing');
+      }
     }
   }
 
@@ -2924,18 +2937,18 @@ export default function MALWrapped() {
                   <div className="space-y-1">
                     <p className="body-sm text-white/50 font-medium mb-2">Watched</p>
                     <p className="title-md text-white  font-medium">
-                    {stats.totalAnime || 0}
+                    {stats.totalAnime || 0} Anime
                   </p>
                   </div>
                   <div className="space-y-1">
                     <p className="body-sm text-white/50 font-medium mb-2">Read</p>
                     <p className="title-md text-white font-medium">
-                    {stats.totalManga || 0}
+                    {stats.totalManga || 0} Manga
                   </p>
                 </div>
                 <div className="space-y-1">
                   <p className="body-sm text-white/50 font-medium mb-2">Spent</p>
-                  <p className="title-md text-white font-medium">
+                  <p className="title-lg text-white font-medium">
                   {totalDays > 0 ? (
                     <>
                       {totalDays} Days
@@ -2947,11 +2960,6 @@ export default function MALWrapped() {
                   )}
                 </p>
                   </div>
-                </div>
-
-                <div className="flex flex-col items-center gap-1 text-white/60 text-xs sm:text-sm tracking-[0.25em] uppercase">
-                  <span>{siteName}</span>
-                  <span>Made by XAvishkar</span>
                 </div>
                 
             </motion.div>
@@ -3032,6 +3040,10 @@ export default function MALWrapped() {
         </div>
       )}
       <div ref={slideRef} className="w-full max-w-5xl bg-black rounded-2xl flex flex-col justify-center relative overflow-hidden slide-card" style={{ zIndex: 10, height: '100dvh', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+        <div className="download-watermark pointer-events-none">
+          <span className="download-watermark__brand">{siteName}</span>
+          <span className="download-watermark__author">Made by XAvishkar</span>
+        </div>
         <div className="z-10 w-full h-full flex flex-col items-center justify-center">
           {error && (
             <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-lg z-50">
@@ -3177,6 +3189,10 @@ export default function MALWrapped() {
                     <Download className="w-4 h-4 sm:w-5 sm:h-5" />
                   </motion.button>
                 </div>
+                <div className="flex-1 flex flex-col items-center justify-center text-center gap-0.5">
+                  <span className="text-white/60 text-[10px] sm:text-xs tracking-[0.35em] uppercase">{siteName}</span>
+                  <span className="text-white/40 text-[10px] tracking-[0.3em] uppercase">Made by XAvishkar</span>
+                </div>
                 <motion.button 
                   onClick={handleLogout} 
                   className="p-1.5 sm:p-2 text-white rounded-full flex items-center gap-1.5 sm:gap-2" 
@@ -3221,7 +3237,7 @@ export default function MALWrapped() {
                   className="absolute top-0 left-0 right-0 h-32 sm:h-40 pointer-events-none"
                   style={{
                     zIndex: 15,
-                    background: 'linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.95) 20%, rgba(0, 0, 0, 0.8) 50%, rgba(0, 0, 0, 0.4) 80%, rgba(0, 0, 0, 0) 100%)'
+                    background: topGradientBackground
                   }}
                 />
                 
@@ -3234,7 +3250,7 @@ export default function MALWrapped() {
                   className="absolute bottom-0 left-0 right-0 h-32 sm:h-40 pointer-events-none"
                   style={{
                     zIndex: 15,
-                    background: 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.95) 20%, rgba(0, 0, 0, 0.8) 50%, rgba(0, 0, 0, 0.4) 80%, rgba(0, 0, 0, 0) 100%)'
+                    background: bottomGradientBackground
                   }}
                 />
               </div>
@@ -3378,8 +3394,8 @@ export default function MALWrapped() {
                             <span className="text-white font-medium">Copy Image</span>
                           </button>
                           <button
-                            onClick={() => {
-                              handleDownloadPNG();
+                            onClick={async () => {
+                              await handleDownloadPNG();
                               setShowShareMenu(false);
                             }}
                             className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 transition-colors text-left"

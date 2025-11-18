@@ -213,6 +213,41 @@
     letter-spacing: -0.02em;
     text-shadow: none;
   }
+
+  .download-watermark {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.15rem;
+    text-transform: uppercase;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .download-watermark__brand {
+    font-size: 0.6rem;
+    letter-spacing: 0.35em;
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .download-watermark__author {
+    font-size: 0.55rem;
+    letter-spacing: 0.3em;
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  @media (min-width: 640px) {
+    .download-watermark__brand {
+      font-size: 0.7rem;
+    }
+    .download-watermark__author {
+      font-size: 0.65rem;
+    }
+  }
   
   @media (min-width: 640px) {
     .heading-xl { font-size: 2.6rem; }
@@ -377,6 +412,10 @@
   /* Only remove transform if it's not an animated shape with blur */
   .slide-card.capturing [data-framer-motion]:not([style*="filter"]):not([style*="blur"]) {
     transform: none !important;
+  }
+  
+  .slide-card.capturing .download-watermark {
+    opacity: 1 !important;
   }
   
   /* Ensure filters are preserved during capture */
