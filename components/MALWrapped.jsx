@@ -1243,7 +1243,7 @@ export default function MALWrapped() {
                   }}
                 >
                   <motion.div 
-                    className="aspect-[2/3] w-full bg-transparent border-box-cyan rounded-lg relative" 
+                    className="aspect-[2/3] w-full bg-transparent border-box-cyan backdrop-blur-sm rounded-lg relative" 
                     style={{ maxHeight: '275px', maxWidth: '100%', boxSizing: 'border-box', overflow: 'hidden' }}
                     whileHover={{ borderColor: '#ffffff' }}
                     transition={{ duration: 0.3, ease: smoothEase }}
@@ -1358,7 +1358,7 @@ export default function MALWrapped() {
                   }}
                 >
                   <motion.div 
-                    className="aspect-[2/3] bg-transparent border-box-cyan rounded-lg overflow-hidden relative w-full" 
+                    className="aspect-[2/3] bg-transparent border-box-cyan backdrop-blur-sm rounded-lg overflow-hidden relative w-full" 
                     style={{ maxHeight: '275px', maxWidth: '183px', width: '100%', boxSizing: 'border-box' }}
                     whileHover={{ borderColor: '#ffffff' }}
                     transition={{ duration: 0.3, ease: smoothEase}}
@@ -1407,7 +1407,7 @@ export default function MALWrapped() {
       const isTop = rank === 1;
       return (
         <motion.div 
-          className={`flex items-center p-3 border-b ${isTop ? 'border-white/60 bg-white/5' : 'border-white/5'}`}
+          className={`flex items-center p-3 border-b ${isTop ? 'border-white/60 bg-white/5 backdrop-blur-sm' : 'border-white/5'}`}
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ 
@@ -1441,7 +1441,7 @@ export default function MALWrapped() {
         transition={{ duration: 0.4, delay: rank * 0.05 }}
       >
         <motion.div 
-          className="bg-transparent border-box-cyan rounded-lg overflow-hidden aspect-[2/3] relative" 
+          className="bg-transparent border-box-cyan backdrop-blur-sm rounded-lg overflow-hidden aspect-[2/3] relative" 
           style={{ boxSizing: 'border-box' }}
           whileHover={{ borderColor: '#ffffff' }}
           transition={{ duration: 0.3, ease: smoothEase}}
@@ -1649,9 +1649,9 @@ export default function MALWrapped() {
                 {otherGenres.length > 0 && (
                   <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2 relative z-10">
                     {otherGenres.map(([genreName, count], idx) => (
-                      <motion.div key={idx} className="border-box-cyan text-center rounded-xl" style={{ padding: '2px' }} variants={staggerItem}>
+                      <motion.div key={idx} className="border-box-cyan backdrop-blur-sm text-center rounded-xl" style={{ padding: '2px' }} variants={staggerItem}>
                         <motion.div 
-                          className="bg-white/5 rounded-xl p-2 h-full"
+                          className="bg-white/5 backdrop-blur-sm rounded-xl p-2 h-full"
                           whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
                           transition={{ duration: 0.2, ease: smoothEase }}
                         >
@@ -1710,7 +1710,7 @@ export default function MALWrapped() {
               <motion.div className="text-center relative overflow-hidden z-10">
                 <div className="flex flex-col items-center justify-center gap-4">
                   <motion.div 
-                    className="w-32 md:w-48 aspect-[2/3] bg-transparent border-box-cyan rounded-lg overflow-hidden relative z-10" 
+                    className="w-32 md:w-48 aspect-[2/3] bg-transparent border-box-cyan backdrop-blur-sm rounded-lg overflow-hidden relative z-10" 
                     style={{ boxSizing: 'border-box' }}
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -1791,14 +1791,14 @@ export default function MALWrapped() {
                     return (
                       <>
                         <motion.div 
-                          className="border-box-cyan rounded-xl overflow-hidden flex flex-row items-left relative w-full z-10" 
+                          className="border-box-cyan backdrop-blur-sm rounded-xl overflow-hidden flex flex-row items-left relative w-full z-10" 
                           style={{ padding: '2px' }}
                           initial={{ opacity: 0, y: 30 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.3, delay: 0.1, ease: smoothEase }}
                         >
                           <motion.div 
-                            className="bg-white/5 rounded-xl w-full h-full flex flex-row items-center relative z-10"
+                            className="bg-white/5 backdrop-blur-sm rounded-xl w-full h-full flex flex-row items-center relative z-10"
                             whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
                             transition={{ duration: 0.2, ease: smoothEase }}
                           >
@@ -1807,7 +1807,7 @@ export default function MALWrapped() {
                               const featuredUrl = featured.malId ? `https://myanimelist.net/anime/${featured.malId}` : (featured.mangaId ? `https://myanimelist.net/manga/${featured.mangaId}` : null);
                               const featuredImage = (
                                 <motion.div 
-                                  className="border-box-cyan bg-transparent rounded-xl overflow-hidden relative z-10" 
+                                  className="border-box-cyan backdrop-blur-sm bg-transparent rounded-xl overflow-hidden relative z-10" 
                                   style={{ boxSizing: 'border-box', aspectRatio: '2/3', maxHeight: '200px' }}
                                   whileHover={{ borderColor: '#ffffff' }}
                                   transition={{ duration: 0.3, ease: smoothEase}}
@@ -1847,7 +1847,7 @@ export default function MALWrapped() {
                                   {featured.genres.slice(0, 2).map(g => (
                                     <motion.span 
                                       key={g} 
-                                      className="border-box-cyan mono text-white px-2 py-0.5 rounded-lg font-regular" 
+                                      className="border-box-cyan backdrop-blur-sm mono text-white px-2 py-0.5 rounded-lg font-regular" 
                                       style={{ border: '1px solid rgba(255, 255, 255, 0.2)' }}
                                       initial={{ opacity: 0, scale: 0.8 }}
                                       animate={{ opacity: 1, scale: 1 }}
@@ -1878,7 +1878,7 @@ export default function MALWrapped() {
                                   transition={{ duration: 0.4 }}
                                 >
                                   <motion.div 
-                                    className="border-box-cyan bg-transparent rounded-xl overflow-hidden aspect-[2/3] relative w-full z-10" 
+                                    className="border-box-cyan backdrop-blur-sm bg-transparent rounded-xl overflow-hidden aspect-[2/3] relative w-full z-10" 
                                     style={{ boxSizing: 'border-box', maxHeight: '275px' }}
                                     whileHover={{ borderColor: '#ffffff' }}
                                     transition={{ duration: 0.3, ease: smoothEase}}
@@ -1970,9 +1970,9 @@ export default function MALWrapped() {
                 {otherStudios.length > 0 && (
                   <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2 relative z-10">
                     {otherStudios.map(([studioName, count], idx) => (
-                      <motion.div key={idx} className="border-box-cyan text-center rounded-xl" style={{ padding: '2px' }} variants={staggerItem}>
+                      <motion.div key={idx} className="border-box-cyan backdrop-blur-sm text-center rounded-xl" style={{ padding: '2px' }} variants={staggerItem}>
                         <motion.div 
-                          className="bg-white/5 rounded-xl p-2 h-full"
+                          className="bg-white/5 backdrop-blur-sm rounded-xl p-2 h-full"
                           whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
                           transition={{ duration: 0.2, ease: smoothEase }}
                         >
@@ -2030,7 +2030,7 @@ export default function MALWrapped() {
                 return (
                   <motion.div 
                     key={season} 
-                    className="border-box-cyan rounded-xl" 
+                    className="border-box-cyan backdrop-blur-sm rounded-xl" 
                     style={{ padding: '2px' }}
                     variants={staggerItem}
                     initial="initial"
@@ -2046,7 +2046,7 @@ export default function MALWrapped() {
                       <>
                           <div className="flex gap-1.5 sm:gap-2">
                             <motion.div 
-                              className="bg-transparent border-box-cyan aspect-[2/3] rounded-lg overflow-hidden relative w-12 sm:w-16 md:w-20" 
+                              className="bg-transparent border-box-cyan backdrop-blur-sm aspect-[2/3] rounded-lg overflow-hidden relative w-12 sm:w-16 md:w-20" 
                               style={{ boxSizing: 'border-box' }}
                               transition={{ duration: 0.3, ease: smoothEase }}
                             >
@@ -2356,9 +2356,9 @@ export default function MALWrapped() {
                 {otherMangaGenres.length > 0 && (
                   <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2 relative z-10">
                     {otherMangaGenres.map(([genreName, count], idx) => (
-                      <motion.div key={idx} className="border-box-cyan text-center rounded-xl" style={{ padding: '2px' }} variants={staggerItem}>
+                      <motion.div key={idx} className="border-box-cyan backdrop-blur-sm text-center rounded-xl" style={{ padding: '2px' }} variants={staggerItem}>
                         <motion.div 
-                          className="bg-white/5 rounded-xl p-2 h-full"
+                          className="bg-white/5 backdrop-blur-sm rounded-xl p-2 h-full"
                           whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
                           transition={{ duration: 0.2, ease: smoothEase }}
                         >
@@ -2415,7 +2415,7 @@ export default function MALWrapped() {
                 <motion.div className="text-center relative overflow-hidden z-10">
                   <div className="flex flex-col items-center justify-center gap-4">
                     <motion.div 
-                      className="w-32 md:w-48 aspect-[2/3] bg-transparent border-box-cyan rounded-lg overflow-hidden relative z-10" 
+                      className="w-32 md:w-48 aspect-[2/3] bg-transparent border-box-cyan backdrop-blur-sm rounded-lg overflow-hidden relative z-10" 
                       style={{ boxSizing: 'border-box' }}
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
@@ -2498,14 +2498,14 @@ export default function MALWrapped() {
                     return (
                       <>
                         <motion.div 
-                          className="border-box-cyan rounded-xl overflow-hidden flex flex-row items-left relative w-full z-10" 
+                          className="border-box-cyan backdrop-blur-sm rounded-xl overflow-hidden flex flex-row items-left relative w-full z-10" 
                           style={{ padding: '2px' }}
                           initial={{ opacity: 0, y: 30 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.3, delay: 0.1, ease: smoothEase }}
                         >
                           <motion.div 
-                            className="bg-white/5 rounded-xl w-full h-full flex flex-row items-center relative z-10"
+                            className="bg-white/5 backdrop-blur-sm rounded-xl w-full h-full flex flex-row items-center relative z-10"
                             whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
                             transition={{ duration: 0.2, ease: smoothEase }}
                           >
@@ -2514,7 +2514,7 @@ export default function MALWrapped() {
                               const featuredUrl = featured.malId ? `https://myanimelist.net/anime/${featured.malId}` : (featured.mangaId ? `https://myanimelist.net/manga/${featured.mangaId}` : null);
                               const featuredImage = (
                                 <motion.div 
-                                  className="border-box-cyan bg-transparent rounded-xl overflow-hidden relative z-10" 
+                                  className="border-box-cyan backdrop-blur-sm bg-transparent rounded-xl overflow-hidden relative z-10" 
                                   style={{ boxSizing: 'border-box', aspectRatio: '2/3', maxHeight: '200px' }}
                                   whileHover={{ borderColor: '#ffffff' }}
                                   transition={{ duration: 0.3, ease: smoothEase}}
@@ -2554,7 +2554,7 @@ export default function MALWrapped() {
                                   {featured.genres.slice(0, 2).map(g => (
                                     <motion.span 
                                       key={g} 
-                                      className="border-box-cyan mono text-white px-2 py-0.5 rounded-lg font-regular" 
+                                      className="border-box-cyan backdrop-blur-sm mono text-white px-2 py-0.5 rounded-lg font-regular" 
                                       style={{ border: '1px solid rgba(255, 255, 255, 0.2)' }}
                                       initial={{ opacity: 0, scale: 0.8 }}
                                       animate={{ opacity: 1, scale: 1 }}
@@ -2585,7 +2585,7 @@ export default function MALWrapped() {
                                   transition={{ duration: 0.4 }}
                                 >
                                   <motion.div 
-                                    className="border-box-cyan bg-transparent rounded-xl overflow-hidden aspect-[2/3] relative w-full z-10" 
+                                    className="border-box-cyan backdrop-blur-sm bg-transparent rounded-xl overflow-hidden aspect-[2/3] relative w-full z-10" 
                                     style={{ boxSizing: 'border-box', maxHeight: '275px' }}
                                     whileHover={{ borderColor: '#ffffff' }}
                                     transition={{ duration: 0.3, ease: smoothEase}}
@@ -2699,9 +2699,9 @@ export default function MALWrapped() {
                 {otherAuthors.length > 0 && (
                   <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2 relative z-10">
                     {otherAuthors.map(([authorName, count], idx) => (
-                      <motion.div key={idx} className="border-box-cyan text-center rounded-xl" style={{ padding: '2px' }} variants={staggerItem}>
+                      <motion.div key={idx} className="border-box-cyan backdrop-blur-sm text-center rounded-xl" style={{ padding: '2px' }} variants={staggerItem}>
                         <motion.div 
-                          className="bg-white/5 rounded-xl p-2 h-full"
+                          className="bg-white/5 backdrop-blur-sm rounded-xl p-2 h-full"
                           whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
                           transition={{ duration: 0.2 , ease: smoothEase }}
                         >
@@ -2820,7 +2820,7 @@ export default function MALWrapped() {
               <div className="flex items-center gap-4 sm:gap-6 mb-6 sm:mb-8">
                 <div className="relative w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 flex items-center justify-center">
                   <motion.div
-                    className="relative z-10 w-full h-full rounded-xl overflow-hidden border-box-cyan"
+                    className="relative z-10 w-full h-full rounded-xl overflow-hidden border-box-cyan backdrop-blur-sm"
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.6, ease: smoothEase }}
@@ -3119,7 +3119,7 @@ export default function MALWrapped() {
                   <select
                     value={selectedYear}
                     onChange={(e) => setSelectedYear(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
-                      className="w-full px-3 sm:px-4 py-1.5 sm:py-2 text-white rounded-full border-box-cyan transition-all rounded-lg text-xs sm:text-sm font-medium tracking-wider focus:outline-none appearance-none pr-8 sm:pr-10"
+                      className="w-full px-3 sm:px-4 py-1.5 sm:py-2 text-white rounded-full border-box-cyan backdrop-blur-sm transition-all rounded-lg text-xs sm:text-sm font-medium tracking-wider focus:outline-none appearance-none pr-8 sm:pr-10"
                       style={{ 
                         border: '1px solid rgba(255, 255, 255, 0.1)',
                         color: '#ffffff'
@@ -3222,12 +3222,12 @@ export default function MALWrapped() {
               <button
                 onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))}
                 disabled={currentSlide === 0}
-                  className="p-1.5 sm:p-2 text-white rounded-full border-box-cyan disabled:opacity-30 transition-all"
+                  className="p-1.5 sm:p-2 text-white rounded-full border-box-cyan backdrop-blur-sm disabled:opacity-30 transition-all"
               >
                   <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6"/>
               </button>
                 
-                <p className="text-white/60 text-xs sm:text-sm md:text-base font-mono py-1.5 sm:py-2 px-2 sm:px-4 rounded-full border-box-cyan ">{String(currentSlide + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}</p>
+                <p className="text-white/60 text-xs sm:text-sm md:text-base font-mono py-1.5 sm:py-2 px-2 sm:px-4 rounded-full border-box-cyan backdrop-blur-sm">{String(currentSlide + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}</p>
 
                 {currentSlide === slides.length - 1 ? (
                   <div className="relative" ref={shareMenuRef}>
@@ -3367,7 +3367,7 @@ export default function MALWrapped() {
                 ) : (
                   <motion.button
                 onClick={() => setCurrentSlide(Math.min(slides.length - 1, currentSlide + 1))}
-                    className="p-1.5 sm:p-2 text-white rounded-full border-box-cyan"
+                    className="p-1.5 sm:p-2 text-white rounded-full border-box-cyan backdrop-blur-sm"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     transition={{ duration: 0.2 }}
