@@ -2860,7 +2860,8 @@ export default function MALWrapped() {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.6, delay: 0.2, ease: smoothEase }}
                 >
-                  My {stats.selectedYear === 'all' ? 'All Time' : stats.selectedYear}<br>MyAnimeList Wrapped
+                  My {stats.selectedYear === 'all' ? 'All Time' : stats.selectedYear}
+                  MyAnimeList Wrapped
                 </motion.h2>
               </div>
 
