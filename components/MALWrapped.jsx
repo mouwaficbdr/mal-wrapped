@@ -1360,7 +1360,7 @@ export default function MALWrapped() {
                         const featuredImage = (
                           <motion.div 
                             className="border-box-cyan bg-transparent rounded-xl overflow-hidden relative" 
-                            style={{ boxSizing: 'border-box', aspectRatio: '2/3', maxHeight: '200px', padding: '2px' }}
+                            style={{ boxSizing: 'border-box', aspectRatio: '2/3', maxHeight: '200px' }}
                             whileHover={{ borderColor: '#ffffff' }}
                             transition={{ duration: 0.3, ease: smoothEase}}
                           >
@@ -1432,7 +1432,7 @@ export default function MALWrapped() {
                             >
                             <motion.div 
                               className="border-box-cyan bg-transparent rounded-xl overflow-hidden aspect-[2/3] relative w-full" 
-                              style={{ boxSizing: 'border-box', maxHeight: '275px', padding: '2px' }}
+                              style={{ boxSizing: 'border-box', maxHeight: '275px' }}
                               whileHover={{ borderColor: '#ffffff' }}
                               transition={{ duration: 0.3, ease: smoothEase}}
                             >
