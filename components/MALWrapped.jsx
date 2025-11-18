@@ -2333,8 +2333,7 @@ export default function MALWrapped() {
           <SlideLayout verticalText="TRANSITION" bgColor="black">
             <motion.div className="text-center relative z-10" {...fadeSlideUp} data-framer-motion>
               <motion.div 
-                className="relative z-10 mb-6 flex items-center justify-center"
-                {...pulse} 
+                className="relative z-10 mb-6 flex items-center justify-center" 
                 data-framer-motion
               >
                 <img 
@@ -3194,7 +3193,7 @@ export default function MALWrapped() {
           })()}
         </div>
       )}
-      <div ref={slideRef} className="w-full max-w-5xl bg-black rounded-2xl flex flex-col justify-center relative overflow-hidden slide-card" style={{ zIndex: 10, height: '100dvh', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+      <div ref={slideRef} className="w-full max-w-5xl bg-black rounded-2xl flex flex-col justify-center relative overflow-hidden slide-card mb-8" style={{ zIndex: 10, height: '95dvh', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
         <div className="z-10 w-full h-full flex flex-col items-center justify-center">
           {error && (
             <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-lg z-50">
@@ -3291,7 +3290,7 @@ export default function MALWrapped() {
               Connect with MAL
                   </motion.button>
                 </motion.div>
-                <motion.div className="mt-12 flex flex-col items-center gap-4 relative" {...fadeIn} data-framer-motion>
+                <motion.div className="mt-12 flex flex-col items-center gap-4" {...fadeIn} data-framer-motion>
                   <div className="flex items-center gap-3">
                     <p className="text-sm text-white/60">made by X.Avishkar</p>
                   </div>
@@ -3372,16 +3371,16 @@ export default function MALWrapped() {
                       <Mail size={20} />
                     </motion.a>
                   </div>
-                  <motion.img
-                    src="/avatar.webp"
-                    alt="X.Avishkar"
-                    className="absolute -bottom-8 left-1/2 w-24 h-24 sm:w-32 sm:h-32 object-contain pointer-events-none z-10"
-                    style={{ transform: 'translateX(-50%)' }}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, ease: smoothEase }}
-                  />
                 </motion.div>
+                <motion.img
+                  src="/avatar.webp"
+                  alt="X.Avishkar"
+                  className="fixed bottom-8 left-1/2 w-24 h-24 sm:w-32 sm:h-32 object-contain pointer-events-none z-10"
+                  style={{ transform: 'translateX(-50%)' }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, ease: smoothEase }}
+                />
               </div>
             </div>
           )}
@@ -3662,7 +3661,7 @@ export default function MALWrapped() {
     </div>
     
     {/* Footer */}
-    <footer className="w-full bg-black border-t border-white/10 mt-auto py-8 px-4 sm:px-6 lg:px-8">
+    <footer className="w-full bg-black border-t border-white/10 mt-auto py-8 px-4 sm:px-6 lg:px-8 overflow-hidden">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
           {/* Left Column - Thanks For Stopping By */}
@@ -3715,8 +3714,29 @@ export default function MALWrapped() {
               >
                 <Instagram size={20} />
               </motion.a>
+              <motion.a
+                href="https://github.com/Avishkar15"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-10 h-10 rounded-full border border-white/30 flex items-center justify-center text-white hover:border-white transition-colors"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                title="GitHub"
+              >
+                <Github size={20} />
+              </motion.a>
+              <motion.a
+                href="https://myanimelist.net/profile/XAvishkar"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-10 h-10 rounded-full border border-white/30 flex items-center justify-center text-white hover:border-white transition-colors"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                title="MyAnimeList"
+              >
+                <ExternalLink size={20} />
+              </motion.a>
             </div>
-            <p className="text-white/60 text-xs pt-4">© 2025 Designed by <span className="font-semibold">Avishkar</span></p>
           </div>
 
           {/* Middle Column - PAGES */}
@@ -3802,6 +3822,9 @@ export default function MALWrapped() {
               </motion.a>
             </div>
           </div>
+        </div>
+        <div className="mt-8 pt-6 border-t border-white/10">
+          <p className="text-white/60 text-xs text-center">© 2025 Designed by <span className="font-semibold">Avishkar</span></p>
         </div>
       </div>
     </footer>
