@@ -1359,12 +1359,12 @@ export default function MALWrapped() {
                         const featuredUrl = featured.malId ? `https://myanimelist.net/anime/${featured.malId}` : (featured.mangaId ? `https://myanimelist.net/manga/${featured.mangaId}` : null);
                         const featuredImage = (
                           <motion.div 
-                            className="border-box-cyan flex-shrink-0 rounded-xl overflow-hidden relative" 
+                            className="border-box-cyan bg-transparent rounded-xl overflow-hidden relative" 
                             style={{ boxSizing: 'border-box', aspectRatio: '2/3', maxHeight: '200px', padding: '2px' }}
                             whileHover={{ borderColor: '#ffffff' }}
                             transition={{ duration: 0.3, ease: smoothEase}}
                           >
-                            <div className="bg-transparent rounded-xl w-full h-full overflow-hidden">
+                            
                             {featured.coverImage && (
                                 <motion.img 
                                   src={featured.coverImage} 
@@ -1374,7 +1374,6 @@ export default function MALWrapped() {
                                   whileHover={hoverImage}
                                 />
                             )}
-                            </div>
                           </motion.div>
                         );
                         return featuredUrl ? (
@@ -1432,12 +1431,12 @@ export default function MALWrapped() {
                               transition={{ duration: 0.4 }}
                             >
                             <motion.div 
-                              className="border-box-cyan rounded-xl overflow-hidden aspect-[2/3] relative w-full" 
+                              className="border-box-cyan bg-transparent rounded-xl overflow-hidden aspect-[2/3] relative w-full" 
                               style={{ boxSizing: 'border-box', maxHeight: '275px', padding: '2px' }}
                               whileHover={{ borderColor: '#ffffff' }}
                               transition={{ duration: 0.3, ease: smoothEase}}
                             >
-                              <div className="bg-transparent rounded-xl w-full h-full overflow-hidden relative">
+                              
                                 <div className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 z-10 w-5 h-5 sm:w-6 sm:h-6 bg-white text-black rounded-full flex items-center justify-center font-semibold text-xs sm:text-sm">{index + 2}</div>
                                 {item.coverImage && (
                                   <motion.img 
@@ -1448,7 +1447,6 @@ export default function MALWrapped() {
                                     whileHover={hoverImage}
                                   />
                                 )}
-                              </div>
                             </motion.div>
                             <div className="mt-2 text-center w-full min-w-0">
                               <h3 className="title-sm truncate font-semibold text-white">{item.title}</h3>
@@ -1865,7 +1863,7 @@ export default function MALWrapped() {
                     whileHover={{ borderColor: '#ffffff' }}
                     transition={{ duration: 0.3, ease: smoothEase}}
                   >
-                    <div className="bg-transparent rounded-xl w-full h-full overflow-hidden relative">
+                  
                   {item.coverImage && (
                     <motion.img 
                       src={item.coverImage} 
@@ -1875,7 +1873,7 @@ export default function MALWrapped() {
                       whileHover={hoverImage}
                     />
                   )}
-                  </div>
+                  
                 </motion.div>
                 {item.title && (
                     <div className="mt-2 text-center w-full px-1">
@@ -2839,12 +2837,10 @@ export default function MALWrapped() {
         return (
           <SlideLayout verticalText="FINAL-REPORT" bgColor="blue">
             <div className="w-full h-full flex flex-col items-center justify-center relative">
-              {/* Central Image with Abstract Shapes */}
-              <div className="relative w-48 h-48 sm:w-64 sm:h-64 md:w-80 md:h-80 mb-6 sm:mb-8 flex items-center justify-center">
-                
-                {/* Central Image */}
+              {/* Central Image */}
+              <div className="relative w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 mb-6 sm:mb-8 flex items-center justify-center">
                 <motion.div
-                  className="relative z-10 w-full h-full rounded-full overflow-hidden border-4 border-white/20"
+                  className="relative z-10 w-full h-full rounded-xl overflow-hidden border-box-cyan"
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.6, ease: smoothEase }}
@@ -2875,11 +2871,17 @@ export default function MALWrapped() {
                     <div className="space-y-1">
                       {stats.topRated.slice(0, 5).map((a, i) => (
                         <p key={a.node.id} className="text-white">
-                          <span className="title-sm font-medium text-white/75 w- inline-block">{i+1}.</span>
+                          <span className="title-sm font-medium text-white/75 w-4 inline-block">{i+1}.</span>
                           <span className="title-md text-white font-medium">{a.node.title}</span>
                         </p>
                       ))}
                     </div>
+                    {stats.topStudios?.[0]?.[0] && (
+                      <div className="mt-4">
+                        <p className="body-sm text-white/50 mb-1 font-regular">Top Studio</p>
+                        <p className="title-md text-white font-medium">{stats.topStudios[0][0]}</p>
+                      </div>
+                    )}
                   </div>
                   
                   <div>
@@ -2892,6 +2894,12 @@ export default function MALWrapped() {
                         </p>
                       ))}
                     </div>
+                    {stats.topAuthors?.[0]?.[0] && (
+                      <div className="mt-4">
+                        <p className="body-sm text-white/50 mb-1 font-regular">Top Author</p>
+                        <p className="title-md text-white font-medium">{stats.topAuthors[0][0]}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -3190,12 +3198,12 @@ export default function MALWrapped() {
                 <div 
                   className="absolute top-0 left-0 right-0 h-32 sm:h-40 pointer-events-none"
                   style={{
-                    zIndex: 15,
+                    zIndex: 5,
                     background: 'linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.95) 20%, rgba(0, 0, 0, 0.8) 50%, rgba(0, 0, 0, 0.4) 80%, rgba(0, 0, 0, 0) 100%)'
                   }}
                 />
                 
-                <div className="w-full h-full relative overflow-y-auto" style={{ zIndex: 20 }}>
+                <div className="w-full h-full relative overflow-y-auto" style={{ zIndex: 10 }}>
                   <SlideContent slide={slides[currentSlide]} mangaListData={mangaList} />
                 </div>
                 
@@ -3203,7 +3211,7 @@ export default function MALWrapped() {
                 <div 
                   className="absolute bottom-0 left-0 right-0 h-32 sm:h-40 pointer-events-none"
                   style={{
-                    zIndex: 15,
+                    zIndex: 5,
                     background: 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.95) 20%, rgba(0, 0, 0, 0.8) 50%, rgba(0, 0, 0, 0.4) 80%, rgba(0, 0, 0, 0) 100%)'
                   }}
                 />
