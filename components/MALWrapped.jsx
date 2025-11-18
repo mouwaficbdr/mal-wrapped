@@ -3059,8 +3059,7 @@ export default function MALWrapped() {
                   <motion.div
                     className="h-full"
                     style={{
-                      background: 'linear-gradient(90deg, rgba(138, 43, 226, 0.8) 0%, rgba(75, 0, 130, 0.8) 20%, rgba(0, 0, 255, 0.8) 40%, rgba(0, 255, 255, 0.8) 60%, rgba(0, 255, 0, 0.8) 80%, rgba(255, 255, 0, 0.8) 100%)'
-                    , filter: 'blur(5px)'
+                      background: 'linear-gradient(90deg, rgba(0, 255, 255, 0.8) 0%, rgba(0, 200, 255, 0.8) 50%, rgba(0, 255, 255, 0.8) 100%)'
                     }}
                     initial={{ width: "0%" }}
                     animate={{ width: `${loadingProgressPercent}%` }}
@@ -3216,27 +3215,34 @@ export default function MALWrapped() {
               
               {/* Slide Content */}
               <div key={currentSlide} className="w-full flex-grow flex items-center justify-center overflow-y-auto py-2 sm:py-4 relative" style={{ zIndex: 0 }}>
-                {/* Top gradient fade - above rainbow shapes, below content */}
-                <div 
-                  className="absolute top-0 left-0 right-0 h-32 sm:h-40 pointer-events-none"
-                  style={{
-                    zIndex: 15,
-                    background: 'linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.95) 20%, rgba(0, 0, 0, 0.8) 50%, rgba(0, 0, 0, 0.4) 80%, rgba(0, 0, 0, 0) 100%)'
-                  }}
-                />
-                
-                <div className="w-full h-full relative overflow-y-auto" style={{ zIndex: 20 }}>
-                  <SlideContent slide={slides[currentSlide]} mangaListData={mangaList} />
+                <div className="w-full h-full relative overflow-y-auto" style={{ position: 'relative', isolation: 'isolate' }}>
+                  {/* Content with rainbow shapes (zIndex 0) - rainbow shapes are at zIndex 0 inside SlideLayout */}
+                  <div style={{ position: 'relative', zIndex: 0, isolation: 'auto' }}>
+                    <SlideContent slide={slides[currentSlide]} mangaListData={mangaList} />
+                  </div>
+                  
+                  {/* Top gradient fade - above rainbow shapes (zIndex 0), below content (zIndex 10+) */}
+                  <div 
+                    className="absolute top-0 left-0 right-0 h-40 sm:h-48 pointer-events-none"
+                    style={{
+                      zIndex: 5,
+                      background: 'linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.98) 15%, rgba(0, 0, 0, 0.9) 30%, rgba(0, 0, 0, 0.7) 50%, rgba(0, 0, 0, 0.4) 70%, rgba(0, 0, 0, 0.1) 85%, rgba(0, 0, 0, 0) 100%)',
+                      mixBlendMode: 'normal',
+                      willChange: 'opacity'
+                    }}
+                  />
+                  
+                  {/* Bottom gradient fade - above rainbow shapes (zIndex 0), below content (zIndex 10+) */}
+                  <div 
+                    className="absolute bottom-0 left-0 right-0 h-40 sm:h-48 pointer-events-none"
+                    style={{
+                      zIndex: 5,
+                      background: 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.98) 15%, rgba(0, 0, 0, 0.9) 30%, rgba(0, 0, 0, 0.7) 50%, rgba(0, 0, 0, 0.4) 70%, rgba(0, 0, 0, 0.1) 85%, rgba(0, 0, 0, 0) 100%)',
+                      mixBlendMode: 'normal',
+                      willChange: 'opacity'
+                    }}
+                  />
                 </div>
-                
-                {/* Bottom gradient fade - above rainbow shapes, below content */}
-                <div 
-                  className="absolute bottom-0 left-0 right-0 h-32 sm:h-40 pointer-events-none"
-                  style={{
-                    zIndex: 15,
-                    background: 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.95) 20%, rgba(0, 0, 0, 0.8) 50%, rgba(0, 0, 0, 0.4) 80%, rgba(0, 0, 0, 0) 100%)'
-                  }}
-                />
               </div>
               
               {/* Bottom Controls */}
