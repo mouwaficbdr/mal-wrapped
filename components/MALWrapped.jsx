@@ -208,6 +208,10 @@ export default function MALWrapped() {
     { id: 'finale' },
   ] : [];
 
+  const siteName = typeof window !== 'undefined'
+    ? window.location.origin.replace(/^https?:\/\//, '')
+    : 'myanimelist.net';
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -985,7 +989,7 @@ export default function MALWrapped() {
     }
   }
 
-  function SlideContent({ slide, mangaListData }) {
+  function SlideContent({ slide, mangaListData, siteName }) {
     if (!slide || !stats) return null;
 
     const SlideLayout = ({ children, verticalText, bgColor = 'black' }) => {
@@ -2814,7 +2818,7 @@ export default function MALWrapped() {
         const totalDays = Math.floor(totalTimeSpent / 24);
         const userImage = userData?.picture || '/anime-character.webp';
         
-        // Calculate top manga genre
+        // Calculate top manga genres for finale
         const finaleMangaGenres = {};
         (mangaListData || []).forEach(item => {
           if (stats.selectedYear !== 'all') {
@@ -2834,7 +2838,15 @@ export default function MALWrapped() {
             finaleMangaGenres[genre.name] = (finaleMangaGenres[genre.name] || 0) + 1;
           });
         });
-        const finaleTopMangaGenre = Object.entries(finaleMangaGenres).sort((a, b) => b[1] - a[1])[0];
+        const finaleCombinedGenres = {};
+        (stats.topGenres || []).forEach(([genre, count]) => {
+          finaleCombinedGenres[genre] = (finaleCombinedGenres[genre] || 0) + count;
+        });
+        Object.entries(finaleMangaGenres).forEach(([genre, count]) => {
+          finaleCombinedGenres[genre] = (finaleCombinedGenres[genre] || 0) + count;
+        });
+        const finaleTopGenre = Object.entries(finaleCombinedGenres).sort((a, b) => b[1] - a[1])[0];
+        const favoriteAuthor = stats.topAuthors?.[0]?.[0] || null;
         
         return (
           <SlideLayout verticalText="FINAL-REPORT" bgColor="blue">
@@ -2842,7 +2854,7 @@ export default function MALWrapped() {
               {/* Image */}
               <div className="w-full max-w-3xl flex items-center justify-center gap-4 sm:gap-6 mb-6 sm:mb-8">
                 <div className="relative w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 flex items-center justify-center">
-                  <motion.div
+                <motion.div 
                     className="relative z-10 w-full h-full rounded-xl overflow-hidden border-box-cyan"
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -2871,7 +2883,7 @@ export default function MALWrapped() {
                     <div className="space-y-0.5">
                     {stats.topRated.slice(0, 5).map((a, i) => (
                         <p key={a.node.id} className="text-white truncate">
-                          <span className="body-sm text-white/50 font-medium truncate">{i+1}.</span>
+                          <span className="body-sm text-white/50 font-medium truncate mr-2">{String(i + 1).padStart(2, '0')}.</span>
                           <span className="title-md text-white font-medium truncate">{a.node.title}</span>
                       </p>
                     ))}
@@ -2883,7 +2895,7 @@ export default function MALWrapped() {
                     <div className="space-y-0.5">
                     {stats.topManga.slice(0, 5).map((m, i) => (
                         <p key={m.node.id} className="text-white truncate">
-                          <span className="body-sm text-white/50 font-medium truncate">{i+1}.</span>
+                          <span className="body-sm text-white/50 font-medium truncate mr-2">{String(i + 1).padStart(2, '0')}.</span>
                           <span className="title-md text-white font-medium truncate">{m.node.title}</span>
                       </p>
                     ))}
@@ -2893,19 +2905,19 @@ export default function MALWrapped() {
 
                 <div className="grid grid-cols-2 gap-4 sm:gap-6">
                   <div>
-                    {stats.topGenres?.[0]?.[0] && (
+                    {finaleTopGenre && (
                       <>
                         <p className="body-sm text-white/50 mb-1 font-regular">Favorite Genre</p>
-                        <p className="title-md text-white font-medium">{stats.topGenres[0][0]}</p>
+                        <p className="title-md text-white font-medium">{finaleTopGenre[0]}</p>
                       </>
                     )}
                   </div>
                   
                   <div>
-                    {finaleTopMangaGenre && (
+                    {favoriteAuthor && (
                       <>
-                        <p className="body-sm text-white/50 mb-1 font-regular">Favorite Manga Genre</p>
-                        <p className="title-md text-white font-medium">{finaleTopMangaGenre[0]}</p>
+                        <p className="body-sm text-white/50 mb-1 font-regular">Favorite Author</p>
+                        <p className="title-md text-white font-medium">{favoriteAuthor}</p>
                       </>
                     )}
                   </div>
@@ -2949,7 +2961,7 @@ export default function MALWrapped() {
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
               >
-                {typeof window !== 'undefined' && window.location.origin.replace(/^https?:\/\//, '')}
+                {siteName}
                 </motion.div>
                   </div>
           </SlideLayout>
@@ -3221,7 +3233,7 @@ export default function MALWrapped() {
                 />
                 
                 <div className="w-full h-full relative overflow-y-auto">
-                  <SlideContent slide={slides[currentSlide]} mangaListData={mangaList} />
+                  <SlideContent slide={slides[currentSlide]} mangaListData={mangaList} siteName={siteName} />
                 </div>
                 
                 {/* Bottom gradient fade - above rainbow shapes, below content */}
@@ -3244,7 +3256,11 @@ export default function MALWrapped() {
                   <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6"/>
               </button>
                 
-                <p className="text-white/60 text-xs sm:text-sm md:text-base font-mono py-1.5 sm:py-2 px-2 sm:px-4 rounded-full border-box-cyan ">{String(currentSlide + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}</p>
+                <p className="text-white/60 text-xs sm:text-sm md:text-base font-mono py-1.5 sm:py-2 px-2 sm:px-4 rounded-full border-box-cyan ">
+                  {currentSlide === slides.length - 1
+                    ? siteName
+                    : `${String(currentSlide + 1).padStart(2, '0')} / ${String(slides.length).padStart(2, '0')}`}
+                </p>
 
                 {currentSlide === slides.length - 1 ? (
                   <div className="relative" ref={shareMenuRef}>
