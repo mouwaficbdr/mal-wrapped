@@ -3424,125 +3424,107 @@ export default function MALWrapped() {
                     <Download className="w-4 h-4 sm:w-5 sm:h-5" />
                     <span className="text-xs sm:text-sm font-medium hidden sm:inline">Download</span>
                   </motion.button>
-                  {/* Final slide share button */}
-{currentSlide === slides.length - 1 && (
-  <div className="relative" ref={shareMenuRef}>
-    <motion.button
-      type="button"
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setShowShareMenu(true); // always open, no toggle flicker
-      }}
-      className="p-1.5 sm:p-2 text-white rounded-full flex items-center gap-1.5 sm:gap-2"
-      style={{
-        backgroundColor: 'rgba(255, 255, 255, 0.05)',
-        border: '1px solid rgba(255, 255, 255, 0.1)'
-      }}
-      whileHover={{
-        scale: 1.1,
-        backgroundColor: 'rgba(64, 101, 204, 0.8)',
-        borderColor: 'rgba(64, 101, 204, 0.8)'
-      }}
-      whileTap={{ scale: 0.9 }}
-      transition={{ duration: 0.2 }}
-    >
-      <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
-      <span className="text-xs sm:text-sm font-medium hidden sm:inline">Share</span>
-    </motion.button>
-  </div>
-)}
-
-{/* FLOATING SHARE MENU (outside slide to stop re-render animations) */}
-{showShareMenu && (
-  <motion.div
-    ref={shareMenuRef}
-    onClick={(e) => e.stopPropagation()}
-    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-    animate={{ opacity: 1, y: 0, scale: 1 }}
-    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-    transition={{ duration: 0.2 }}
-    className="fixed bottom-20 right-6 bg-black/95 backdrop-blur-sm border border-white/10 rounded-xl p-4 z-[9999] min-w-[220px]"
-  >
-    <div className="flex flex-col gap-2">
-
-      <button
-        type="button"
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          handleShareImageClick();
-          setShowShareMenu(false);
-        }}
-        className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 transition-colors text-left"
-      >
-        <span className="text-white font-medium">Share Image</span>
-      </button>
-
-      {[
-        { id: 'twitter', label: 'Twitter/X' },
-        { id: 'facebook', label: 'Facebook' },
-        { id: 'reddit', label: 'Reddit' },
-        { id: 'linkedin', label: 'LinkedIn' },
-        { id: 'whatsapp', label: 'WhatsApp' },
-        { id: 'telegram', label: 'Telegram' },
-      ].map(({ id, label }) => (
-        <button
-          key={id}
-          type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            shareToSocial(id);
-            setShowShareMenu(false);
-          }}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 transition-colors text-left"
-        >
-          <span className="text-white font-medium">{label}</span>
-        </button>
-      ))}
-
-      <div className="border-t border-white/10 my-1"></div>
-
-      <button
-        type="button"
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          copyImageToClipboard();
-          setShowShareMenu(false);
-        }}
-        className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 transition-colors text-left"
-      >
-        <span className="text-white font-medium">Copy Image</span>
-      </button>
-
-      <button
-        type="button"
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          handleDownloadPNG(e);
-          setShowShareMenu(false);
-        }}
-        className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 transition-colors text-left"
-      >
-        <span className="text-white font-medium">Download</span>
-      </button>
-
-      <button
-        type="button"
-        className="mt-2 text-white/60 text-sm text-center hover:text-white transition"
-        onClick={() => setShowShareMenu(false)}
-      >
-        Close
-      </button>
-
-    </div>
-  </motion.div>
-)}
-
-
+                  {currentSlide === slides.length - 1 && (
+                    <div className="relative" ref={shareMenuRef}>
+                    <motion.button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setShowShareMenu(prev => !prev);
+                      }}
+                      className="p-1.5 sm:p-2 text-white rounded-full flex items-center gap-1.5 sm:gap-2"
+                      style={{ 
+                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)'
+                      }}
+                      whileHover={{ 
+                        scale: 1.1, 
+                        backgroundColor: 'rgba(64, 101, 204, 0.8)',
+                        borderColor: 'rgba(64, 101, 204, 0.8)'
+                      }}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                      <span className="text-xs sm:text-sm font-medium hidden sm:inline">Share</span>
+                    </motion.button>
+                  
+                    {showShareMenu && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                        className="absolute top-full right-0 mt-2 bg-black/95 backdrop-blur-sm border border-white/10 rounded-xl p-3 z-50 min-w-[200px] shadow-2xl"
+                        onClick={(e) => e.stopPropagation()} // Prevent clicks inside from closing unexpectedly
+                      >
+                        <div className="flex flex-col gap-2">
+                          {/* Share Image */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleShareImageClick();
+                            }}
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 transition-colors text-left text-sm"
+                          >
+                            Share Image
+                          </button>
+                  
+                          {/* Social Platforms */}
+                          {[
+                            { id: 'twitter', label: 'Twitter/X' },
+                            { id: 'facebook', label: 'Facebook' },
+                            { id: 'reddit', label: 'Reddit' },
+                            { id: 'linkedin', label: 'LinkedIn' },
+                            { id: 'whatsapp', label: 'WhatsApp' },
+                            { id: 'telegram', label: 'Telegram' },
+                          ].map(({ id, label }) => (
+                            <button
+                              key={id}
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                shareToSocial(id);
+                              }}
+                              className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 transition-colors text-left text-sm"
+                            >
+                              {label}
+                            </button>
+                          ))}
+                  
+                          <div className="border-t border-white/10 my-1"></div>
+                  
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              copyImageToClipboard();
+                            }}
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 transition-colors text-left text-sm"
+                          >
+                            Copy Image
+                          </button>
+                  
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleDownloadPNG();
+                              setShowShareMenu(false);
+                            }}
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 transition-colors text-left text-sm"
+                          >
+                            Download Image
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </div>
+                  )}
                 </div>
                 <motion.button 
                   onClick={handleLogout} 
