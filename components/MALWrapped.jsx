@@ -792,13 +792,8 @@ export default function MALWrapped() {
   async function generatePNG() {
     if (!slideRef.current || typeof window === 'undefined') return null;
     
-    const cardElement = slideRef.current;
-    const previousScrollTop = cardElement ? cardElement.scrollTop : 0;
-    
     try {
-      if (cardElement) {
-        cardElement.scrollTop = 0;
-      }
+      const cardElement = slideRef.current;
       
       // Dynamically import snapdom
       const { snapdom } = await import('@zumer/snapdom');
@@ -987,10 +982,6 @@ export default function MALWrapped() {
     } catch (err) {
       console.error('Error generating PNG:', err);
       throw err;
-    } finally {
-      if (cardElement) {
-        cardElement.scrollTop = previousScrollTop;
-      }
     }
   }
 
@@ -1046,90 +1037,40 @@ export default function MALWrapped() {
     }
   }
 
-  // Share to social media with image
-  async function shareToSocial(platform) {
-    try {
-      // Generate the PNG image first
-      const result = await generatePNG();
-      if (!result) {
-        alert('Failed to generate image. Please try again.');
+  // Share to social media
+  function shareToSocial(platform) {
+    const shareText = `Check out my ${stats?.selectedYear || '2024'} MyAnimeList Wrapped!`;
+    const shareUrl = window.location.href;
+    const encodedText = encodeURIComponent(shareText);
+    const encodedUrl = encodeURIComponent(shareUrl);
+    
+    let shareLink = '';
+    
+    switch (platform) {
+      case 'twitter':
+        shareLink = `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`;
+        break;
+      case 'facebook':
+        shareLink = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+        break;
+      case 'reddit':
+        shareLink = `https://reddit.com/submit?title=${encodedText}&url=${encodedUrl}`;
+        break;
+      case 'linkedin':
+        shareLink = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
+        break;
+      case 'whatsapp':
+        shareLink = `https://wa.me/?text=${encodedText}%20${encodedUrl}`;
+        break;
+      case 'telegram':
+        shareLink = `https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`;
+        break;
+      default:
         return;
-      }
-      
-      const shareText = `Check out my ${stats?.selectedYear || '2024'} MyAnimeList Wrapped!`;
-      const shareUrl = window.location.href;
-      const encodedText = encodeURIComponent(shareText);
-      const encodedUrl = encodeURIComponent(shareUrl);
-      
-      // For mobile devices, try to use Web Share API with files
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      if (isMobile && navigator.share && navigator.canShare) {
-        const shareData = {
-          title: `My ${stats?.selectedYear || '2024'} MAL Wrapped`,
-          text: shareText,
-          files: [result.file],
-          url: shareUrl
-        };
-        
-        if (navigator.canShare(shareData)) {
-          try {
-            await navigator.share(shareData);
-            setShowShareMenu(false);
-            return;
-          } catch (error) {
-            if (error.name === 'AbortError') {
-              return; // User cancelled
-            }
-            // Fall through to URL-based sharing
-          }
-        }
-      }
-      
-      // For desktop or platforms that don't support file sharing via URL
-      // Download the image first so user can attach it manually when sharing
-      const link = document.createElement('a');
-      link.download = `mal-wrapped-${username || 'user'}-slide-${currentSlide + 1}.png`;
-      link.href = result.dataUrl;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      let shareLink = '';
-      
-      switch (platform) {
-        case 'twitter':
-          shareLink = `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`;
-          break;
-        case 'facebook':
-          shareLink = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
-          break;
-        case 'reddit':
-          shareLink = `https://reddit.com/submit?title=${encodedText}&url=${encodedUrl}`;
-          break;
-        case 'linkedin':
-          shareLink = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
-          break;
-        case 'whatsapp':
-          // WhatsApp on mobile can share files directly via Web Share API (handled above)
-          shareLink = `https://wa.me/?text=${encodedText}%20${encodedUrl}`;
-          break;
-        case 'telegram':
-          shareLink = `https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`;
-          break;
-        default:
-          return;
-      }
-      
-      // Small delay to ensure download starts, then open share dialog
-      setTimeout(() => {
-        window.open(shareLink, '_blank', 'width=600,height=400');
-      }, 100);
-      
-      setShowShareMenu(false);
-    } catch (error) {
-      console.error('Error sharing to social:', error);
-      alert('Failed to share. Please try downloading the image and sharing it manually.');
     }
+    
+    window.open(shareLink, '_blank', 'width=600,height=400');
+    setShowShareMenu(false);
   }
 
   // Close share menu when clicking outside
