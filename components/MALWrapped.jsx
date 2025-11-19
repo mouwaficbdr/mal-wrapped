@@ -896,14 +896,17 @@ export default function MALWrapped() {
             // Add watermark at the bottom
             const watermarkText = websiteUrl;
             
-            // Fixed font size - hardcoded, no variables, no calculations
-            ctx.font = 'bold 40px "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif';
+            // Fixed font size - no scaling, always the same pixel size
+            // Since snapdom uses scale: 2, we need to double the font size to account for the scale
+            const fontSize = 40; // Fixed 40px (will appear as 20px visually due to scale: 2)
+            ctx.font = `bold ${fontSize}px "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'bottom';
             
-            // Fixed padding - hardcoded, no variables, no calculations
+            // Fixed padding - no scaling
+            const padding = 20; // Fixed 20px
             const x = canvas.width / 2;
-            const y = canvas.height - 20;
+            const y = canvas.height - padding;
             
             // Simple text without effects
             ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
@@ -1034,40 +1037,90 @@ export default function MALWrapped() {
     }
   }
 
-  // Share to social media
-  function shareToSocial(platform) {
-    const shareText = `Check out my ${stats?.selectedYear || '2024'} MyAnimeList Wrapped!`;
-    const shareUrl = window.location.href;
-    const encodedText = encodeURIComponent(shareText);
-    const encodedUrl = encodeURIComponent(shareUrl);
-    
-    let shareLink = '';
-    
-    switch (platform) {
-      case 'twitter':
-        shareLink = `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`;
-        break;
-      case 'facebook':
-        shareLink = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
-        break;
-      case 'reddit':
-        shareLink = `https://reddit.com/submit?title=${encodedText}&url=${encodedUrl}`;
-        break;
-      case 'linkedin':
-        shareLink = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
-        break;
-      case 'whatsapp':
-        shareLink = `https://wa.me/?text=${encodedText}%20${encodedUrl}`;
-        break;
-      case 'telegram':
-        shareLink = `https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`;
-        break;
-      default:
+  // Share to social media with image
+  async function shareToSocial(platform) {
+    try {
+      // Generate the PNG image first
+      const result = await generatePNG();
+      if (!result) {
+        alert('Failed to generate image. Please try again.');
         return;
+      }
+      
+      const shareText = `Check out my ${stats?.selectedYear || '2024'} MyAnimeList Wrapped!`;
+      const shareUrl = window.location.href;
+      const encodedText = encodeURIComponent(shareText);
+      const encodedUrl = encodeURIComponent(shareUrl);
+      
+      // For mobile devices, try to use Web Share API with files
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (isMobile && navigator.share && navigator.canShare) {
+        const shareData = {
+          title: `My ${stats?.selectedYear || '2024'} MAL Wrapped`,
+          text: shareText,
+          files: [result.file],
+          url: shareUrl
+        };
+        
+        if (navigator.canShare(shareData)) {
+          try {
+            await navigator.share(shareData);
+            setShowShareMenu(false);
+            return;
+          } catch (error) {
+            if (error.name === 'AbortError') {
+              return; // User cancelled
+            }
+            // Fall through to URL-based sharing
+          }
+        }
+      }
+      
+      // For desktop or platforms that don't support file sharing via URL
+      // Download the image first so user can attach it manually when sharing
+      const link = document.createElement('a');
+      link.download = `mal-wrapped-${username || 'user'}-slide-${currentSlide + 1}.png`;
+      link.href = result.dataUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      let shareLink = '';
+      
+      switch (platform) {
+        case 'twitter':
+          shareLink = `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`;
+          break;
+        case 'facebook':
+          shareLink = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+          break;
+        case 'reddit':
+          shareLink = `https://reddit.com/submit?title=${encodedText}&url=${encodedUrl}`;
+          break;
+        case 'linkedin':
+          shareLink = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
+          break;
+        case 'whatsapp':
+          // WhatsApp on mobile can share files directly via Web Share API (handled above)
+          shareLink = `https://wa.me/?text=${encodedText}%20${encodedUrl}`;
+          break;
+        case 'telegram':
+          shareLink = `https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`;
+          break;
+        default:
+          return;
+      }
+      
+      // Small delay to ensure download starts, then open share dialog
+      setTimeout(() => {
+        window.open(shareLink, '_blank', 'width=600,height=400');
+      }, 100);
+      
+      setShowShareMenu(false);
+    } catch (error) {
+      console.error('Error sharing to social:', error);
+      alert('Failed to share. Please try downloading the image and sharing it manually.');
     }
-    
-    window.open(shareLink, '_blank', 'width=600,height=400');
-    setShowShareMenu(false);
   }
 
   // Close share menu when clicking outside
@@ -3501,15 +3554,13 @@ export default function MALWrapped() {
                             
                             if (navigator.canShare(fallbackShareData)) {
                               await navigator.share(fallbackShareData);
-                              // Use the same download function as the download button
-                              handleDownloadPNG(e);
+                              await handleDownloadPNG(e);
                               return;
                         }
                       } catch (error) {
                         if (error.name !== 'AbortError') {
                               console.log('Share not available or failed, downloading instead');
-                              // Use the same download function as the download button
-                              handleDownloadPNG(e);
+                              await handleDownloadPNG(e);
                             }
                           }
                         } else {
