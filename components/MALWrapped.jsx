@@ -1038,6 +1038,48 @@ export default function MALWrapped() {
   }
 
   // Share to social media
+  async function handleShareImageClick(e) {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    try {
+      const result = await generatePNG();
+      if (!result) {
+        alert('Failed to generate image. Please try again.');
+        return;
+      }
+
+      const shareData = {
+        title: `My ${stats?.selectedYear || '2024'} MAL Wrapped`,
+        text: `Check out my ${stats?.selectedYear || '2024'} MyAnimeList Wrapped!`,
+        files: [result.file],
+      };
+
+      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+        await navigator.share(shareData);
+      } else {
+        // Fallback: trigger download so user can share manually
+        const link = document.createElement('a');
+        link.download = `mal-wrapped-${username || 'user'}-slide-${currentSlide + 1}.png`;
+        link.href = result.dataUrl;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        alert('Sharing is not supported on this device. The image has been downloaded so you can share it manually.');
+      }
+    } catch (error) {
+      if (error?.name !== 'AbortError') {
+        console.error('Error sharing image:', error);
+        alert('Failed to share image. Please try again.');
+      }
+    } finally {
+      setShowShareMenu(false);
+    }
+  }
+
   function shareToSocial(platform) {
     const shareText = `Check out my ${stats?.selectedYear || '2024'} MyAnimeList Wrapped!`;
     const shareUrl = window.location.href;
@@ -3380,55 +3422,16 @@ export default function MALWrapped() {
                     transition={{ duration: 0.2 }}
                   >
                     <Download className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <span className="text-xs sm:text-sm font-medium hidden sm:inline">Download</span>
                   </motion.button>
                   {currentSlide === slides.length - 1 && (
                     <div className="relative" ref={shareMenuRef}>
                       <motion.button
                         type="button"
-                        onClick={async (e) => {
+                        onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-                          if (isMobile && navigator.share) {
-                            try {
-                              const result = await generatePNG();
-                              if (!result) {
-                                alert('Failed to generate image. Please try again.');
-                                return;
-                              }
-
-                              const shareData = {
-                                title: `My ${stats?.selectedYear || '2024'} MAL Wrapped`,
-                                text: `Check out my ${stats?.selectedYear || '2024'} MyAnimeList Wrapped!`,
-                                files: [result.file],
-                                url: window.location.href
-                              };
-
-                              if (navigator.canShare && navigator.canShare(shareData)) {
-                                await navigator.share(shareData);
-                                return;
-                              }
-
-                              const fallbackShareData = {
-                                title: `My ${stats?.selectedYear || '2024'} MAL Wrapped`,
-                                text: `Check out my ${stats?.selectedYear || '2024'} MyAnimeList Wrapped! Check yours out at ${window.location.href}`,
-                              };
-
-                              if (navigator.canShare && navigator.canShare(fallbackShareData)) {
-                                await navigator.share(fallbackShareData);
-                                await handleDownloadPNG(e);
-                                return;
-                              }
-                            } catch (error) {
-                              if (error.name !== 'AbortError') {
-                                console.log('Share not available or failed, downloading instead');
-                                await handleDownloadPNG(e);
-                              }
-                            }
-                          } else {
-                            setShowShareMenu((prev) => !prev);
-                          }
+                          setShowShareMenu((prev) => !prev);
                         }}
                         className="p-1.5 sm:p-2 text-white rounded-full flex items-center gap-1.5 sm:gap-2"
                         style={{ 
@@ -3456,6 +3459,13 @@ export default function MALWrapped() {
                           className="absolute top-full right-0 mt-2 bg-black/95 backdrop-blur-sm border border-white/10 rounded-xl p-3 z-50 min-w-[200px]"
                         >
                           <div className="flex flex-col gap-2">
+                            <button
+                              type="button"
+                              onClick={handleShareImageClick}
+                              className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 transition-colors text-left"
+                            >
+                              <span className="text-white font-medium">Share Image</span>
+                            </button>
                             {[
                               { id: 'twitter', label: 'Twitter/X' },
                               { id: 'facebook', label: 'Facebook' },
@@ -3524,7 +3534,7 @@ export default function MALWrapped() {
                   transition={{ duration: 0.2 }}
                 >
                   <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span className="text-xs sm:text-sm font-medium hidden sm:inline">Logout</span>
+                  <span className="text-xs sm:text-sm font-medium hidden sm:inline">Log Out</span>
                 </motion.button>
               </div>
               
