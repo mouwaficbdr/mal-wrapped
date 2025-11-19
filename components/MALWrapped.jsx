@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Download, LogOut, Share2, Github, Mail, Youtube, Linkedin, Instagram, Globe, ExternalLink, Copy } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, LogOut, Github, Mail, Youtube, Linkedin, Instagram, Globe, ExternalLink, Copy } from 'lucide-react';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 
 // MyAnimeList Icon Component
@@ -179,7 +179,7 @@ export default function MALWrapped() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [stats, setStats] = useState(null);
   const [selectedYear, setSelectedYear] = useState(2025);
-  const [showShareMenu, setShowShareMenu] = useState(false);
+  const [isShareMenuOpen, setShareMenuOpen] = useState(false);
   const [emailCopied, setEmailCopied] = useState(false);
   const shareMenuRef = useRef(null);
   const slideRef = useRef(null);
@@ -1007,25 +1007,6 @@ export default function MALWrapped() {
     }
   }
 
-  // Copy image to clipboard
-  async function copyImageToClipboard() {
-    try {
-      const result = await generatePNG();
-      if (!result) return;
-      
-      const response = await fetch(result.dataUrl);
-      const blob = await response.blob();
-      await navigator.clipboard.write([
-        new ClipboardItem({ 'image/png': blob })
-      ]);
-      alert('Image copied to clipboard!');
-      setShowShareMenu(false);
-    } catch (err) {
-      console.error('Failed to copy image:', err);
-      alert('Failed to copy image to clipboard. Please try downloading instead.');
-    }
-  }
-
   // Copy email to clipboard
   async function copyEmail() {
     try {
@@ -1037,99 +1018,89 @@ export default function MALWrapped() {
     }
   }
 
-  // Share to social media
-  async function handleShareImageClick(e) {
+  const shareTargets = [
+    { id: 'twitter', label: 'Twitter / X', buildUrl: (text, url) => `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}` },
+    { id: 'facebook', label: 'Facebook', buildUrl: (_, url) => `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}` },
+    { id: 'reddit', label: 'Reddit', buildUrl: (text, url) => `https://reddit.com/submit?title=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}` },
+    { id: 'linkedin', label: 'LinkedIn', buildUrl: (_, url) => `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}` },
+    { id: 'whatsapp', label: 'WhatsApp', buildUrl: (text, url) => `https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}` },
+    { id: 'telegram', label: 'Telegram', buildUrl: (text, url) => `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}` },
+  ];
+
+  const getShareContext = () => {
+    const text = `Check out my ${stats?.selectedYear || '2024'} MyAnimeList Wrapped!`;
+    const url = typeof window !== 'undefined' ? window.location.href : 'https://myanimelist.net';
+    return { text, url };
+  };
+
+  const isMobileDevice = typeof navigator !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+  async function handleShareButtonClick(e) {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
     }
 
-    try {
-      const result = await generatePNG();
-      if (!result) {
-        alert('Failed to generate image. Please try again.');
-        return;
-      }
+    if (isMobileDevice && navigator.share) {
+      try {
+        const result = await generatePNG();
+        if (!result) {
+          alert('Failed to generate image. Please try again.');
+          return;
+        }
 
-      const shareData = {
-        title: `My ${stats?.selectedYear || '2024'} MAL Wrapped`,
-        text: `Check out my ${stats?.selectedYear || '2024'} MyAnimeList Wrapped!`,
-        files: [result.file],
-      };
+        const { text, url } = getShareContext();
+        const shareData = {
+          title: text,
+          text,
+          url,
+          files: result.file ? [result.file] : undefined,
+        };
 
-      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+        if (navigator.canShare && !navigator.canShare(shareData)) {
+          throw new Error('Cannot share this content');
+        }
+
         await navigator.share(shareData);
-      } else {
-        // Fallback: trigger download so user can share manually
-        const link = document.createElement('a');
-        link.download = `mal-wrapped-${username || 'user'}-slide-${currentSlide + 1}.png`;
-        link.href = result.dataUrl;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        alert('Sharing is not supported on this device. The image has been downloaded so you can share it manually.');
-      }
-    } catch (error) {
-      if (error?.name !== 'AbortError') {
-        console.error('Error sharing image:', error);
-        alert('Failed to share image. Please try again.');
-      }
-    } finally {
-      setShowShareMenu(false);
-    }
-  }
-
-  function shareToSocial(platform) {
-    const shareText = `Check out my ${stats?.selectedYear || '2024'} MyAnimeList Wrapped!`;
-    const shareUrl = window.location.href;
-    const encodedText = encodeURIComponent(shareText);
-    const encodedUrl = encodeURIComponent(shareUrl);
-    
-    let shareLink = '';
-    
-    switch (platform) {
-      case 'twitter':
-        shareLink = `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`;
-        break;
-      case 'facebook':
-        shareLink = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
-        break;
-      case 'reddit':
-        shareLink = `https://reddit.com/submit?title=${encodedText}&url=${encodedUrl}`;
-        break;
-      case 'linkedin':
-        shareLink = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
-        break;
-      case 'whatsapp':
-        shareLink = `https://wa.me/?text=${encodedText}%20${encodedUrl}`;
-        break;
-      case 'telegram':
-        shareLink = `https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`;
-        break;
-      default:
         return;
+      } catch (error) {
+        if (error?.name === 'AbortError') {
+          return;
+        }
+        console.warn('Native share failed, showing menu instead');
+      }
     }
-    
-    window.open(shareLink, '_blank', 'width=600,height=400');
-    setShowShareMenu(false);
+
+    setShareMenuOpen((prev) => !prev);
   }
 
-  // Close share menu when clicking outside
+  function handleShareTargetClick(platformId) {
+    const platform = shareTargets.find((p) => p.id === platformId);
+    if (!platform) return;
+
+    const { text, url } = getShareContext();
+    const shareUrl = platform.buildUrl(text, url);
+    window.open(shareUrl, '_blank', 'width=600,height=400');
+    setShareMenuOpen(false);
+  }
+
   useEffect(() => {
+    if (!isShareMenuOpen) return;
+
     function handleClickOutside(event) {
       if (shareMenuRef.current && !shareMenuRef.current.contains(event.target)) {
-        setShowShareMenu(false);
+        setShareMenuOpen(false);
       }
     }
 
-    if (showShareMenu) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-      };
-    }
-  }, [showShareMenu]);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isShareMenuOpen]);
+
+  useEffect(() => {
+    setShareMenuOpen(false);
+  }, [currentSlide]);
+
 
   // Recalculate stats when year changes
   useEffect(() => {
@@ -3380,11 +3351,11 @@ export default function MALWrapped() {
               <div className="flex-shrink-0 px-3 sm:px-4 md:px-6 pt-3 pb-2 flex items-center justify-between gap-2 sm:gap-3" data-exclude-from-screenshot>
                 <div className="flex items-center gap-2 sm:gap-3">
                   <div className="relative min-w-[120px] sm:min-w-[140px]">
-                  <select
-                    value={selectedYear}
-                    onChange={(e) => setSelectedYear(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
+                    <select
+                      value={selectedYear}
+                      onChange={(e) => setSelectedYear(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
                       className="w-full px-3 sm:px-4 py-1.5 sm:py-2 text-white rounded-full border-box-cyan transition-all rounded-lg text-xs sm:text-sm font-medium tracking-wider focus:outline-none appearance-none pr-8 sm:pr-10"
-                      style={{ 
+                      style={{
                         border: '1px solid rgba(255, 255, 255, 0.1)',
                         color: '#ffffff'
                       }}
@@ -3393,28 +3364,28 @@ export default function MALWrapped() {
                       <option value="2024" style={{ background: 'rgba(0, 0, 0, 0.85)', color: '#ffffff' }}>2024</option>
                       <option value="2025" style={{ background: 'rgba(0, 0, 0, 0.85)', color: '#ffffff' }}>2025</option>
                       <option value="all" style={{ background: 'rgba(0, 0, 0, 0.85)', color: '#ffffff' }}>All Time</option>
-                  </select>
+                    </select>
                     <div className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 pointer-events-none z-10">
                       <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
                     </div>
                   </div>
-                  <motion.button 
+                  <motion.button
                     type="button"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
                       handleDownloadPNG(e);
                     }}
-                    className="p-1.5 sm:p-2 text-white rounded-full flex items-center gap-1.5 sm:gap-2" 
-                    title="Download Slide" 
-                    style={{ 
+                    className="p-1.5 sm:p-2 text-white rounded-full flex items-center gap-1.5 sm:gap-2"
+                    title="Download Slide"
+                    style={{
                       backgroundColor: 'rgba(255, 255, 255, 0.05)',
                       border: '1px solid rgba(255, 255, 255, 0.1)'
                     }}
-                    whileHover={{ 
-                      scale: 1.1, 
+                    whileHover={{
+                      scale: 1.1,
                       backgroundColor: 'rgba(16, 185, 129, 0.8)',
                       borderColor: 'rgba(16, 185, 129, 0.8)'
                     }}
@@ -3424,98 +3395,6 @@ export default function MALWrapped() {
                     <Download className="w-4 h-4 sm:w-5 sm:h-5" />
                     <span className="text-xs sm:text-sm font-medium hidden sm:inline">Download</span>
                   </motion.button>
-                  {currentSlide === slides.length - 1 && (
-                    <div className="relative" ref={shareMenuRef}>
-                      <motion.button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          setShowShareMenu((prev) => !prev);
-                        }}
-                        className="p-1.5 sm:p-2 text-white rounded-full flex items-center gap-1.5 sm:gap-2"
-                        style={{ 
-                          backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                          border: '1px solid rgba(255, 255, 255, 0.1)'
-                        }}
-                        whileHover={{ 
-                          scale: 1.1, 
-                          backgroundColor: 'rgba(64, 101, 204, 0.8)',
-                          borderColor: 'rgba(64, 101, 204, 0.8)'
-                        }}
-                        whileTap={{ scale: 0.9 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
-                        <span className="text-xs sm:text-sm font-medium hidden sm:inline">Share</span>
-                      </motion.button>
-
-                      {showShareMenu && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                          transition={{ duration: 0.2 }}
-                          className="absolute top-full right-0 mt-2 bg-black/95 backdrop-blur-sm border border-white/10 rounded-xl p-3 z-50 min-w-[200px]"
-                        >
-                          <div className="flex flex-col gap-2">
-                            <button
-                              type="button"
-                              onClick={handleShareImageClick}
-                              className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 transition-colors text-left"
-                            >
-                              <span className="text-white font-medium">Share Image</span>
-                            </button>
-                            {[
-                              { id: 'twitter', label: 'Twitter/X' },
-                              { id: 'facebook', label: 'Facebook' },
-                              { id: 'reddit', label: 'Reddit' },
-                              { id: 'linkedin', label: 'LinkedIn' },
-                              { id: 'whatsapp', label: 'WhatsApp' },
-                              { id: 'telegram', label: 'Telegram' },
-                            ].map(({ id, label }) => (
-                              <button
-                                key={id}
-                                type="button"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  shareToSocial(id);
-                                }}
-                                className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 transition-colors text-left"
-                              >
-                                <span className="text-white font-medium">{label}</span>
-                              </button>
-                            ))}
-                            <div className="border-t border-white/10 my-1"></div>
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                copyImageToClipboard();
-                              }}
-                              className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 transition-colors text-left"
-                            >
-                              <span className="text-white font-medium">Copy Image</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                handleDownloadPNG(e);
-                                setShowShareMenu(false);
-                              }}
-                              className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 transition-colors text-left"
-                            >
-                              <span className="text-white font-medium">Download</span>
-                            </button>
-                          </div>
-                        </motion.div>
-                      )}
-                    </div>
-                  )}
                 </div>
                 <motion.button 
                   onClick={handleLogout} 
@@ -3582,32 +3461,93 @@ export default function MALWrapped() {
               {/* Bottom Controls */}
               <div className="flex-shrink-0 w-full px-3 sm:px-4 md:px-6 pb-3 sm:pb-4 flex items-center justify-between gap-2 relative z-10" data-exclude-from-screenshot>
                 <motion.button
-                onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))}
-                disabled={currentSlide === 0}
+                  onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))}
+                  disabled={currentSlide === 0}
                   className="p-1.5 sm:p-2 text-white rounded-full border-box-cyan disabled:opacity-30 transition-all"
                   whileHover={{ scale: currentSlide === 0 ? 1 : 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   transition={{ duration: 0.2 }}
-              >
+                >
                   <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
                 </motion.button>
-                
-                <p className="text-white/60 text-xs sm:text-sm md:text-base font-mono py-1.5 sm:py-2 px-2 sm:px-4 rounded-full border-box-cyan ">
-                  {currentSlide === slides.length - 1
-                    ? siteName
-                    : `${String(currentSlide + 1).padStart(2, '0')} / ${String(slides.length).padStart(2, '0')}`}
-                </p>
 
-                  <motion.button
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <p className="text-white/60 text-xs sm:text-sm md:text-base font-mono py-1.5 sm:py-2 px-2 sm:px-4 rounded-full border-box-cyan ">
+                    {currentSlide === slides.length - 1
+                      ? siteName
+                      : `${String(currentSlide + 1).padStart(2, '0')} / ${String(slides.length).padStart(2, '0')}`}
+                  </p>
+                  {isFinalSlide && (
+                    <div className="relative" ref={shareMenuRef}>
+                      <motion.button
+                        type="button"
+                        onClick={handleShareButtonClick}
+                        className="p-1.5 sm:p-2 text-white rounded-full flex items-center gap-1.5 sm:gap-2"
+                        style={{
+                          backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                          border: '1px solid rgba(255, 255, 255, 0.1)'
+                        }}
+                        whileHover={{
+                          scale: 1.1,
+                          backgroundColor: 'rgba(64, 101, 204, 0.8)',
+                          borderColor: 'rgba(64, 101, 204, 0.8)'
+                        }}
+                        whileTap={{ scale: 0.9 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                        <span className="text-xs sm:text-sm font-medium hidden sm:inline">Share</span>
+                      </motion.button>
+
+                      {isShareMenuOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                          transition={{ duration: 0.2 }}
+                          className="absolute bottom-full right-0 mb-2 bg-black/95 backdrop-blur-sm border border-white/10 rounded-xl p-3 z-50 min-w-[200px]"
+                        >
+                          <div className="flex flex-col gap-2">
+                            {shareTargets.map(({ id, label }) => (
+                              <button
+                                key={id}
+                                type="button"
+                                onClick={() => handleShareTargetClick(id)}
+                                className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 transition-colors text-left"
+                              >
+                                <span className="text-white font-medium">{label}</span>
+                              </button>
+                            ))}
+                            <div className="border-t border-white/10 my-1"></div>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleDownloadPNG(e);
+                                setShareMenuOpen(false);
+                              }}
+                              className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 transition-colors text-left"
+                            >
+                              <span className="text-white font-medium">Download Image</span>
+                            </button>
+                          </div>
+                        </motion.div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <motion.button
                   onClick={() => setCurrentSlide(Math.min(slides.length - 1, currentSlide + 1))}
                   disabled={currentSlide === slides.length - 1}
                   className="p-1.5 sm:p-2 text-white rounded-full border-box-cyan disabled:opacity-30"
                   whileHover={{ scale: currentSlide === slides.length - 1 ? 1 : 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    transition={{ duration: 0.2 }}
-                  >
+                  whileTap={{ scale: 0.9 }}
+                  transition={{ duration: 0.2 }}
+                >
                   <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
-                  </motion.button>
+                </motion.button>
               </div>
             </div>
         )}
