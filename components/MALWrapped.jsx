@@ -222,10 +222,10 @@ export default function MALWrapped() {
   const currentSlideId = slides[currentSlide]?.id;
   const isFinalSlide = currentSlideId === 'finale';
   const topGradientBackground = isFinalSlide
-    ? 'linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.98) 20%, rgba(0, 0, 0, 0.9) 50%, rgba(0, 0, 0, 0.6) 80%, rgba(0, 0, 0, 0.2) 100%)'
+    ? 'linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 100%)'
     : 'linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.95) 20%, rgba(0, 0, 0, 0.8) 50%, rgba(0, 0, 0, 0.4) 80%, rgba(0, 0, 0, 0) 100%)';
   const bottomGradientBackground = isFinalSlide
-    ? 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.98) 20%, rgba(0, 0, 0, 0.9) 50%, rgba(0, 0, 0, 0.6) 80%, rgba(0, 0, 0, 0.2) 100%)'
+    ? 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.5) 50%, rgba(0, 0, 0, 1) 100%)'
     : 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.95) 20%, rgba(0, 0, 0, 0.8) 50%, rgba(0, 0, 0, 0.4) 80%, rgba(0, 0, 0, 0) 100%)';
   
   // Get website URL for watermark
@@ -885,23 +885,21 @@ export default function MALWrapped() {
           // Add watermark at the bottom
           const watermarkText = websiteUrl;
           
-          // Use fixed font size matching CSS styles (body-sm equivalent, but larger for visibility)
-          // body-sm is 0.95rem (15.2px) on mobile, 1.125rem (18px) on sm - using 24px for better visibility
-          ctx.font = 'bold 24px "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif';
+          // Use fixed large font size for better visibility on all devices
+          ctx.font = 'bold 40px "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           
-          // Calculate position (bottom center, slightly more centered)
-          const padding = 30;
+          // Position at bottom center, more centered vertically (8% from bottom)
           const x = canvas.width / 2;
-          const y = canvas.height - padding;
+          const y = canvas.height - (canvas.height * 0.08);
           
           // Draw text with shadow for better visibility
           ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-          ctx.shadowBlur = 4;
+          ctx.shadowBlur = 6;
           ctx.shadowOffsetX = 0;
           ctx.shadowOffsetY = 0;
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
           ctx.fillText(watermarkText, x, y);
           
           // Convert canvas to blob
@@ -1628,7 +1626,7 @@ export default function MALWrapped() {
                   <motion.img
                     src="/avatar.webp"
                     alt="X.Avishkar"
-                    className="relative w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 object-contain pointer-events-none z-10 mt-4"
+                    className="relative w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 object-contain pointer-events-none z-10 mt-4"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, ease: smoothEase }}
@@ -1817,7 +1815,7 @@ export default function MALWrapped() {
                   <img 
                     src="/anime-character.webp" 
                     alt="Anime character"
-                    className="w-32 h-32 md:w-40 md:h-40 object-contain"
+                    className="w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 object-contain"
                   />
                 </motion.div>
                 <h2 className="body-md font-regular text-white mt-4 text-container z-10 relative">But one show rose above everything</h2>
@@ -2283,7 +2281,7 @@ export default function MALWrapped() {
                 <img 
                   src="/manga-character.webp" 
                   alt="Manga character"
-                  className="w-32 h-32 md:w-40 md:h-40 object-contain"
+                  className="w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 object-contain"
                 />
               </motion.div>
               <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
@@ -2521,7 +2519,7 @@ export default function MALWrapped() {
                     <img 
                       src="/manga-character.webp" 
                       alt="Manga character"
-                      className="w-32 h-32 md:w-40 md:h-40 object-contain"
+                      className="w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 object-contain"
                     />
                   </motion.div>
                   <h2 className="body-md font-regular text-white mt-4 text-container z-10 relative">But one manga kept you turning pages nonstop</h2>
@@ -3153,7 +3151,7 @@ export default function MALWrapped() {
                 transition={{ duration: 0.6, ease: smoothEase }}
               >
                 <motion.h1 
-                  className="title-md font-regular text-white mb-8 tracking-tight"
+                  className="body-lg font-medium text-white mb-8 tracking-tight"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.8, delay: 0.2 }}
@@ -3251,7 +3249,7 @@ export default function MALWrapped() {
                   <motion.img
                     src="/avatar.webp"
                     alt="X.Avishkar"
-                    className="relative w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 object-contain pointer-events-none z-10 mt-4"
+                    className="relative w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 object-contain pointer-events-none z-10 mt-4"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, ease: smoothEase }}
