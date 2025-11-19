@@ -896,14 +896,17 @@ export default function MALWrapped() {
             // Add watermark at the bottom
             const watermarkText = websiteUrl;
             
-            // Simple fixed font size
-            ctx.font = 'bold 40px "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif';
+            // Fixed font size - no scaling, always the same pixel size
+            // Since snapdom uses scale: 2, we need to double the font size to account for the scale
+            const fontSize = 40; // Fixed 40px (will appear as 20px visually due to scale: 2)
+            ctx.font = `bold ${fontSize}px "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'bottom';
             
-            // Position at bottom center
+            // Fixed padding - no scaling
+            const padding = 20; // Fixed 20px
             const x = canvas.width / 2;
-            const y = canvas.height - 20;
+            const y = canvas.height - padding;
             
             // Simple text without effects
             ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
