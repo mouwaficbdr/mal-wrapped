@@ -924,7 +924,7 @@ export default function MALWrapped() {
                 return;
               }
               
-              const file = new File([blob], `mal-wrapped-${username || 'user'}-slide-${currentSlide + 1}.png`, { type: 'image/png' });
+      const file = new File([blob], `mal-wrapped-${username || 'user'}-slide-${currentSlide + 1}.png`, { type: 'image/png' });
               const dataUrl = canvas.toDataURL('image/png');
               
               resolve({ file, dataUrl });
@@ -1702,7 +1702,7 @@ export default function MALWrapped() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, ease: smoothEase }}
                   />
-                </motion.div>
+              </motion.div>
               </div>
             </div>
           </SlideLayout>
@@ -2346,7 +2346,7 @@ export default function MALWrapped() {
           <SlideLayout verticalText="TRANSITION" bgColor="black">
             <motion.div className="text-center relative z-10" {...fadeSlideUp} data-framer-motion>
               <motion.div 
-                className="relative z-10 mb-6 flex items-center justify-center" 
+                className="relative z-10 mb-6 flex items-center justify-center"
                 data-framer-motion
               >
                 <img 
@@ -3030,7 +3030,7 @@ export default function MALWrapped() {
         
         return (
           <SlideLayout verticalText="FINAL-REPORT" bgColor="blue">
-            <motion.div 
+                <motion.div 
               className="w-full h-full flex flex-col items-center justify-center relative z-20"
               variants={staggerContainer}
               initial="initial"
@@ -3070,7 +3070,7 @@ export default function MALWrapped() {
                   >
                     {username || 'Your'}'s {stats.selectedYear !== 'all' ? `${stats.selectedYear} ` : ''}MyAnimeList Wrapped
                   </motion.h2>
-                </div>
+              </div>
               </motion.div>
 
               {/* Text Content Below - All sections in one flex container with consistent gap */}
@@ -3155,8 +3155,8 @@ export default function MALWrapped() {
                 </p>
                   </div>
                 </motion.div>
-              </div>
-
+                </div>
+                
             </motion.div>
           </SlideLayout>
         );
@@ -3407,7 +3407,7 @@ export default function MALWrapped() {
                       e.stopPropagation();
                       handleDownloadPNG(e);
                     }}
-                    className="p-1.5 sm:p-2 text-white rounded-full" 
+                    className="p-1.5 sm:p-2 text-white rounded-full flex items-center gap-1.5 sm:gap-2" 
                     title="Download Slide" 
                     style={{ 
                       backgroundColor: 'rgba(255, 255, 255, 0.05)',
@@ -3431,7 +3431,7 @@ export default function MALWrapped() {
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          setShowShareMenu((prev) => !prev);
+                          setShowShareMenu(!showShareMenu);
                         }}
                         className="p-1.5 sm:p-2 text-white rounded-full flex items-center gap-1.5 sm:gap-2"
                         style={{ 
@@ -3582,32 +3582,32 @@ export default function MALWrapped() {
               {/* Bottom Controls */}
               <div className="flex-shrink-0 w-full px-3 sm:px-4 md:px-6 pb-3 sm:pb-4 flex items-center justify-between gap-2 relative z-10" data-exclude-from-screenshot>
                 <motion.button
-                  onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))}
-                  disabled={currentSlide === 0}
+                onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))}
+                disabled={currentSlide === 0}
                   className="p-1.5 sm:p-2 text-white rounded-full border-box-cyan disabled:opacity-30 transition-all"
                   whileHover={{ scale: currentSlide === 0 ? 1 : 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   transition={{ duration: 0.2 }}
-                >
+              >
                   <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
                 </motion.button>
-
+                
                 <p className="text-white/60 text-xs sm:text-sm md:text-base font-mono py-1.5 sm:py-2 px-2 sm:px-4 rounded-full border-box-cyan ">
                   {currentSlide === slides.length - 1
                     ? siteName
                     : `${String(currentSlide + 1).padStart(2, '0')} / ${String(slides.length).padStart(2, '0')}`}
                 </p>
 
-                <motion.button
+                  <motion.button
                   onClick={() => setCurrentSlide(Math.min(slides.length - 1, currentSlide + 1))}
                   disabled={currentSlide === slides.length - 1}
                   className="p-1.5 sm:p-2 text-white rounded-full border-box-cyan disabled:opacity-30"
                   whileHover={{ scale: currentSlide === slides.length - 1 ? 1 : 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  transition={{ duration: 0.2 }}
-                >
+                    whileTap={{ scale: 0.9 }}
+                    transition={{ duration: 0.2 }}
+                  >
                   <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
-                </motion.button>
+                  </motion.button>
               </div>
             </div>
         )}
@@ -3727,8 +3727,8 @@ export default function MALWrapped() {
                 <span>Resume</span>
                 <ExternalLink size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
               </motion.a>
-            </div>
-          </div>
+                        </div>
+                  </div>
 
           {/* Right Column - WORK */}
           <div className="space-y-4">
@@ -3775,11 +3775,11 @@ export default function MALWrapped() {
                 <ExternalLink size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
               </motion.a>
             </div>
-          </div>
-        </div>
+            </div>
+      </div>
         <div className="mt-8 pt-6 border-t border-white/10">
           <p className="text-white/60 text-sm text-center">© 2025 Designed by <span className="font-semibold">Avishkar Shinde</span></p>
-        </div>
+    </div>
       </div>
     </footer>
     </motion.main>
