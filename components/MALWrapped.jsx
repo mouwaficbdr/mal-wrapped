@@ -2991,7 +2991,7 @@ export default function MALWrapped() {
             <motion.div 
               className="w-full h-full flex flex-col items-center justify-center relative z-20"
               variants={staggerContainer}
-              initial="initial"
+              initial={false}
               animate="animate"
             >
               {/* Image with Heading */}
