@@ -2955,11 +2955,19 @@ export default function MALWrapped() {
         
         return (
           <SlideLayout verticalText="FINAL-REPORT" bgColor="blue">
-            <div className="w-full h-full flex flex-col items-center justify-center relative">
-              {/* Image */}
-              <div className="w-full max-w-3xl flex items-center justify-center gap-6 sm:gap-6 mb-6 sm:mb-6">
-                <div className="relative w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 flex items-center justify-center">
-                <motion.div 
+            <motion.div 
+              className="w-full h-full flex flex-col items-center justify-center relative"
+              variants={staggerContainer}
+              initial="initial"
+              animate="animate"
+            >
+              {/* Image with Heading */}
+              <motion.div 
+                className="w-full max-w-3xl flex items-center justify-center gap-6 sm:gap-8 mb-6 sm:mb-8"
+                variants={staggerItem}
+              >
+                <div className="relative w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 flex items-center justify-center flex-shrink-0">
+                  <motion.div 
                     className="relative z-10 w-full h-full rounded-xl overflow-hidden border-box-cyan"
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -2973,14 +2981,22 @@ export default function MALWrapped() {
                     />
                   </motion.div>
                 </div>
-              </div>
+                <div className="flex-1">
+                  <motion.h2 
+                    className="title-lg sm:text-2xl md:text-3xl text-white font-medium"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.6, ease: smoothEase }}
+                  >
+                    {username || 'Your'}'s {stats.selectedYear !== 'all' ? `${stats.selectedYear} ` : ''}Wrapped
+                  </motion.h2>
+                </div>
+              </motion.div>
 
               {/* Text Content Below - No Boxes */}
-                <motion.div 
+              <motion.div 
                 className="w-full max-w-3xl flex flex-col gap-6 sm:gap-8 text-white relative z-10"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
+                variants={staggerItem}
               >
                 <div className="grid grid-cols-2 gap-6 sm:gap-8">
                   <div className="space-y-1">
@@ -3003,60 +3019,65 @@ export default function MALWrapped() {
                       </p>
                     ))}
                   </div>
-              </div>
-
-                <div className="grid grid-cols-2 gap-6 sm:gap-8">
-                  <div className="space-y-1">
-                    {finaleTopGenre && (
-                      <>
-                        <p className="body-sm text-white/50 font-medium mb-1">Favorite Genre</p>
-                        <p className="title-md text-white font-medium">{finaleTopGenre[0]}</p>
-                      </>
-                    )}
-                  </div>
-                  
-                  <div className="space-y-1">
-                    {favoriteAuthor && (
-                      <>
-                        <p className="body-sm text-white/50 font-medium mb-1">Favorite Author</p>
-                        <p className="title-md text-white font-medium">{favoriteAuthor}</p>
-                      </>
-                    )}
-                  </div>
                 </div>
+              </motion.div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 sm:gap-8">
-                  <div className="space-y-1">
-                    <p className="body-sm text-white/50 font-medium mb-1">Watched</p>
-                    <p className="title-md text-white  font-medium">
-                    {stats.totalAnime || 0} Anime
-                  </p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="body-sm text-white/50 font-medium mb-1">Read</p>
-                    <p className="title-md text-white font-medium">
-                    {stats.totalManga || 0} Manga
-                  </p>
-                </div>
+              <motion.div 
+                className="w-full max-w-3xl grid grid-cols-2 gap-6 sm:gap-8 text-white relative z-10"
+                variants={staggerItem}
+              >
                 <div className="space-y-1">
-                  <p className="body-sm text-white/50 font-medium mb-1">Spent</p>
-                  <p className="title-lg text-white font-medium">
-                  {totalDays > 0 ? (
+                  {finaleTopGenre && (
                     <>
-                      {totalDays} Days
-                    </>
-                  ) : (
-                    <>
-                      {totalTimeSpent} Hours
+                      <p className="body-sm text-white/50 font-medium mb-1">Favorite Genre</p>
+                      <p className="title-md text-white font-medium">{finaleTopGenre[0]}</p>
                     </>
                   )}
-                </p>
-                  </div>
                 </div>
                 
-            </motion.div>
+                <div className="space-y-1">
+                  {favoriteAuthor && (
+                    <>
+                      <p className="body-sm text-white/50 font-medium mb-1">Favorite Author</p>
+                      <p className="title-md text-white font-medium">{favoriteAuthor}</p>
+                    </>
+                  )}
+                </div>
+              </motion.div>
 
-                  </div>
+              <motion.div 
+                className="w-full max-w-3xl grid grid-cols-2 sm:grid-cols-3 gap-6 sm:gap-8 text-white relative z-10"
+                variants={staggerItem}
+              >
+                <div className="space-y-1">
+                  <p className="body-sm text-white/50 font-medium mb-1">Watched</p>
+                  <p className="title-md text-white  font-medium">
+                  {stats.totalAnime || 0} Anime
+                </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="body-sm text-white/50 font-medium mb-1">Read</p>
+                  <p className="title-md text-white font-medium">
+                  {stats.totalManga || 0} Manga
+                </p>
+              </div>
+              <div className="space-y-1">
+                <p className="body-sm text-white/50 font-medium mb-1">Spent</p>
+                <p className="title-lg text-white font-medium">
+                {totalDays > 0 ? (
+                  <>
+                    {totalDays} Days
+                  </>
+                ) : (
+                  <>
+                    {totalTimeSpent} Hours
+                  </>
+                )}
+              </p>
+                </div>
+              </motion.div>
+
+            </motion.div>
           </SlideLayout>
         );
       }
