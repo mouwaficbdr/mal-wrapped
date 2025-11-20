@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Download, LogOut, Share2, Github, Mail, Youtube, Linkedin, Instagram, Globe, ExternalLink, Copy } from 'lucide-react';
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import React, { useState, useEffect, useRef } from 'react';
+import { ChevronLeft, ChevronRight, Download, LogOut, Share2, Github, Youtube, Linkedin, Instagram, ExternalLink, Copy } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 // MyAnimeList Icon Component
 const MyAnimeListIcon = ({ size = 20, className = '' }) => (
@@ -1178,7 +1178,7 @@ export default function MALWrapped() {
   function SlideContent({ slide, mangaListData, siteName }) {
     if (!slide || !stats) return null;
 
-    const SlideLayout = ({ children, verticalText, bgColor = 'black' }) => {
+    const SlideLayout = ({ children, bgColor = 'black' }) => {
       // Spotify-like background colors with subtle tint (solid colors)
       const bgColorClasses = {
         black: 'bg-black',
@@ -1197,16 +1197,6 @@ export default function MALWrapped() {
           transition={{ duration: 0.3 }}
           style={{ position: 'relative' }}
         >
-        {verticalText && (
-            <motion.p 
-              className="absolute top-1/2 -left-2 md:-left-2 -translate-y-1/2 text-white/30 font-medium tracking-[.3em] [writing-mode:vertical-lr] text-xs sm:text-sm md:text-base z-20 pointer-events-none"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-            {verticalText}
-            </motion.p>
-          )}
           {/* Colorful abstract shapes background on all cards - animated */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
             {/* Large layered organic shape (left side) */}
@@ -1664,7 +1654,7 @@ export default function MALWrapped() {
     switch (slide.id) {
       case 'welcome':
         return (
-          <SlideLayout verticalText="INITIALIZE" bgColor="pink">
+          <SlideLayout bgColor="pink">
             <div className="text-center relative w-full h-full flex flex-col items-center justify-center">
               {/* Colorful abstract shapes background */}
               
@@ -1711,7 +1701,7 @@ export default function MALWrapped() {
       case 'anime_count':
         if (stats.thisYearAnime.length === 0) {
           return (
-            <SlideLayout verticalText="ANIME-LOG" bgColor="blue">
+            <SlideLayout bgColor="blue">
               <motion.div className="text-center relative z-10" {...fadeSlideUp} data-framer-motion>
                 <h2 className="heading-md text-white mb-4 text-container">
                   You didn't watch any anime {stats.selectedYear === 'all' ? '' : 'in ' + stats.selectedYear}.
@@ -1739,7 +1729,7 @@ export default function MALWrapped() {
           malId: item.node?.id
         }));
         return (
-          <SlideLayout verticalText="ANIME-LOG" bgColor="blue">
+          <SlideLayout bgColor="blue">
             <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
             {stats.selectedYear === 'all' ? 'Overall' : 'In ' + stats.selectedYear}, you binged through
             </motion.h2>
@@ -1758,7 +1748,7 @@ export default function MALWrapped() {
 
       case 'anime_time':
         return (
-          <SlideLayout verticalText="TIME-ANALYSIS" bgColor="green">
+          <SlideLayout bgColor="green">
             <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
             That adds up to
             </motion.h2>
@@ -1820,7 +1810,7 @@ export default function MALWrapped() {
         }));
         const otherGenres = stats.topGenres?.slice(1, 5) || [];
         return (
-          <SlideLayout verticalText="GENRE-MATRIX" bgColor="yellow">
+          <SlideLayout  bgColor="yellow">
             <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
             You kept coming back to the same genres
             </motion.h2>
@@ -1865,7 +1855,6 @@ export default function MALWrapped() {
         const DrumrollContent = () => {
           const [phase, setPhase] = useState(0);
           const topItem = stats.topRated.length > 0 ? stats.topRated[0] : null;
-          const verticalText = 'DRUMROLL';
           
           useEffect(() => {
             const timer1 = setTimeout(() => setPhase(1), 2250);
@@ -1875,7 +1864,7 @@ export default function MALWrapped() {
           }, []);
 
           return (
-            <SlideLayout verticalText={verticalText}>
+            <SlideLayout>
             {phase === 0 ? (
               <motion.div className="text-center relative overflow-hidden z-10" {...fadeSlideUp} data-framer-motion>
                 <motion.div 
@@ -1942,7 +1931,6 @@ export default function MALWrapped() {
         const Top5Content = () => {
           const type = 'anime';
           const top5Items = stats.topRated.slice(0, 5);
-          const verticalText = 'TOP-5';
           
           const top5Formatted = top5Items.map(item => ({
             id: item.node.id,
@@ -1958,14 +1946,14 @@ export default function MALWrapped() {
 
           if (top5Formatted.length === 0) {
             return (
-              <SlideLayout verticalText={verticalText}>
+              <SlideLayout>
                 <div className="text-white/50 relative z-10">No favorite {type} found</div>
               </SlideLayout>
             );
           }
 
           return (
-            <SlideLayout verticalText={verticalText}>
+            <SlideLayout>
               <motion.div className="relative z-10" {...fadeSlideUp} data-framer-motion>
                 <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
                   Including your top pick, these anime stole the spotlight
@@ -2137,7 +2125,7 @@ export default function MALWrapped() {
         }));
         const otherStudios = stats.topStudios?.slice(1, 5) || [];
         return (
-          <SlideLayout verticalText="PRODUCTION" bgColor="red">
+          <SlideLayout bgColor="red">
             <div className="text-center relative">
             <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
             These studios defined your watchlist
@@ -2187,7 +2175,7 @@ export default function MALWrapped() {
         
         if (!hasAnySeasonalData) {
           return (
-            <SlideLayout verticalText="SEASONAL" bgColor="pink">
+            <SlideLayout bgColor="pink">
               <motion.h3 className="body-sm font-regular text-white/50 mt-4 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
                 You didn't follow any seasonal anime this time
               </motion.h3>
@@ -2196,7 +2184,7 @@ export default function MALWrapped() {
         }
         
         return (
-          <SlideLayout verticalText="SEASONAL" bgColor="pink">
+          <SlideLayout bgColor="pink">
             <div className="text-center relative">
               <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
               Each season dropped something special
@@ -2274,7 +2262,7 @@ export default function MALWrapped() {
           malId: item.node.id
         }));
         return (
-          <SlideLayout verticalText="HIDDEN-GEMS" bgColor="blue">
+          <SlideLayout  bgColor="blue">
             <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
             You spotted quality where few were looking
             </motion.h2>
@@ -2302,7 +2290,7 @@ export default function MALWrapped() {
           malId: item.node.id
         }));
         return (
-          <SlideLayout verticalText="DIDNT-LAND" bgColor="red">
+          <SlideLayout  bgColor="red">
             <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
             Not everything hit the way you hoped
             </motion.h2>
@@ -2326,7 +2314,7 @@ export default function MALWrapped() {
           malId: item.node?.id
         }));
         return (
-          <SlideLayout verticalText="PLANNED" bgColor="green">
+          <SlideLayout  bgColor="green">
             <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
             Your planned list only got longer
             </motion.h2>
@@ -2343,7 +2331,7 @@ export default function MALWrapped() {
 
       case 'anime_to_manga_transition':
         return (
-          <SlideLayout verticalText="TRANSITION" bgColor="black">
+          <SlideLayout bgColor="black">
             <motion.div className="text-center relative z-10" {...fadeSlideUp} data-framer-motion>
               <motion.div 
                 className="relative z-10 mb-6 flex items-center justify-center"
@@ -2388,7 +2376,7 @@ export default function MALWrapped() {
         
         if (allMangaItems.length === 0) {
           return (
-            <SlideLayout verticalText="MANGA-LOG" bgColor="yellow">
+            <SlideLayout bgColor="yellow">
               <motion.div className="text-center relative z-10" {...fadeSlideUp} data-framer-motion>
                 <h2 className="heading-md text-white mb-4 text-container">
                   You didn't read any manga {stats.selectedYear === 'all' ? '' : 'in ' + stats.selectedYear}.
@@ -2412,7 +2400,7 @@ export default function MALWrapped() {
         }
         
         return (
-          <SlideLayout verticalText="MANGA-LOG" bgColor="yellow">
+          <SlideLayout bgColor="yellow">
             <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
             {stats.selectedYear === 'all' ? 'Till now' : 'In ' + stats.selectedYear}, you read through
             </motion.h2>
@@ -2430,7 +2418,7 @@ export default function MALWrapped() {
 
       case 'manga_time':
         return (
-          <SlideLayout verticalText="READING-TIME" bgColor="blue">
+          <SlideLayout bgColor="blue">
             <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
             That's
             </motion.h2>
@@ -2526,7 +2514,7 @@ export default function MALWrapped() {
         }));
         const otherMangaGenres = topMangaGenreList.slice(1, 5);
         return (
-          <SlideLayout verticalText="GENRE-MATRIX" bgColor="yellow">
+          <SlideLayout  bgColor="yellow">
           <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
           These genres kept you hooked the most
             </motion.h2>
@@ -2569,7 +2557,6 @@ export default function MALWrapped() {
         const DrumrollContent = () => {
           const [phase, setPhase] = useState(0);
           const topItem = stats.topManga.length > 0 ? stats.topManga[0] : null;
-          const verticalText = 'DRUMROLL';
           
           useEffect(() => {
             const timer1 = setTimeout(() => setPhase(1), 2250);
@@ -2579,7 +2566,7 @@ export default function MALWrapped() {
           }, []);
 
           return (
-            <SlideLayout verticalText={verticalText}>
+            <SlideLayout>
               {phase === 0 ? (
                 <motion.div className="text-center relative overflow-hidden z-10" {...fadeSlideUp} data-framer-motion>
                   <motion.div 
@@ -2648,7 +2635,6 @@ export default function MALWrapped() {
         const Top5Content = () => {
           const type = 'manga';
           const top5Items = stats.topManga.slice(0, 5);
-          const verticalText = 'TOP-5';
           
           const top5Formatted = top5Items.map(item => ({
             id: item.node.id,
@@ -2664,14 +2650,14 @@ export default function MALWrapped() {
 
           if (top5Formatted.length === 0) {
             return (
-              <SlideLayout verticalText={verticalText}>
+              <SlideLayout>
                 <div className="text-white/50 relative z-10">No favorite {type} found</div>
               </SlideLayout>
             );
           }
 
           return (
-            <SlideLayout verticalText={verticalText}>
+            <SlideLayout>
               <motion.div className="relative z-10" {...fadeSlideUp} data-framer-motion>
                 <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
                   Including your top read, these manga ruled your shelves
@@ -2867,7 +2853,7 @@ export default function MALWrapped() {
         }));
         const otherAuthors = stats.topAuthors?.slice(1, 5) || [];
         return (
-          <SlideLayout verticalText="CREATORS" bgColor="pink">
+          <SlideLayout  bgColor="pink">
           <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
           These authors kept appearing across your reads
             </motion.h2>
@@ -2919,7 +2905,7 @@ export default function MALWrapped() {
           mangaId: item.node.id
         }));
         return (
-          <SlideLayout verticalText="HIDDEN-GEMS" bgColor="blue">
+          <SlideLayout  bgColor="blue">
           <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
           These low-profile reads turned out surprisingly strong
             </motion.h2>
@@ -2947,7 +2933,7 @@ export default function MALWrapped() {
           mangaId: item.node.id
         }));
         return (
-          <SlideLayout verticalText="DIDNT-LAND" bgColor="red">
+          <SlideLayout  bgColor="red">
           <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
           But even great readers hit a few misses
             </motion.h2>
@@ -2973,7 +2959,7 @@ export default function MALWrapped() {
           mangaId: item.node?.id
         }));
         return (
-          <SlideLayout verticalText="PLANNED" bgColor="green">
+          <SlideLayout  bgColor="green">
             <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
             Your reading backlog continued to grow
             </motion.h2>
@@ -3029,7 +3015,7 @@ export default function MALWrapped() {
         const favoriteAuthor = stats.topAuthors?.[0]?.[0] || null;
         
         return (
-          <SlideLayout verticalText="FINAL-REPORT" bgColor="blue">
+          <SlideLayout  bgColor="blue">
                 <motion.div 
               className="w-full h-full flex flex-col items-center justify-center relative z-20"
               variants={staggerContainer}
@@ -3617,7 +3603,7 @@ export default function MALWrapped() {
     {/* Footer */}
     <footer className="w-full bg-black border-t border-white/10 mt-auto py-8 px-4 sm:px-6 lg:px-8 overflow-hidden">
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 justify-items-center md:justify-items-start">
           {/* Left Column - Thanks For Stopping By */}
           <div className="space-y-4">
             <h3 className="text-xl sm:text-2xl font-bold text-white">Thanks For Stopping By!</h3>
