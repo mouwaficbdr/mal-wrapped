@@ -222,12 +222,12 @@ export default function MALWrapped() {
   const currentSlideId = slides[currentSlide]?.id;
   const isFinalSlide = currentSlideId === 'finale';
   const topGradientBackground = isFinalSlide
-    ? 'linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 100%)'
-    : 'linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.95) 20%, rgba(0, 0, 0, 0.8) 50%, rgba(0, 0, 0, 0.4) 80%, rgba(0, 0, 0, 0) 100%)';
-  const bottomGradientBackground = isFinalSlide
-    ? 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.5) 50%, rgba(0, 0, 0, 1) 100%)'
-    : 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.95) 20%, rgba(0, 0, 0, 0.8) 50%, rgba(0, 0, 0, 0.4) 80%, rgba(0, 0, 0, 0) 100%)';
-  
+  ? 'linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 100%)'
+  : 'linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.85) 30%, rgba(0, 0, 0, 0.5) 60%, rgba(0, 0, 0, 0) 100%)';
+
+const bottomGradientBackground = isFinalSlide
+  ? 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.5) 50%, rgba(0, 0, 0, 1) 100%)'
+  : 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.85) 30%, rgba(0, 0, 0, 0.5) 60%, rgba(0, 0, 0, 0) 100%)';
   // Get website URL for watermark
   const websiteUrl = typeof window !== 'undefined' 
     ? window.location.origin.replace(/^https?:\/\//, '').toUpperCase()
@@ -3232,17 +3232,17 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
               <div 
                 className="absolute top-0 left-0 right-0 pointer-events-none h-32 sm:h-40"
                 style={{
-                  zIndex: 15,
-                  background: 'linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.95) 20%, rgba(0, 0, 0, 0.8) 50%, rgba(0, 0, 0, 0.4) 80%, rgba(0, 0, 0, 0) 100%)'
+                  zIndex: 1,
+                  background: topGradientBackground
                 }}
               />
-              
+
               {/* Bottom gradient fade - static, no animation */}
               <div 
                 className="absolute bottom-0 left-0 right-0 pointer-events-none h-32 sm:h-40"
                 style={{
-                  zIndex: 15,
-                  background: 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.95) 20%, rgba(0, 0, 0, 0.8) 50%, rgba(0, 0, 0, 0.4) 80%, rgba(0, 0, 0, 0) 100%)'
+                  zIndex: 1,
+                  background: bottomGradientBackground
                 }}
               />
               
@@ -3389,22 +3389,23 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
               <div key={currentSlide} className="w-full flex-grow flex items-center justify-center overflow-y-auto py-2 sm:py-4 relative" style={{ zIndex: 0 }}>
                 {/* Top gradient fade - above rainbow shapes, below content */}
                 <div 
-                  className={`absolute top-0 left-0 right-0 pointer-events-none ${isFinalSlide ? 'h-full' : 'h-32 sm:h-40'}`}
+                  className={`absolute top-0 left-0 right-0 pointer-events-none ${isFinalSlide ? 'h-full' : 'h-20 sm:h-24'}`}
                   style={{
-                    zIndex: 5,
+                    zIndex: 1,
                     background: topGradientBackground
                   }}
                 />
                 
-                <div className="w-full h-full relative overflow-y-auto">
+                <div className="w-full h-full relative overflow-y-auto"
+                style={{ zIndex: 10 }}>
                   <SlideContent slide={slides[currentSlide]} mangaListData={mangaList} siteName={siteName} />
                 </div>
                 
                 {/* Bottom gradient fade - above rainbow shapes, below content */}
                 <div 
-                  className={`absolute bottom-0 left-0 right-0 pointer-events-none ${isFinalSlide ? 'h-full' : 'h-32 sm:h-40'}`}
+                  className={`absolute bottom-0 left-0 right-0 pointer-events-none ${isFinalSlide ? 'h-full' : 'h-20 sm:h-24'}`}
                   style={{
-                    zIndex: 5,
+                    zIndex: 1,
                     background: bottomGradientBackground
                   }}
                 />
