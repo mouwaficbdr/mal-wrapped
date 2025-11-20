@@ -887,11 +887,11 @@ export default function MALWrapped() {
             const ctx = canvas.getContext('2d');
             
             // Set canvas dimensions
-            canvas.width = img.width;
-            canvas.height = img.height;
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
             
             // Draw the original image
-            ctx.drawImage(img, 0, 0);
+            ctx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight);
             
             // Add watermark at the bottom
             const watermarkText = websiteUrl;
