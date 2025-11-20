@@ -898,7 +898,7 @@ export default function MALWrapped() {
             
             // Fixed font size - no scaling, always the same pixel size
             // Since snapdom uses scale: 2, we need to double the font size to account for the scale
-            const fontSize = 40; // Fixed 40px (will appear as 20px visually due to scale: 2)
+            const fontSize = 80; // Fixed 80px (will appear as 40px visually due to scale: 2)
             ctx.font = `bold ${fontSize}px "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'bottom';
@@ -3017,7 +3017,7 @@ export default function MALWrapped() {
         return (
           <SlideLayout  bgColor="blue">
                 <motion.div 
-              className="w-full h-full flex flex-col items-center justify-center relative z-20"
+              className="w-full h-full flex flex-col items-center justify-center relative z-20 px-4 sm:px-6 md:px-8"
               variants={staggerContainer}
               initial="initial"
               animate="animate"
@@ -3142,6 +3142,16 @@ export default function MALWrapped() {
                   </div>
                 </motion.div>
                 </div>
+                
+                {/* Watermark */}
+                <motion.div 
+                  className="mt-8 sm:mt-10 relative z-20"
+                  variants={staggerItem}
+                >
+                  <p className="text-white/60 text-base sm:text-lg font-medium text-center">
+                    {websiteUrl}
+                  </p>
+                </motion.div>
                 
             </motion.div>
           </SlideLayout>
