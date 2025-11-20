@@ -852,7 +852,7 @@ export default function MALWrapped() {
             // Add watermark at the bottom
             const watermarkText = websiteUrl;
             const fontSize = 80;
-            ctx.font = `medium ${fontSize}px "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif`;
+            ctx.font = `medium 80px "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'bottom';
             
