@@ -223,10 +223,10 @@ export default function MALWrapped() {
   const isFinalSlide = currentSlideId === 'finale';
   const topGradientBackground = isFinalSlide
     ? 'linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 100%)'
-    : 'linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.95) 20%, rgba(0, 0, 0, 0.8) 50%, rgba(0, 0, 0, 0.4) 80%, rgba(0, 0, 0, 0) 100%)';
+    : 'linear-gradient(to bottom, rgba(29, 185, 84, 0.3) 0%, rgba(30, 215, 96, 0.2) 20%, rgba(144, 238, 144, 0.15) 50%, rgba(255, 20, 147, 0.1) 80%, rgba(0, 0, 0, 0) 100%)';
   const bottomGradientBackground = isFinalSlide
-    ? 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.5) 50%, rgba(0, 0, 0, 1) 100%)'
-    : 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.95) 20%, rgba(0, 0, 0, 0.8) 50%, rgba(0, 0, 0, 0.4) 80%, rgba(0, 0, 0, 0) 100%)';
+    ? 'linear-gradient(to top, rgba(29, 185, 84, 0.4) 0%, rgba(30, 215, 96, 0.3) 50%, rgba(29, 185, 84, 0.4) 100%)'
+    : 'linear-gradient(to top, rgba(29, 185, 84, 0.3) 0%, rgba(30, 215, 96, 0.2) 20%, rgba(144, 238, 144, 0.15) 50%, rgba(255, 20, 147, 0.1) 80%, rgba(0, 0, 0, 0) 100%)';
   
   // Get website URL for watermark
   const websiteUrl = typeof window !== 'undefined' 
@@ -966,7 +966,8 @@ export default function MALWrapped() {
 
       const shareData = {
         title: `My ${stats?.selectedYear || '2024'} MAL Wrapped`,
-        text: `Check out my ${stats?.selectedYear || '2024'} MyAnimeList Wrapped!`,
+        text: `Check out your ${stats?.selectedYear || '2024'} MyAnimeList Wrapped!`,
+        url: window.location.href,
         files: [result.file],
       };
 
@@ -993,8 +994,31 @@ export default function MALWrapped() {
     }
   }
 
+  async function handleShareButtonClick(e) {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    // Check if native share is available (works on both mobile and desktop)
+    if (navigator.share) {
+      // Use native share with image on both mobile and desktop
+      try {
+        await handleShareImageClick(e);
+      } catch (error) {
+        // If native share fails or is cancelled, fall back to menu
+        if (error?.name !== 'AbortError') {
+          setShowShareMenu((prev) => !prev);
+        }
+      }
+    } else {
+      // Show menu if native share not available
+      setShowShareMenu((prev) => !prev);
+    }
+  }
+
   function shareToSocial(platform) {
-    const shareText = `Check out my ${stats?.selectedYear || '2024'} MyAnimeList Wrapped!`;
+    const shareText = `Check out your ${stats?.selectedYear || '2024'} MyAnimeList Wrapped!`;
     const shareUrl = window.location.href;
     const encodedText = encodeURIComponent(shareText);
     const encodedUrl = encodeURIComponent(shareUrl);
@@ -1112,18 +1136,18 @@ export default function MALWrapped() {
         >
           {/* Colorful abstract shapes background on all cards - animated */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
-            {/* Large layered organic shape (left side) */}
+            {/* Large layered organic shape (left side) - Spotify green */}
             <motion.div 
-              className="absolute left-0 top-1/2 -translate-y-1/2 w-96 h-96 opacity-60"
+              className="absolute left-0 top-1/2 -translate-y-1/2 w-96 h-96 opacity-80"
               style={{
-                background: 'radial-gradient(ellipse at center, rgba(255, 0, 100, 0.4) 0%, rgba(200, 0, 150, 0.3) 30%, rgba(100, 0, 200, 0.2) 60%, transparent 100%)',
+                background: 'radial-gradient(ellipse at center, rgba(29, 185, 84, 0.8) 0%, rgba(30, 215, 96, 0.6) 30%, rgba(144, 238, 144, 0.4) 60%, transparent 100%)',
                 clipPath: 'polygon(0% 20%, 40% 0%, 100% 30%, 80% 70%, 40% 100%, 0% 80%)',
                 filter: 'blur(80px)',
                 willChange: 'transform, opacity'
               }}
               animate={{
                 transform: ['rotate(-15deg) translateY(-50%)', 'rotate(-10deg) translateY(-50%)', 'rotate(-20deg) translateY(-50%)', 'rotate(-15deg) translateY(-50%)'],
-                opacity: [0.6, 0.7, 0.5, 0.6]
+                opacity: [0.8, 0.9, 0.7, 0.8]
               }}
               transition={{
                 duration: 8,
@@ -1134,18 +1158,18 @@ export default function MALWrapped() {
               data-shape-blur
             ></motion.div>
             
-            {/* Rainbow gradient rectangle (top right) */}
+            {/* Rainbow gradient rectangle (top right) - Vibrant colors */}
             <motion.div 
-              className="absolute top-0 right-0 w-96 h-64 opacity-50"
+              className="absolute top-0 right-0 w-96 h-64 opacity-70"
               style={{
-                background: 'linear-gradient(135deg, rgba(138, 43, 226, 0.5) 0%, rgba(75, 0, 130, 0.4) 20%, rgba(0, 0, 255, 0.3) 40%, rgba(0, 255, 255, 0.3) 60%, rgba(0, 255, 0, 0.3) 80%, rgba(255, 255, 0, 0.4) 100%)',
+                background: 'linear-gradient(135deg, rgba(255, 20, 147, 0.7) 0%, rgba(255, 105, 180, 0.6) 20%, rgba(138, 43, 226, 0.5) 40%, rgba(30, 215, 96, 0.5) 60%, rgba(29, 185, 84, 0.6) 80%, rgba(255, 215, 0, 0.7) 100%)',
                 clipPath: 'polygon(20% 0%, 100% 0%, 100% 80%, 0% 100%)',
                 filter: 'blur(70px)',
                 willChange: 'transform, opacity'
               }}
               animate={{
                 transform: ['translateY(0%)', 'translateY(-5%)', 'translateY(0%)'],
-                opacity: [0.5, 0.6, 0.5]
+                opacity: [0.7, 0.8, 0.7]
               }}
               transition={{
                 duration: 7,
@@ -1156,17 +1180,17 @@ export default function MALWrapped() {
               data-shape-blur
             ></motion.div>
             
-            {/* Purple glow (center) */}
+            {/* Purple/pink glow (center) - More vibrant */}
             <motion.div 
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] opacity-40"
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] opacity-60"
               style={{
-                background: 'radial-gradient(circle, rgba(138, 43, 226, 0.3) 0%, rgba(75, 0, 130, 0.2) 50%, transparent 100%)',
+                background: 'radial-gradient(circle, rgba(255, 20, 147, 0.5) 0%, rgba(138, 43, 226, 0.4) 30%, rgba(30, 215, 96, 0.3) 50%, transparent 100%)',
                 filter: 'blur(100px)',
                 willChange: 'transform, opacity'
               }}
               animate={{
                 scale: [1, 1.1, 1],
-                opacity: [0.4, 0.5, 0.4]
+                opacity: [0.6, 0.7, 0.6]
               }}
               transition={{
                 duration: 10,
@@ -1177,17 +1201,17 @@ export default function MALWrapped() {
               data-shape-blur
             ></motion.div>
             
-            {/* Rainbow accent (bottom right) */}
+            {/* Rainbow accent (bottom right) - More vibrant */}
             <motion.div 
-              className="absolute bottom-1/4 right-1/4 w-80 h-80 opacity-50"
+              className="absolute bottom-1/4 right-1/4 w-80 h-80 opacity-70"
               style={{
-                background: 'linear-gradient(135deg, rgba(255, 0, 0, 0.3) 0%, rgba(255, 165, 0, 0.3) 25%, rgba(255, 255, 0, 0.3) 50%, rgba(0, 255, 0, 0.3) 75%, rgba(0, 0, 255, 0.3) 100%)',
+                background: 'linear-gradient(135deg, rgba(255, 20, 147, 0.6) 0%, rgba(255, 165, 0, 0.6) 25%, rgba(255, 215, 0, 0.6) 50%, rgba(30, 215, 96, 0.6) 75%, rgba(29, 185, 84, 0.6) 100%)',
                 filter: 'blur(70px)',
                 willChange: 'transform, opacity'
               }}
               animate={{
                 transform: ['rotate(0deg)', 'rotate(10deg)', 'rotate(-10deg)', 'rotate(0deg)'],
-                opacity: [0.5, 0.6, 0.5]
+                opacity: [0.7, 0.8, 0.7]
               }}
               transition={{
                 duration: 12,
@@ -3178,28 +3202,28 @@ export default function MALWrapped() {
             <div className="text-center p-4 relative w-full h-full flex flex-col items-center justify-center">
               {/* Colorful abstract shapes background */}
               <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
-                {/* Large layered organic shape (left side) */}
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-96 h-96 opacity-60 rounded-full" style={{
-                  background: 'radial-gradient(ellipse at center, rgba(255, 0, 100, 0.4) 0%, rgba(200, 0, 150, 0.3) 30%, rgba(100, 0, 200, 0.2) 60%, transparent 100%)',
+                {/* Large layered organic shape (left side) - Spotify green */}
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-96 h-96 opacity-80 rounded-full" style={{
+                  background: 'radial-gradient(ellipse at center, rgba(29, 185, 84, 0.8) 0%, rgba(30, 215, 96, 0.6) 30%, rgba(144, 238, 144, 0.4) 60%, transparent 100%)',
                   transform: 'rotate(-15deg)',
                   filter: 'blur(120px)'
                 }}></div>
                 
-                {/* Rainbow gradient rectangle (top right) */}
-                <div className="absolute top-0 right-0 w-96 h-64 opacity-50 rounded-3xl" style={{
-                  background: 'linear-gradient(135deg, rgba(138, 43, 226, 0.5) 0%, rgba(75, 0, 130, 0.4) 20%, rgba(0, 0, 255, 0.3) 40%, rgba(0, 255, 255, 0.3) 60%, rgba(0, 255, 0, 0.3) 80%, rgba(255, 255, 0, 0.4) 100%)',
+                {/* Rainbow gradient rectangle (top right) - Vibrant colors */}
+                <div className="absolute top-0 right-0 w-96 h-64 opacity-70 rounded-3xl" style={{
+                  background: 'linear-gradient(135deg, rgba(255, 20, 147, 0.7) 0%, rgba(255, 105, 180, 0.6) 20%, rgba(138, 43, 226, 0.5) 40%, rgba(30, 215, 96, 0.5) 60%, rgba(29, 185, 84, 0.6) 80%, rgba(255, 215, 0, 0.7) 100%)',
                   filter: 'blur(120px)'
                 }}></div>
                 
-                {/* Purple glow (center) */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] opacity-40 rounded-full" style={{
-                  background: 'radial-gradient(circle, rgba(138, 43, 226, 0.3) 0%, rgba(75, 0, 130, 0.2) 50%, transparent 100%)',
+                {/* Purple/pink glow (center) - More vibrant */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] opacity-60 rounded-full" style={{
+                  background: 'radial-gradient(circle, rgba(255, 20, 147, 0.5) 0%, rgba(138, 43, 226, 0.4) 30%, rgba(30, 215, 96, 0.3) 50%, transparent 100%)',
                   filter: 'blur(140px)'
                 }}></div>
                 
-                {/* Rainbow accent (bottom right) */}
-                <div className="absolute bottom-1/4 right-1/4 w-80 h-80 opacity-50 rounded-full" style={{
-                  background: 'linear-gradient(135deg, rgba(255, 0, 0, 0.3) 0%, rgba(255, 165, 0, 0.3) 25%, rgba(255, 255, 0, 0.3) 50%, rgba(0, 255, 0, 0.3) 75%, rgba(0, 0, 255, 0.3) 100%)',
+                {/* Rainbow accent (bottom right) - More vibrant */}
+                <div className="absolute bottom-1/4 right-1/4 w-80 h-80 opacity-70 rounded-full" style={{
+                  background: 'linear-gradient(135deg, rgba(255, 20, 147, 0.6) 0%, rgba(255, 165, 0, 0.6) 25%, rgba(255, 215, 0, 0.6) 50%, rgba(30, 215, 96, 0.6) 75%, rgba(29, 185, 84, 0.6) 100%)',
                   filter: 'blur(120px)'
                 }}></div>
               </div>
@@ -3208,8 +3232,8 @@ export default function MALWrapped() {
               <div 
                 className="absolute top-0 left-0 right-0 pointer-events-none h-32 sm:h-40"
                 style={{
-                  zIndex: 15,
-                  background: 'linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.95) 20%, rgba(0, 0, 0, 0.8) 50%, rgba(0, 0, 0, 0.4) 80%, rgba(0, 0, 0, 0) 100%)'
+                  zIndex: 5,
+                  background: 'linear-gradient(to bottom, rgba(29, 185, 84, 0.3) 0%, rgba(30, 215, 96, 0.2) 20%, rgba(144, 238, 144, 0.15) 50%, rgba(255, 20, 147, 0.1) 80%, rgba(0, 0, 0, 0) 100%)'
                 }}
               />
               
@@ -3217,8 +3241,8 @@ export default function MALWrapped() {
               <div 
                 className="absolute bottom-0 left-0 right-0 pointer-events-none h-32 sm:h-40"
                 style={{
-                  zIndex: 15,
-                  background: 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.95) 20%, rgba(0, 0, 0, 0.8) 50%, rgba(0, 0, 0, 0.4) 80%, rgba(0, 0, 0, 0) 100%)'
+                  zIndex: 5,
+                  background: 'linear-gradient(to top, rgba(29, 185, 84, 0.3) 0%, rgba(30, 215, 96, 0.2) 20%, rgba(144, 238, 144, 0.15) 50%, rgba(255, 20, 147, 0.1) 80%, rgba(0, 0, 0, 0) 100%)'
                 }}
               />
               
@@ -3408,11 +3432,7 @@ export default function MALWrapped() {
                     <div className="relative" ref={shareMenuRef}>
                       <motion.button
                         type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          setShowShareMenu((prev) => !prev);
-                        }}
+                        onClick={handleShareButtonClick}
                         className="p-1.5 sm:p-2 text-white rounded-full border-box-cyan flex items-center gap-1.5 sm:gap-2"
                         whileHover={{ 
                           scale: 1.1, 
