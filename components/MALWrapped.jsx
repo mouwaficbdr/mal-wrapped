@@ -221,13 +221,50 @@ export default function MALWrapped() {
     : 'myanimelist.net';
   const currentSlideId = slides[currentSlide]?.id;
   const isFinalSlide = currentSlideId === 'finale';
+  
+  // Map slide IDs to bgColors
+  const slideBgColorMap = {
+    'welcome': 'pink',
+    'anime_count': 'blue',
+    'anime_time': 'green',
+    'top_genre': 'yellow',
+    'drumroll_anime': 'black',
+    'top_5_anime': 'black',
+    'top_studio': 'red',
+    'seasonal_highlights': 'pink',
+    'hidden_gems_anime': 'blue',
+    'didnt_land_anime': 'red',
+    'planned_anime': 'green',
+    'transition': 'black',
+    'manga_count': 'yellow',
+    'manga_time': 'blue',
+    'top_manga_genre': 'yellow',
+    'drumroll_manga': 'black',
+    'top_5_manga': 'black',
+    'top_author': 'pink',
+    'hidden_gems_manga': 'blue',
+    'didnt_land_manga': 'red',
+    'planned_manga': 'green',
+    'finale': 'blue'
+  };
+  
+  const currentBgColor = slideBgColorMap[currentSlideId] || 'black';
+  const bgColorClasses = {
+    black: 'bg-gradient-to-br from-purple-800 via-indigo-900 to-black',
+    pink: 'bg-gradient-to-br from-pink-700 via-fuchsia-800 to-purple-950',
+    yellow: 'bg-gradient-to-br from-amber-700 via-orange-800 to-rose-900',
+    blue: 'bg-gradient-to-br from-cyan-700 via-blue-800 to-indigo-950',
+    green: 'bg-gradient-to-br from-emerald-700 via-teal-800 to-blue-950',
+    red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
+  };
+  const currentBgColorClass = bgColorClasses[currentBgColor] || 'bg-black';
+  
   const topGradientBackground = isFinalSlide
-  ? 'linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 100%)'
-  : 'linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.85) 30%, rgba(0, 0, 0, 0.5) 60%, rgba(0, 0, 0, 0) 100%)';
-
-const bottomGradientBackground = isFinalSlide
-  ? 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.5) 50%, rgba(0, 0, 0, 1) 100%)'
-  : 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.85) 30%, rgba(0, 0, 0, 0.5) 60%, rgba(0, 0, 0, 0) 100%)';
+    ? 'linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 100%)'
+    : 'linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.85) 30%, rgba(0, 0, 0, 0.5) 60%, rgba(0, 0, 0, 0) 100%)';
+  const bottomGradientBackground = isFinalSlide
+    ? 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.5) 50%, rgba(0, 0, 0, 1) 100%)'
+    : 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.85) 30%, rgba(0, 0, 0, 0.5) 60%, rgba(0, 0, 0, 0) 100%)';
   // Get website URL for watermark
   const websiteUrl = typeof window !== 'undefined' 
     ? window.location.origin.replace(/^https?:\/\//, '').toUpperCase()
@@ -1918,7 +1955,7 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
                               const featuredImage = (
                                 <motion.div 
                                   className="border-box-cyan bg-transparent rounded-xl overflow-hidden relative z-10" 
-                                  style={{ boxSizing: 'border-box', aspectRatio: '2/3', maxHeight: '250px' }}
+                                  style={{ boxSizing: 'border-box', aspectRatio: '2/3', maxHeight: '225px' }}
                                   whileHover={{ borderColor: '#ffffff' }}
                                   transition={{ duration: 0.3, ease: smoothEase}}
                                 >
@@ -1988,8 +2025,8 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
                                   transition={{ duration: 0.4 }}
                                 >
                                   <motion.div 
-                                    className="border-box-cyan bg-transparent rounded-xl overflow-hidden aspect-[2/3] relative w-full z-10" 
-                                    style={{ boxSizing: 'border-box', maxHeight: '150px' }}
+                                    className="border-box-cyan bg-transparent rounded-xl overflow-hidden relative w-full z-10" 
+                                    style={{ boxSizing: 'border-box', aspectRatio: '2/3', maxHeight: '175px' }}
                                     whileHover={{ borderColor: '#ffffff' }}
                                     transition={{ duration: 0.3, ease: smoothEase}}
                                   >
@@ -2622,7 +2659,7 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
                               const featuredImage = (
                                 <motion.div 
                                   className="border-box-cyan bg-transparent rounded-xl overflow-hidden relative z-10" 
-                                  style={{ boxSizing: 'border-box', aspectRatio: '2/3', maxHeight: '250px' }}
+                                  style={{ boxSizing: 'border-box', aspectRatio: '2/3', maxHeight: '225px' }}
                                   whileHover={{ borderColor: '#ffffff' }}
                                   transition={{ duration: 0.3, ease: smoothEase}}
                                 >
@@ -2692,8 +2729,8 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
                                   transition={{ duration: 0.4 }}
                                 >
                                   <motion.div 
-                                    className="border-box-cyan bg-transparent rounded-xl overflow-hidden aspect-[2/3] relative w-full z-10" 
-                                    style={{ boxSizing: 'border-box', maxHeight: '150px' }}
+                                    className="border-box-cyan bg-transparent rounded-xl overflow-hidden relative w-full z-10" 
+                                    style={{ boxSizing: 'border-box', aspectRatio: '2/3', maxHeight: '175px' }}
                                     whileHover={{ borderColor: '#ffffff' }}
                                     transition={{ duration: 0.3, ease: smoothEase}}
                                   >
@@ -3299,8 +3336,17 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
 
           {isAuthenticated && stats && slides.length > 0 && (
             <div className="w-full h-full flex flex-col overflow-hidden relative">
+              {/* Top gradient fade - covers entire card including nav bars */}
+              <div 
+                className={`absolute top-0 left-0 right-0 pointer-events-none ${isFinalSlide ? 'h-full' : 'h-20 sm:h-24'}`}
+                style={{
+                  zIndex: 5,
+                  background: topGradientBackground
+                }}
+              />
+              
               {/* Top Bar - Year Selector, Download, Share, Logout */}
-              <div className="flex-shrink-0 px-3 sm:px-4 md:px-6 pt-3 pb-2 flex items-center justify-between gap-2 sm:gap-3" data-exclude-from-screenshot>
+              <div className={`flex-shrink-0 px-3 sm:px-4 md:px-6 pt-3 pb-2 flex items-center justify-between gap-2 sm:gap-3 relative z-10 ${currentBgColorClass}`} data-exclude-from-screenshot>
                 <div className="flex items-center gap-2 sm:gap-3">
                   <div className="relative min-w-[120px] sm:min-w-[140px]">
                   <select
@@ -3370,7 +3416,7 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
               </div>
               
               {/* Progress Bar */}
-              <div className="flex-shrink-0 mt-2 px-3 sm:px-4 md:px-6 pb-3 flex items-center gap-1 sm:gap-2 relative z-10" data-exclude-from-screenshot>
+              <div className={`flex-shrink-0 mt-2 px-3 sm:px-4 md:px-6 pb-3 flex items-center gap-1 sm:gap-2 relative z-10 ${currentBgColorClass}`} data-exclude-from-screenshot>
                 {slides.map((_, i) => {
                   const isCompleted = i < currentSlide;
                   const isActive = i === currentSlide;
@@ -3387,32 +3433,23 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
               
               {/* Slide Content */}
               <div key={currentSlide} className="w-full flex-grow flex items-center justify-center overflow-y-auto py-2 sm:py-4 relative" style={{ zIndex: 0 }}>
-                {/* Top gradient fade - above rainbow shapes, below content */}
-                <div 
-                  className={`absolute top-0 left-0 right-0 pointer-events-none ${isFinalSlide ? 'h-full' : 'h-20 sm:h-24'}`}
-                  style={{
-                    zIndex: 1,
-                    background: topGradientBackground
-                  }}
-                />
-                
                 <div className="w-full h-full relative overflow-y-auto"
                 style={{ zIndex: 15 }}>
                   <SlideContent slide={slides[currentSlide]} mangaListData={mangaList} siteName={siteName} />
                 </div>
-                
-                {/* Bottom gradient fade - above rainbow shapes, below content */}
-                <div 
-                  className={`absolute bottom-0 left-0 right-0 pointer-events-none ${isFinalSlide ? 'h-full' : 'h-20 sm:h-24'}`}
-                  style={{
-                    zIndex: 1,
-                    background: bottomGradientBackground
-                  }}
-                />
               </div>
               
+              {/* Bottom gradient fade - covers entire card including nav bars */}
+              <div 
+                className={`absolute bottom-0 left-0 right-0 pointer-events-none ${isFinalSlide ? 'h-full' : 'h-20 sm:h-24'}`}
+                style={{
+                  zIndex: 5,
+                  background: bottomGradientBackground
+                }}
+              />
+              
               {/* Bottom Controls */}
-              <div className="flex-shrink-0 w-full px-3 sm:px-4 md:px-6 pb-3 sm:pb-4 flex items-center justify-between gap-2 relative z-10" data-exclude-from-screenshot>
+              <div className={`flex-shrink-0 w-full px-3 sm:px-4 md:px-6 pb-3 sm:pb-4 flex items-center justify-between gap-2 relative z-10 ${currentBgColorClass}`} data-exclude-from-screenshot>
                 <motion.button
                 onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))}
                 disabled={currentSlide === 0}
