@@ -220,14 +220,8 @@ export default function MALWrapped() {
     ? window.location.origin.replace(/^https?:\/\//, '')
     : 'myanimelist.net';
   const currentSlideId = slides[currentSlide]?.id;
-  const isFinalSlide = currentSlideId === 'finale';
-  const topGradientBackground = isFinalSlide
-  ? 'linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 100%)'
-  : 'linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.85) 30%, rgba(0, 0, 0, 0.5) 60%, rgba(0, 0, 0, 0) 100%)';
-
-const bottomGradientBackground = isFinalSlide
-  ? 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.4) 50%, rgba(0, 0, 0, 1) 100%)'
-  : 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.85) 30%, rgba(0, 0, 0, 0.5) 60%, rgba(0, 0, 0, 0) 100%)';
+  
+const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.4) 50%, rgba(0, 0, 0, 1) 100%)';
   // Get website URL for watermark
   const websiteUrl = typeof window !== 'undefined' 
     ? window.location.origin.replace(/^https?:\/\//, '').toUpperCase()
@@ -1608,13 +1602,13 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
                       Wrapped
                     </h2>
                   </div>
-                  <p className="body-md font-regular text-white mt-4 text-center text-container max-w-2xl mx-auto">A look back at your {stats.selectedYear === 'all' ? 'anime journey' : 'year'}, <span className="text-white font-medium">{username || 'a'}</span>.</p>
+                  <p className="body-md font-regular text-white mt-8 text-center text-container max-w-2xl mx-auto">A look back at your {stats.selectedYear === 'all' ? 'anime journey' : 'year'}, <span className="text-white font-medium">{username || 'a'}</span>.</p>
               </motion.div>
               <motion.div 
-                className="mt-20 w-full max-w-3xl flex items-center justify-center gap-6 sm:gap-8 mb-6 sm:mb-8 relative z-20"
+                className="mt-4 w-full max-w-3xl flex items-center justify-center gap-6 sm:gap-8 mb-6 sm:mb-8 relative z-20"
                 variants={staggerItem}
               >
-                <div className="relative w-40 h-40 flex items-center justify-center flex-shrink-0 z-20">
+                <div className="relative w-36 h-36 flex items-center justify-center flex-shrink-0 z-20">
                   <motion.a
                     href={username ? `https://myanimelist.net/profile/${encodeURIComponent(username)}` : '#'}
                     target="_blank"
@@ -2968,7 +2962,7 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
                 className="w-full max-w-3xl flex items-center justify-center gap-6 sm:gap-8 mb-6 sm:mb-8 relative z-20"
                 variants={staggerItem}
               >
-                <div className="relative w-40 h-40 flex items-center justify-center flex-shrink-0 z-20">
+                <div className="relative w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 flex items-center justify-center flex-shrink-0 z-20">
                   <motion.a
                     href={username ? `https://myanimelist.net/profile/${encodeURIComponent(username)}` : '#'}
                     target="_blank"
@@ -2990,7 +2984,7 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
                 </div>
                 <div className="flex-1 relative z-20">
                   <motion.h2 
-                    className="heading-lg text-white font-medium relative z-20"
+                    className="heading-md md:heading-lg text-white font-medium relative z-20"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.6, ease: smoothEase }}
@@ -3232,18 +3226,11 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
                 }}></div>
               </div>
               
-              {/* Top gradient fade - static, no animation */}
-              <div 
-                className="absolute top-0 left-0 right-0 pointer-events-none h-24 sm:h-28"
-                style={{
-                  zIndex: 1,
-                  background: topGradientBackground
-                }}
-              />
+              
 
               {/* Bottom gradient fade - static, no animation */}
               <div 
-                className="absolute bottom-0 left-0 right-0 pointer-events-none h-24 sm:h-28"
+                className="absolute bottom-0 left-0 right-0 pointer-events-none h-full"
                 style={{
                   zIndex: 1,
                   background: bottomGradientBackground
@@ -3261,7 +3248,7 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
                     </h2>
                   </div>
                 </motion.div>
-                <motion.p className="mt-4 body-md text-white/80 text-center text-container max-w-2xl mx-auto" {...fadeIn300} data-framer-motion>Connect with your MyAnimeList account to see your year in review.</motion.p>
+                <motion.p className="mt-8 body-md text-white/80 text-center text-container max-w-2xl mx-auto" {...fadeIn300} data-framer-motion>Connect with your MyAnimeList account to see your year in review.</motion.p>
               <motion.div className="mt-4 flex flex-col sm:flex-row gap-4 justify-center w-full" {...fadeIn} data-framer-motion>
                   <motion.button
                   onClick={handleBegin}
@@ -3279,7 +3266,7 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
                   <motion.img
                     src="/avatar.webp"
                     alt="XAvishkar"
-                    className="relative w-48 h-48 object-contain pointer-events-none z-10 mt-1 mx-auto"
+                    className="relative w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 object-contain pointer-events-none z-10 mt-1 mx-auto"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, ease: smoothEase }}
@@ -3393,13 +3380,7 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
               {/* Slide Content */}
               <div key={currentSlide} className="w-full flex-grow flex items-center justify-center overflow-y-auto py-2 sm:py-4 relative" style={{ zIndex: 0 }}>
                 {/* Top gradient fade - above rainbow shapes, below content */}
-                <div 
-                  className={`absolute top-0 left-0 right-0 pointer-events-none ${isFinalSlide ? 'h-full' : 'h-24 sm:h-28'}`}
-                  style={{
-                    zIndex: 1,
-                    background: topGradientBackground
-                  }}
-                />
+               
                 
                 <div className="w-full h-full relative overflow-y-auto">
                   <SlideContent slide={slides[currentSlide]} mangaListData={mangaList} siteName={siteName} />
@@ -3407,7 +3388,7 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
                 
                 {/* Bottom gradient fade - above rainbow shapes, below content */}
                 <div 
-                  className={`absolute bottom-0 left-0 right-0 pointer-events-none ${isFinalSlide ? 'h-full' : 'h-24 sm:h-28'}`}
+                  className={`absolute bottom-0 left-0 right-0 pointer-events-none h-full`}
                   style={{
                     zIndex: 1,
                     background: bottomGradientBackground
@@ -3527,7 +3508,7 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
     
     {/* Footer */}
     <footer className="w-full bg-black border-t border-white/10 mt-auto py-8 px-4 sm:px-6 lg:px-8 overflow-hidden">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 justify-items-center md:justify-items-start">
           {/* Left Column - Thanks For Stopping By */}
           <div className="space-y-4">
