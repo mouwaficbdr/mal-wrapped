@@ -3228,7 +3228,7 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
               <div 
                 className="absolute bottom-0 left-0 right-0 pointer-events-none h-full"
                 style={{
-                  zIndex: 5,
+                  zIndex: 9,
                   background: bottomGradientBackground
                 }}
               />
@@ -3380,16 +3380,16 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
                 
                 <div className="w-full h-full relative overflow-y-auto" style={{ zIndex: 10 }}>
                   <SlideContent slide={slides[currentSlide]} mangaListData={mangaList} websiteUrl={websiteUrl} />
+                  
+                  {/* Bottom gradient fade - above rainbow shapes, below content */}
+                  <div 
+                    className={`absolute bottom-0 left-0 right-0 pointer-events-none h-full`}
+                    style={{
+                      zIndex: 5,
+                      background: bottomGradientBackground
+                    }}
+                  />
                 </div>
-                
-                {/* Bottom gradient fade - above rainbow shapes, below content */}
-                <div 
-                  className={`absolute bottom-0 left-0 right-0 pointer-events-none h-full`}
-                  style={{
-                    zIndex: 5,
-                    background: bottomGradientBackground
-                  }}
-                />
               </div>
               
               {/* Bottom Controls */}
