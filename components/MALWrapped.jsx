@@ -3530,7 +3530,7 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
                 whileTap={{ scale: 0.9 }}
                 title="LinkedIn"
                           >
-                <Linkedin size={20} className="group-hover:text-[#0077b5] transition-colors" />
+                <Linkedin size={20} className="text-white" />
               </motion.a>
               <motion.a
                 href="https://www.youtube.com/@x.avishkar"
@@ -3541,7 +3541,7 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
                 whileTap={{ scale: 0.9 }}
                 title="YouTube"
                           >
-                <Youtube size={20} className="group-hover:text-[#FF0000] transition-colors" />
+                <Youtube size={20} className="text-white" />
               </motion.a>
               <motion.a
                 href="https://www.instagram.com/x.avishkar"
@@ -3552,7 +3552,7 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
                 whileTap={{ scale: 0.9 }}
                 title="Instagram"
                           >
-                <Instagram size={20} className="group-hover:text-[#E4405F] transition-colors" />
+                <Instagram size={20} className="text-white" />
               </motion.a>
               <motion.a
                 href="https://github.com/Avishkar15"
@@ -3563,7 +3563,7 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
                 whileTap={{ scale: 0.9 }}
                 title="GitHub"
                           >
-                <Github size={20} className="group-hover:text-white transition-colors" />
+                <Github size={20} className="text-white" />
               </motion.a>
                     <motion.a
                       href="https://myanimelist.net/profile/XAvishkar"
@@ -3574,7 +3574,7 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
                       whileTap={{ scale: 0.9 }}
                       title="MyAnimeList"
                     >
-                      <MyAnimeListIcon size={20} className="group-hover:text-[#2E51A2] transition-colors" />
+                      <MyAnimeListIcon size={20} className="text-white" />
                     </motion.a>
             </div>
           </div>
