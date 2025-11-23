@@ -3379,8 +3379,10 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
                 {/* Top gradient fade - above rainbow shapes, below content */}
                
                 
-                <div className="w-full h-full relative overflow-y-auto" style={{ zIndex: 10, isolation: 'isolate' }}>
-                  <SlideContent slide={slides[currentSlide]} mangaListData={mangaList} websiteUrl={websiteUrl} />
+                <div className="w-full h-full relative overflow-y-auto" style={{ zIndex: 10 }}>
+                  <div style={{ position: 'relative', zIndex: 15 }}>
+                    <SlideContent slide={slides[currentSlide]} mangaListData={mangaList} websiteUrl={websiteUrl} />
+                  </div>
                   
                   {/* Bottom gradient fade - above rainbow shapes, below content */}
                   <div 
