@@ -3503,9 +3503,9 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
     {/* Footer */}
     <footer className="w-full bg-black border-t border-white/10 mt-auto py-8 px-4 sm:px-6 lg:px-8 overflow-hidden">
       <div className="max-w-5xl mx-auto">
-        <div className="flex flex-col md:flex-row gap-8 md:gap-12">
+        <div className="flex flex-col md:flex-row gap-8 md:gap-12 md:items-start">
           {/* Left Column - Thanks For Stopping By */}
-          <div className="space-y-4 flex-1 md:flex-none md:w-auto">
+          <div className="space-y-4 md:flex-1">
             <h3 className="text-xl sm:text-2xl font-bold text-white">Thanks For Stopping By!</h3>
             <p className="text-white/80 text-sm sm:text-base">Want to see more? Send me an email, or have a snoop of more work below.</p>
             <div className="flex items-center gap-3">
@@ -3579,45 +3579,47 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
             </div>
           </div>
 
-          {/* Middle Column - PAGES */}
-          <div className="space-y-2 md:space-y-4 flex-shrink-0">
-            <h4 className="text-white/60 text-xs md:text-sm font-medium uppercase tracking-wider">PAGES</h4>
-            <div className="space-y-1.5 md:space-y-2">
-              <motion.a
-                href="https://www.avishkarshinde.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 md:gap-2 text-white hover:text-white/80 transition-colors group text-sm md:text-base"
-                whileHover={{ x: 4 }}
-                          >
-                <span>Portfolio</span>
-                <ExternalLink size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
-              </motion.a>
-              <motion.a
-                href="https://www.avishkarshinde.com/aboutme"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 md:gap-2 text-white hover:text-white/80 transition-colors group text-sm md:text-base"
-                whileHover={{ x: 4 }}
-                          >
-                <span>About Me</span>
-                <ExternalLink size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
-              </motion.a>
-              <motion.a
-                href="https://drive.google.com/file/d/1ta3SF0s3Iy7ryy6ON1FKWl1p9iu32iH2/view?usp=sharing"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 md:gap-2 text-white hover:text-white/80 transition-colors group text-sm md:text-base"
-                whileHover={{ x: 4 }}
-                          >
-                <span>Resume</span>
-                <ExternalLink size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
-              </motion.a>
-                        </div>
-                  </div>
+          {/* Middle and Right Columns Container */}
+          <div className="flex flex-col sm:flex-row gap-6 md:gap-8 flex-shrink-0">
+            {/* Middle Column - PAGES */}
+            <div className="space-y-2 md:space-y-4">
+              <h4 className="text-white/60 text-xs md:text-sm font-medium uppercase tracking-wider">PAGES</h4>
+              <div className="space-y-1.5 md:space-y-2">
+                <motion.a
+                  href="https://www.avishkarshinde.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 md:gap-2 text-white hover:text-white/80 transition-colors group text-sm md:text-base"
+                  whileHover={{ x: 4 }}
+                            >
+                  <span>Portfolio</span>
+                  <ExternalLink size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                </motion.a>
+                <motion.a
+                  href="https://www.avishkarshinde.com/aboutme"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 md:gap-2 text-white hover:text-white/80 transition-colors group text-sm md:text-base"
+                  whileHover={{ x: 4 }}
+                            >
+                  <span>About Me</span>
+                  <ExternalLink size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                </motion.a>
+                <motion.a
+                  href="https://drive.google.com/file/d/1ta3SF0s3Iy7ryy6ON1FKWl1p9iu32iH2/view?usp=sharing"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 md:gap-2 text-white hover:text-white/80 transition-colors group text-sm md:text-base"
+                  whileHover={{ x: 4 }}
+                            >
+                  <span>Resume</span>
+                  <ExternalLink size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                </motion.a>
+              </div>
+            </div>
 
-          {/* Right Column - WORK */}
-          <div className="space-y-2 md:space-y-4 flex-shrink-0">
+            {/* Right Column - WORK */}
+            <div className="space-y-2 md:space-y-4">
             <h4 className="text-white/60 text-xs md:text-sm font-medium uppercase tracking-wider">UX WORK</h4>
             <div className="space-y-1.5 md:space-y-2">
               <motion.a
@@ -3662,10 +3664,11 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
               </motion.a>
             </div>
             </div>
-      </div>
+          </div>
+        </div>
         <div className="mt-8 pt-6 border-t border-white/10">
           <p className="text-white/60 text-sm text-center">© 2025 Designed by <span className="font-semibold">Avishkar Shinde</span></p>
-    </div>
+        </div>
       </div>
     </footer>
     </motion.main>
