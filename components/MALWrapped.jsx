@@ -3526,7 +3526,8 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-full border-box-cyan flex items-center justify-center text-white transition-all group"
-                whileHover={{ scale: 1.1, borderColor: '#0077b5', backgroundColor: 'rgba(0, 119, 181, 0.1)' }}
+                style={{ backgroundColor: 'transparent' }}
+                whileHover={{ scale: 1.1, borderColor: '#0077b5', backgroundColor: 'rgba(0, 119, 181, 0.3)' }}
                 whileTap={{ scale: 0.9 }}
                 title="LinkedIn"
                           >
@@ -3537,7 +3538,8 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-full border-box-cyan flex items-center justify-center text-white transition-all group"
-                whileHover={{ scale: 1.1, borderColor: '#FF0000', backgroundColor: 'rgba(255, 0, 0, 0.1)' }}
+                style={{ backgroundColor: 'transparent' }}
+                whileHover={{ scale: 1.1, borderColor: '#FF0000', backgroundColor: 'rgba(255, 0, 0, 0.3)' }}
                 whileTap={{ scale: 0.9 }}
                 title="YouTube"
                           >
@@ -3548,7 +3550,8 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-full border-box-cyan flex items-center justify-center text-white transition-all group"
-                whileHover={{ scale: 1.1, borderColor: '#E4405F', backgroundColor: 'rgba(228, 64, 95, 0.1)' }}
+                style={{ backgroundColor: 'transparent' }}
+                whileHover={{ scale: 1.1, borderColor: '#E4405F', backgroundColor: 'rgba(228, 64, 95, 0.3)' }}
                 whileTap={{ scale: 0.9 }}
                 title="Instagram"
                           >
@@ -3559,7 +3562,8 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-full border-box-cyan flex items-center justify-center text-white transition-all group"
-                whileHover={{ scale: 1.1, borderColor: '#ffffff', backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+                style={{ backgroundColor: 'transparent' }}
+                whileHover={{ scale: 1.1, borderColor: '#ffffff', backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
                 whileTap={{ scale: 0.9 }}
                 title="GitHub"
                           >
@@ -3570,7 +3574,8 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
                       target="_blank"
                       rel="noopener noreferrer"
                       className="w-10 h-10 rounded-full border-box-cyan flex items-center justify-center text-white transition-all group"
-                      whileHover={{ scale: 1.1, borderColor: '#2E51A2', backgroundColor: 'rgba(46, 81, 162, 0.1)' }}
+                      style={{ backgroundColor: 'transparent' }}
+                      whileHover={{ scale: 1.1, borderColor: '#2E51A2', backgroundColor: 'rgba(46, 81, 162, 0.3)' }}
                       whileTap={{ scale: 0.9 }}
                       title="MyAnimeList"
                     >
