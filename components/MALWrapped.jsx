@@ -1135,7 +1135,7 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
               style={{
                 background: 'radial-gradient(ellipse at center, rgba(255, 0, 100, 0.4) 0%, rgba(200, 0, 150, 0.3) 30%, rgba(100, 0, 200, 0.2) 60%, transparent 100%)',
                 clipPath: 'polygon(0% 20%, 40% 0%, 100% 30%, 80% 70%, 40% 100%, 0% 80%)',
-                filter: 'blur(80px)',
+                filter: 'blur(140px)',
                 willChange: 'transform, opacity'
               }}
               animate={{
@@ -1157,7 +1157,7 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
               style={{
                 background: 'linear-gradient(135deg, rgba(138, 43, 226, 0.5) 0%, rgba(75, 0, 130, 0.4) 20%, rgba(0, 0, 255, 0.3) 40%, rgba(0, 255, 255, 0.3) 60%, rgba(0, 255, 0, 0.3) 80%, rgba(255, 255, 0, 0.4) 100%)',
                 clipPath: 'polygon(20% 0%, 100% 0%, 100% 80%, 0% 100%)',
-                filter: 'blur(70px)',
+                filter: 'blur(120px)',
                 willChange: 'transform, opacity'
               }}
               animate={{
@@ -1178,7 +1178,7 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
               className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] opacity-40"
               style={{
                 background: 'radial-gradient(circle, rgba(138, 43, 226, 0.3) 0%, rgba(75, 0, 130, 0.2) 50%, transparent 100%)',
-                filter: 'blur(100px)',
+                filter: 'blur(140px)',
                 willChange: 'transform, opacity'
               }}
               animate={{
@@ -1199,7 +1199,7 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
               className="absolute bottom-1/4 right-1/4 w-80 h-80 opacity-50"
               style={{
                 background: 'linear-gradient(135deg, rgba(255, 0, 0, 0.3) 0%, rgba(255, 165, 0, 0.3) 25%, rgba(255, 255, 0, 0.3) 50%, rgba(0, 255, 0, 0.3) 75%, rgba(0, 0, 255, 0.3) 100%)',
-                filter: 'blur(70px)',
+                filter: 'blur(120px)',
                 willChange: 'transform, opacity'
               }}
               animate={{
