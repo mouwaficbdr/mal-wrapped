@@ -740,7 +740,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
         return a.popularity - b.popularity;
       });
     
-    const rareAnimeGems = deduplicateByTitle(allRareAnime).slice(0, 5);
+    const rareAnimeGems = deduplicateByTitle(allRareAnime).slice(0, 3);
     
     const allRareManga = completedManga
       .map(item => ({
@@ -756,7 +756,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
         return a.popularity - b.popularity;
       });
     
-    const rareMangaGems = deduplicateByTitle(allRareManga).slice(0, 5);
+    const rareMangaGems = deduplicateByTitle(allRareManga).slice(0, 3);
     
     // Count hidden gems (rarer than 90% of MAL users - using popularity threshold)
     const hiddenGemsCount = completedAnime.filter(item => {
@@ -900,20 +900,24 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
 
     // 6. Character Twin Suggestion (combined anime/manga)
     // Based on top genres and preferences - suggest a character from top anime/manga
+    // Store animeId for fetching character data later
     let characterTwin = null;
+    let characterAnimeId = null;
     
     // Prefer anime twin, fallback to manga
     if (topRated.length > 0) {
       const topItem = topRated[0];
       const topGenresList = topItem.node?.genres?.map(g => g.name) || [];
       const topGenreName = topGenresList[0] || (topGenres.length > 0 ? topGenres[0][0] : 'anime');
+      characterAnimeId = topItem.node?.id;
       
       characterTwin = {
         title: topItem.node?.title || 'Your Top Pick',
         genre: topGenreName,
         reason: `Based on your love for ${topGenreName}, this character from "${topItem.node?.title}" matches your vibes`,
         coverImage: topItem.node?.main_picture?.large || topItem.node?.main_picture?.medium || '/anime-character.webp',
-        type: 'anime'
+        type: 'anime',
+        animeId: characterAnimeId
       };
     } else if (topManga.length > 0) {
       const topMangaItem = topManga[0];
@@ -930,13 +934,24 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
     }
 
     // 7. Episode Count Comparison (estimate average MAL user)
-    // Rough estimate: average MAL user watches ~50-100 episodes per year
-    const averageEpisodes = 75;
+    // Average MAL user watches ~650 episodes per year, 5497 all-time
+    const averageEpisodesPerYear = 650;
+    const averageEpisodesAllTime = 5497;
+    
+    // Calculate all-time episodes
+    const allTimeEpisodes = anime.reduce((sum, item) => 
+      sum + (item.list_status?.num_episodes_watched || 0), 0
+    );
+    
     const episodeComparison = {
       userEpisodes: totalEpisodes,
-      averageEpisodes,
-      percentage: Math.round((totalEpisodes / averageEpisodes) * 100),
-      isAboveAverage: totalEpisodes > averageEpisodes
+      averageEpisodes: averageEpisodesPerYear,
+      percentage: Math.round((totalEpisodes / averageEpisodesPerYear) * 100),
+      isAboveAverage: totalEpisodes > averageEpisodesPerYear,
+      allTimeEpisodes: allTimeEpisodes,
+      averageAllTime: averageEpisodesAllTime,
+      allTimePercentage: Math.round((allTimeEpisodes / averageEpisodesAllTime) * 100),
+      isAboveAverageAllTime: allTimeEpisodes > averageEpisodesAllTime
     };
 
     // Removed obscure studios calculation
@@ -983,6 +998,53 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
     };
     
     setStats(statsData);
+    
+    // Fetch character data if we have an anime ID
+    if (characterAnimeId) {
+      fetchCharacterForTwin(characterAnimeId, statsData);
+    }
+  }
+
+  async function fetchCharacterForTwin(animeId, currentStats) {
+    try {
+      const accessToken = localStorage.getItem('mal_access_token');
+      if (!accessToken) return;
+      
+      const response = await fetch(`/api/mal/characters?animeId=${animeId}`, {
+        headers: { 'Authorization': `Bearer ${accessToken}` },
+      });
+      
+      if (!response.ok) {
+        console.error('Failed to fetch characters');
+        return;
+      }
+      
+      const data = await response.json();
+      const characters = data.data || [];
+      
+      // Find a main character
+      const mainCharacter = characters.find(c => c.role === 'Main') || characters[0];
+      
+      if (mainCharacter && currentStats.characterTwin) {
+        const characterNode = mainCharacter.node;
+        const characterName = `${characterNode?.first_name || ''} ${characterNode?.last_name || ''}`.trim() || 
+                             characterNode?.alternative_name?.split(',')[0] || 
+                             'Character';
+        
+        // Update stats with character data
+        setStats(prevStats => ({
+          ...prevStats,
+          characterTwin: {
+            ...prevStats.characterTwin,
+            title: characterName,
+            characterImage: characterNode?.main_picture?.medium || characterNode?.main_picture?.large || prevStats.characterTwin.coverImage,
+            reason: `Based on your love for ${prevStats.characterTwin.genre}, ${characterName} from "${prevStats.characterTwin.title}" matches your vibes`
+          }
+        }));
+      }
+    } catch (err) {
+      console.error('Error fetching character:', err);
+    }
   }
 
 
@@ -3251,24 +3313,43 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
 
       case 'episode_comparison':
         if (!stats.episodeComparison) return null;
-        const { userEpisodes, averageEpisodes, percentage, isAboveAverage } = stats.episodeComparison;
+        const { userEpisodes, averageEpisodes, percentage, isAboveAverage, allTimeEpisodes, averageAllTime, allTimePercentage, isAboveAverageAllTime } = stats.episodeComparison;
         return (
           <SlideLayout bgColor="green">
             <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
               How do you compare?
             </motion.h2>
-            <motion.div className="mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
-              <p className="number-lg text-white">
-                <AnimatedNumber value={userEpisodes} />
-              </p>
-              <p className="body-md text-white font-regular mt-2">episodes watched</p>
-              <p className="body-sm text-white/70 mt-4 text-container">
-                {isAboveAverage ? (
-                  <>You watched <span className="text-white font-semibold">{percentage}%</span> more episodes than the average MAL user!</>
-                ) : (
-                  <>You watched <span className="text-white font-semibold">{Math.abs(percentage - 100)}%</span> of the average MAL user's episodes.</>
-                )}
-              </p>
+            <motion.div className="mt-4 text-center relative z-10 space-y-6" {...fadeSlideUp} data-framer-motion>
+              <div>
+                <p className="body-sm text-white/70 mb-2">This Year</p>
+                <p className="number-lg text-white">
+                  <AnimatedNumber value={userEpisodes} />
+                </p>
+                <p className="body-md text-white font-regular mt-2">episodes watched</p>
+                <p className="body-sm text-white/70 mt-2 text-container">
+                  {isAboveAverage ? (
+                    <>You watched <span className="text-white font-semibold">{percentage}%</span> more episodes than the average MAL user!</>
+                  ) : (
+                    <>You watched <span className="text-white font-semibold">{Math.abs(percentage - 100)}%</span> of the average MAL user's episodes.</>
+                  )}
+                </p>
+              </div>
+              {allTimeEpisodes !== undefined && (
+                <div>
+                  <p className="body-sm text-white/70 mb-2">All Time</p>
+                  <p className="number-lg text-white">
+                    <AnimatedNumber value={allTimeEpisodes} />
+                  </p>
+                  <p className="body-md text-white font-regular mt-2">episodes watched</p>
+                  <p className="body-sm text-white/70 mt-2 text-container">
+                    {isAboveAverageAllTime ? (
+                      <>You watched <span className="text-white font-semibold">{allTimePercentage}%</span> more episodes than the average MAL user!</>
+                    ) : (
+                      <>You watched <span className="text-white font-semibold">{Math.abs(allTimePercentage - 100)}%</span> of the average MAL user's episodes.</>
+                    )}
+                  </p>
+                </div>
+              )}
             </motion.div>
             <motion.h3 className="body-sm font-regular text-white/50 mt-6 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
               {isAboveAverage ? "You're above average!" : 'Keep watching to beat the average!'}
@@ -3318,9 +3399,8 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
 
       case 'character_twin':
         if (!stats.characterTwin) return null;
-        // Use character image - using anime/manga cover as character representation
-        // In a full implementation, this would fetch actual character images from MAL character API
-        const characterImage = stats.characterTwin.coverImage || (stats.characterTwin.type === 'manga' ? '/manga-character.webp' : '/anime-character.webp');
+        // Use character image if available, otherwise fall back to anime/manga cover
+        const characterImage = stats.characterTwin.characterImage || stats.characterTwin.coverImage || (stats.characterTwin.type === 'manga' ? '/manga-character.webp' : '/anime-character.webp');
         return (
           <SlideLayout bgColor="pink">
             <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
