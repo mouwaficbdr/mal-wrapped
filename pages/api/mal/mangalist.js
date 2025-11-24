@@ -26,12 +26,13 @@ export default async function handler(req, res) {
       console.log(`Fetching manga list (offset: ${offset}, limit: ${limit})...`);
       
       const fields = [
-        'list_status{status,score}',
+        'list_status{status,score,start_date,finish_date,num_chapters_read,num_volumes_read,updated_at}',
         'genres{name}',
         'authors{node{first_name,last_name}}',
         'title',
         'main_picture',
-        'id'
+        'id',
+        'num_list_users'
       ].join(',');
       
       const response = await fetch(

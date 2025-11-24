@@ -217,7 +217,7 @@ export default function MALWrapped() {
   ] : [];
 
   
-const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, .35) 50%, rgba(0, 0, 0, 1) 100%)';
+const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, .4) 25%, rgba(0, 0, 0, .15) 60%, rgba(0, 0, 0, .4) 75%, rgba(0, 0, 0, 1) 100%)';
   // Get website URL for watermark
   const websiteUrl = typeof window !== 'undefined' 
     ? window.location.origin.replace(/^https?:\/\//, '').toUpperCase()
@@ -521,14 +521,16 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
     const hiddenGemsRaw = completedAnime
       .filter(item => {
         const score = item.list_status.score;
-        const popularity = item.node?.num_list_users;
+        const popularity = item.node?.num_list_users ?? Number.MAX_SAFE_INTEGER;
         return score >= 7 && popularity < 100000;
       })
       .sort((a, b) => {
         if (b.list_status.score !== a.list_status.score) {
           return b.list_status.score - a.list_status.score;
         }
-        return (a.node?.num_list_users || 0) - (b.node?.num_list_users || 0);
+        const popularityA = a.node?.num_list_users ?? Number.MAX_SAFE_INTEGER;
+        const popularityB = b.node?.num_list_users ?? Number.MAX_SAFE_INTEGER;
+        return popularityA - popularityB;
       });
     const hiddenGemsMap = new Map();
     hiddenGemsRaw.forEach(item => {
@@ -650,14 +652,16 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
     const hiddenGemsMangaRaw = completedManga
       .filter(item => {
         const score = item.list_status.score;
-        const popularity = item.node?.num_list_users;
+        const popularity = item.node?.num_list_users ?? Number.MAX_SAFE_INTEGER;
         return score >= 7 && popularity < 100000;
       })
       .sort((a, b) => {
         if (b.list_status.score !== a.list_status.score) {
           return b.list_status.score - a.list_status.score;
         }
-        return (a.node?.num_list_users || 0) - (b.node?.num_list_users || 0);
+        const popularityA = a.node?.num_list_users ?? Number.MAX_SAFE_INTEGER;
+        const popularityB = b.node?.num_list_users ?? Number.MAX_SAFE_INTEGER;
+        return popularityA - popularityB;
       });
     const hiddenGemsMangaMap = new Map();
     hiddenGemsMangaRaw.forEach(item => {
@@ -2174,7 +2178,7 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
                                     whileHover={hoverImage}
                                   />
                             )}
-                              </div>
+                              </div>  
                             </motion.div>
                           <div className="flex-1 min-w-0">
                               <p className="title-md truncate font-semibold text-white">{highlight.node?.title}</p>
