@@ -977,7 +977,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
       longestStreak: longestStreak,
       badges: badges,
       yearComparison: yearComparison,
-      characterTwin: animeTwin || mangaTwin, // Combined twin
+      characterTwin: characterTwin, // Combined twin
       episodeComparison: episodeComparison,
       totalCompletedAnime: totalCompletedAnime,
     };
