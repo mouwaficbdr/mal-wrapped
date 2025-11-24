@@ -217,7 +217,7 @@ export default function MALWrapped() {
   ] : [];
 
   
-const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, .4) 25%, rgba(0, 0, 0, .15) 60%, rgba(0, 0, 0, .4) 75%, rgba(0, 0, 0, 1) 100%)';
+const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, .4) 25%, rgba(0, 0, 0, .2) 60%, rgba(0, 0, 0, .4) 75%, rgba(0, 0, 0, 1) 100%)';
   // Get website URL for watermark
   const websiteUrl = typeof window !== 'undefined' 
     ? window.location.origin.replace(/^https?:\/\//, '').toUpperCase()
@@ -522,7 +522,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
       .filter(item => {
         const score = item.list_status.score;
         const popularity = item.node?.num_list_users ?? Number.MAX_SAFE_INTEGER;
-        return score >= 8 && popularity < 70000;
+        return score >= 7.5 && popularity < 75000;
       })
       .sort((a, b) => {
         if (b.list_status.score !== a.list_status.score) {
@@ -653,7 +653,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
       .filter(item => {
         const score = item.list_status.score;
         const popularity = item.node?.num_list_users ?? Number.MAX_SAFE_INTEGER;
-        return score >= 8 && popularity < 40000;
+        return score >= 8 && popularity < 50000;
       })
       .sort((a, b) => {
         if (b.list_status.score !== a.list_status.score) {
