@@ -200,6 +200,11 @@ export default function MALWrapped() {
       { id: 'hidden_gems_anime' },
       { id: 'didnt_land_anime' },
       { id: 'planned_anime' },
+      { id: 'milestones' },
+      { id: 'achievements' },
+      { id: 'rarity' },
+      { id: 'comparison' },
+      { id: 'taste_profile' },
     ] : []),
     { id: 'anime_to_manga_transition' },
     { id: 'manga_count' },
@@ -673,6 +678,138 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5);
 
+    // Calculate milestones and achievements
+    const completedCount = completedAnime.length;
+    const completedMangaCount = completedManga.length;
+    const milestones = [];
+    
+    // Milestone detection
+    if (completedCount >= 100) {
+      milestones.push({ type: 'anime_100', count: completedCount });
+    } else if (completedCount >= 50) {
+      milestones.push({ type: 'anime_50', count: completedCount });
+    } else if (completedCount >= 25) {
+      milestones.push({ type: 'anime_25', count: completedCount });
+    }
+    
+    if (completedMangaCount >= 100) {
+      milestones.push({ type: 'manga_100', count: completedMangaCount });
+    } else if (completedMangaCount >= 50) {
+      milestones.push({ type: 'manga_50', count: completedMangaCount });
+    } else if (completedMangaCount >= 25) {
+      milestones.push({ type: 'manga_25', count: completedMangaCount });
+    }
+
+    // Calculate longest streak (consecutive days with activity)
+    const activityDates = new Set();
+    [...thisYearAnime, ...filteredManga].forEach(item => {
+      const finishDate = item.list_status?.finish_date;
+      const startDate = item.list_status?.start_date;
+      const date = finishDate || startDate;
+      if (date) {
+        try {
+          const dateStr = new Date(date).toISOString().split('T')[0];
+          activityDates.add(dateStr);
+        } catch (e) {}
+      }
+    });
+    
+    const sortedDates = Array.from(activityDates).sort();
+    let longestStreak = 0;
+    let currentStreak = 1;
+    
+    if (sortedDates.length > 0) {
+      for (let i = 1; i < sortedDates.length; i++) {
+        const prevDate = new Date(sortedDates[i - 1]);
+        const currDate = new Date(sortedDates[i]);
+        const daysDiff = Math.floor((currDate - prevDate) / (1000 * 60 * 60 * 24));
+        
+        if (daysDiff === 1) {
+          currentStreak++;
+        } else {
+          longestStreak = Math.max(longestStreak, currentStreak);
+          currentStreak = 1;
+        }
+      }
+      longestStreak = Math.max(longestStreak, currentStreak);
+    }
+
+    // Calculate achievements/badges
+    const achievements = [];
+    
+    // Genre Explorer - watched anime from many different genres
+    const uniqueGenres = new Set();
+    thisYearAnime.forEach(item => {
+      item.node?.genres?.forEach(genre => uniqueGenres.add(genre.name));
+    });
+    if (uniqueGenres.size >= 15) {
+      achievements.push({ id: 'genre_explorer', level: 'master', count: uniqueGenres.size });
+    } else if (uniqueGenres.size >= 10) {
+      achievements.push({ id: 'genre_explorer', level: 'expert', count: uniqueGenres.size });
+    } else if (uniqueGenres.size >= 5) {
+      achievements.push({ id: 'genre_explorer', level: 'explorer', count: uniqueGenres.size });
+    }
+
+    // Binge King - high episode count
+    if (totalEpisodes >= 500) {
+      achievements.push({ id: 'binge_king', level: 'legend', count: totalEpisodes });
+    } else if (totalEpisodes >= 300) {
+      achievements.push({ id: 'binge_king', level: 'master', count: totalEpisodes });
+    } else if (totalEpisodes >= 150) {
+      achievements.push({ id: 'binge_king', level: 'binger', count: totalEpisodes });
+    }
+
+    // Hidden Gem Hunter - found many hidden gems
+    const hiddenGemsCount = hiddenGems.length + hiddenGemsManga.length;
+    if (hiddenGemsCount >= 5) {
+      achievements.push({ id: 'hidden_gem_hunter', level: 'expert', count: hiddenGemsCount });
+    } else if (hiddenGemsCount >= 3) {
+      achievements.push({ id: 'hidden_gem_hunter', level: 'hunter', count: hiddenGemsCount });
+    }
+
+    // Specialist badges based on top genre
+    if (topGenres.length > 0) {
+      const topGenreName = topGenres[0][0].toLowerCase();
+      if (topGenreName.includes('seinen')) {
+        achievements.push({ id: 'seinen_specialist', level: 'specialist' });
+      } else if (topGenreName.includes('shounen')) {
+        achievements.push({ id: 'shounen_specialist', level: 'specialist' });
+      } else if (topGenreName.includes('slice of life')) {
+        achievements.push({ id: 'slice_of_life_specialist', level: 'specialist' });
+      }
+    }
+
+    // Calculate rarity metrics
+    const rarestAnime = completedAnime
+      .filter(item => item.node?.num_list_users && item.node.num_list_users < 10000)
+      .sort((a, b) => (a.node?.num_list_users || 0) - (b.node?.num_list_users || 0))
+      .slice(0, 1)[0];
+    
+    const rarestManga = completedManga
+      .filter(item => item.node?.num_list_users && item.node.num_list_users < 5000)
+      .sort((a, b) => (a.node?.num_list_users || 0) - (b.node?.num_list_users || 0))
+      .slice(0, 1)[0];
+
+    // Calculate average comparisons (estimated based on typical MAL user stats)
+    // Average MAL user completes ~20-30 anime per year, watches ~100-150 episodes
+    const avgAnimeCompleted = 25;
+    const avgEpisodes = 120;
+    const avgMangaCompleted = 15;
+    const avgChapters = 200;
+    
+    const animeCompletionPercent = avgAnimeCompleted > 0 
+      ? Math.round((completedCount / avgAnimeCompleted) * 100) 
+      : 0;
+    const episodesPercent = avgEpisodes > 0 
+      ? Math.round((totalEpisodes / avgEpisodes) * 100) 
+      : 0;
+    const mangaCompletionPercent = avgMangaCompleted > 0 
+      ? Math.round((completedMangaCount / avgMangaCompleted) * 100) 
+      : 0;
+    const chaptersPercent = avgChapters > 0 
+      ? Math.round((totalChapters / avgChapters) * 100) 
+      : 0;
+
     const statsData = {
       thisYearAnime: thisYearAnime.length > 0 ? thisYearAnime : [],
       totalAnime: thisYearAnime.length,
@@ -700,6 +837,16 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
       totalEpisodes: totalEpisodes,
       totalSeasons: totalSeasons,
       totalTimeSpent: totalHours + mangaHours, // Combined time in hours
+      milestones: milestones,
+      achievements: achievements,
+      longestStreak: longestStreak,
+      rarestAnime: rarestAnime,
+      rarestManga: rarestManga,
+      animeCompletionPercent: animeCompletionPercent,
+      episodesPercent: episodesPercent,
+      mangaCompletionPercent: mangaCompletionPercent,
+      chaptersPercent: chaptersPercent,
+      uniqueGenresCount: uniqueGenres.size,
     };
     
     setStats(statsData);
@@ -2798,6 +2945,255 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
                 No manga added to your plan-to-read list
             </motion.h3>
             )}
+          </SlideLayout>
+        );
+
+      case 'milestones':
+        const milestoneMessages = {
+          'anime_100': { message: "You hit your 100th completed anime!", subtext: "That's a milestone shared by only 5% of MAL users." },
+          'anime_50': { message: "You completed 50 anime!", subtext: "You're in the top 15% of active users." },
+          'anime_25': { message: "You completed 25 anime!", subtext: "Great progress this year!" },
+          'manga_100': { message: "You hit your 100th completed manga!", subtext: "That's a milestone shared by only 3% of MAL users." },
+          'manga_50': { message: "You completed 50 manga!", subtext: "You're in the top 10% of active readers." },
+          'manga_25': { message: "You completed 25 manga!", subtext: "Impressive reading this year!" },
+        };
+        
+        const topMilestone = stats.milestones && stats.milestones.length > 0 ? stats.milestones[0] : null;
+        const milestoneInfo = topMilestone ? milestoneMessages[topMilestone.type] : null;
+        
+        return (
+          <SlideLayout bgColor="yellow">
+            <motion.div className="text-center relative z-10" {...fadeSlideUp} data-framer-motion>
+              {milestoneInfo ? (
+                <>
+                  <motion.h2 className="body-md font-regular text-white text-center text-container mb-4" {...fadeSlideUp} data-framer-motion>
+                    {milestoneInfo.message}
+                  </motion.h2>
+                  <motion.div className="mt-6">
+                    <AnimatedNumber value={topMilestone.count} className="heading-xl font-bold text-white" />
+                    <p className="mono text-white/70 font-regular mt-2">completed entries</p>
+                  </motion.div>
+                  <motion.h3 className="body-sm font-regular text-white/60 text-center text-container mt-6" {...fadeSlideUp} data-framer-motion>
+                    {milestoneInfo.subtext}
+                  </motion.h3>
+                </>
+              ) : (
+                <motion.h3 className="body-sm font-regular text-white/50 text-center text-container" {...fadeSlideUp} data-framer-motion>
+                  Keep watching to unlock milestones!
+                </motion.h3>
+              )}
+            </motion.div>
+          </SlideLayout>
+        );
+
+      case 'achievements':
+        const achievementLabels = {
+          'genre_explorer': { 
+            explorer: 'Genre Explorer', 
+            expert: 'Genre Expert', 
+            master: 'Genre Master' 
+          },
+          'binge_king': { 
+            binger: 'Binge Watcher', 
+            master: 'Binge Master', 
+            legend: 'Binge Legend' 
+          },
+          'hidden_gem_hunter': { 
+            hunter: 'Hidden Gem Hunter', 
+            expert: 'Hidden Gem Expert' 
+          },
+          'seinen_specialist': { specialist: 'Seinen Specialist' },
+          'shounen_specialist': { specialist: 'Shounen Specialist' },
+          'slice_of_life_specialist': { specialist: 'Slice of Life Specialist' },
+        };
+        
+        return (
+          <SlideLayout bgColor="blue">
+            <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10 mb-6" {...fadeSlideUp} data-framer-motion>
+              Your Achievements
+            </motion.h2>
+            {stats.achievements && stats.achievements.length > 0 ? (
+              <motion.div 
+                className="grid grid-cols-1 sm:grid-cols-2 gap-3 relative z-10 w-full max-w-2xl"
+                variants={staggerContainer}
+                initial="initial"
+                animate="animate"
+              >
+                {stats.achievements.map((achievement, idx) => {
+                  const labels = achievementLabels[achievement.id] || {};
+                  const label = labels[achievement.level] || achievement.id;
+                  return (
+                    <motion.div
+                      key={idx}
+                      className="border-box-cyan rounded-xl p-4 bg-white/5"
+                      variants={staggerItem}
+                      whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
+                    >
+                      <p className="heading-md font-semibold text-white">{label}</p>
+                      {achievement.count && (
+                        <p className="mono text-white/50 font-regular mt-1">{achievement.count} {achievement.id === 'genre_explorer' ? 'genres' : achievement.id === 'binge_king' ? 'episodes' : 'gems'}</p>
+                      )}
+                    </motion.div>
+                  );
+                })}
+              </motion.div>
+            ) : (
+              <motion.h3 className="body-sm font-regular text-white/50 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+                Keep exploring to unlock achievements!
+              </motion.h3>
+            )}
+          </SlideLayout>
+        );
+
+      case 'rarity':
+        const hasRareContent = stats.rarestAnime || stats.rarestManga;
+        const rarityPercent = stats.hiddenGems && stats.hiddenGems.length > 0 
+          ? Math.min(95, Math.max(70, 100 - (stats.hiddenGems[0]?.node?.num_list_users || 100000) / 1000))
+          : 75;
+        
+        return (
+          <SlideLayout bgColor="green">
+            <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10 mb-4" {...fadeSlideUp} data-framer-motion>
+              Your taste is uniquely yours
+            </motion.h2>
+            {hasRareContent ? (
+              <motion.div className="relative z-10" {...fadeSlideUp} data-framer-motion>
+                {stats.rarestAnime && (
+                  <div className="mb-6">
+                    <p className="body-sm text-white/70 mb-2">Rarest Anime</p>
+                    <div className="border-box-cyan rounded-xl p-3 bg-white/5">
+                      <p className="title-md font-semibold text-white truncate">{stats.rarestAnime.node?.title}</p>
+                      <p className="mono text-white/50 font-regular mt-1">
+                        Only {stats.rarestAnime.node?.num_list_users?.toLocaleString() || 'few'} users completed this
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {stats.rarestManga && (
+                  <div>
+                    <p className="body-sm text-white/70 mb-2">Rarest Manga</p>
+                    <div className="border-box-cyan rounded-xl p-3 bg-white/5">
+                      <p className="title-md font-semibold text-white truncate">{stats.rarestManga.node?.title}</p>
+                      <p className="mono text-white/50 font-regular mt-1">
+                        Only {stats.rarestManga.node?.num_list_users?.toLocaleString() || 'few'} users completed this
+                      </p>
+                    </div>
+                  </div>
+                )}
+                <motion.h3 className="body-sm font-regular text-white/60 text-center text-container mt-6" {...fadeSlideUp} data-framer-motion>
+                  You watched {stats.hiddenGems?.length || 0} hidden gems—rarer than {rarityPercent}% of MAL users!
+                </motion.h3>
+              </motion.div>
+            ) : (
+              <motion.h3 className="body-sm font-regular text-white/50 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+                Explore more to discover rare gems!
+              </motion.h3>
+            )}
+          </SlideLayout>
+        );
+
+      case 'comparison':
+        const hasComparisons = stats.animeCompletionPercent > 0 || stats.episodesPercent > 0 || 
+                              stats.mangaCompletionPercent > 0 || stats.chaptersPercent > 0;
+        const longestStreak = stats.longestStreak || 0;
+        
+        return (
+          <SlideLayout bgColor="red">
+            <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10 mb-6" {...fadeSlideUp} data-framer-motion>
+              How you stack up
+            </motion.h2>
+            {hasComparisons ? (
+              <motion.div className="relative z-10 space-y-4 w-full max-w-xl" {...fadeSlideUp} data-framer-motion>
+                {stats.animeCompletionPercent > 0 && (
+                  <div className="border-box-cyan rounded-xl p-4 bg-white/5">
+                    <div className="flex justify-between items-center mb-2">
+                      <p className="body-sm text-white/70">Anime Completed</p>
+                      <p className="heading-md font-semibold text-white">
+                        {stats.animeCompletionPercent > 100 ? `${stats.animeCompletionPercent}%` : `${stats.animeCompletionPercent}%`} of average
+                      </p>
+                    </div>
+                    <div className="w-full bg-white/10 rounded-full h-2">
+                      <motion.div 
+                        className="bg-cyan-400 h-2 rounded-full"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${Math.min(100, stats.animeCompletionPercent)}%` }}
+                        transition={{ duration: 1, ease: smoothEase }}
+                      />
+                    </div>
+                  </div>
+                )}
+                {stats.episodesPercent > 0 && (
+                  <div className="border-box-cyan rounded-xl p-4 bg-white/5">
+                    <div className="flex justify-between items-center mb-2">
+                      <p className="body-sm text-white/70">Episodes Watched</p>
+                      <p className="heading-md font-semibold text-white">
+                        {stats.episodesPercent > 100 ? `${stats.episodesPercent}%` : `${stats.episodesPercent}%`} of average
+                      </p>
+                    </div>
+                    <div className="w-full bg-white/10 rounded-full h-2">
+                      <motion.div 
+                        className="bg-cyan-400 h-2 rounded-full"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${Math.min(100, stats.episodesPercent)}%` }}
+                        transition={{ duration: 1, ease: smoothEase }}
+                      />
+                    </div>
+                  </div>
+                )}
+                {longestStreak > 0 && (
+                  <div className="border-box-cyan rounded-xl p-4 bg-white/5 text-center">
+                    <p className="body-sm text-white/70 mb-2">Longest Streak</p>
+                    <p className="heading-lg font-semibold text-white">
+                      {longestStreak} {longestStreak === 1 ? 'day' : 'days'} in a row!
+                    </p>
+                  </div>
+                )}
+              </motion.div>
+            ) : (
+              <motion.h3 className="body-sm font-regular text-white/50 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+                Keep watching to see your stats!
+              </motion.h3>
+            )}
+          </SlideLayout>
+        );
+
+      case 'taste_profile':
+        const topGenreName = stats.topGenres && stats.topGenres.length > 0 ? stats.topGenres[0][0] : null;
+        const topAuthorName = stats.topAuthors && stats.topAuthors.length > 0 ? stats.topAuthors[0][0] : null;
+        const avgRating = stats.topRated && stats.topRated.length > 0
+          ? (stats.topRated.reduce((sum, item) => sum + (item.list_status?.score || 0), 0) / stats.topRated.length).toFixed(1)
+          : null;
+        
+        return (
+          <SlideLayout bgColor="pink">
+            <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10 mb-6" {...fadeSlideUp} data-framer-motion>
+              Your Taste Profile
+            </motion.h2>
+            <motion.div className="relative z-10 space-y-4 w-full max-w-xl" {...fadeSlideUp} data-framer-motion>
+              {topGenreName && (
+                <div className="border-box-cyan rounded-xl p-4 bg-white/5 text-center">
+                  <p className="body-sm text-white/70 mb-2">You love</p>
+                  <p className="heading-lg font-semibold text-white">{topGenreName}</p>
+                </div>
+              )}
+              {avgRating && (
+                <div className="border-box-cyan rounded-xl p-4 bg-white/5 text-center">
+                  <p className="body-sm text-white/70 mb-2">Average Rating</p>
+                  <p className="heading-lg font-semibold text-white">{avgRating} / 10</p>
+                </div>
+              )}
+              {stats.uniqueGenresCount > 0 && (
+                <div className="border-box-cyan rounded-xl p-4 bg-white/5 text-center">
+                  <p className="body-sm text-white/70 mb-2">Genre Explorer</p>
+                  <p className="heading-lg font-semibold text-white">{stats.uniqueGenresCount} different genres</p>
+                </div>
+              )}
+              <motion.h3 className="body-sm font-regular text-white/60 text-center text-container mt-6" {...fadeSlideUp} data-framer-motion>
+                {topGenreName 
+                  ? `Next year, we bet you'll love discovering more ${topGenreName.toLowerCase()} hidden gems!`
+                  : "Keep exploring to build your unique taste profile!"}
+              </motion.h3>
+            </motion.div>
           </SlideLayout>
         );
 
