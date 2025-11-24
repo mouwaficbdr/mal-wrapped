@@ -724,19 +724,18 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
       }
     });
 
-    // 2. Rarity Features - Combine hidden gems and rarest anime/manga
-    // Merge hidden gems (high rated, low popularity) with rarest (lowest popularity)
+    // 2. Rarity Features - Hidden gems: least members, sorted by user rating descending
     const allRareAnime = completedAnime
       .map(item => ({
         ...item,
         popularity: item.node?.num_list_users ?? Number.MAX_SAFE_INTEGER,
         score: item.list_status.score
       }))
-      .filter(item => item.popularity < 100000) // Filter to rare items
       .sort((a, b) => {
-        // Prioritize high-rated rare items, then by popularity
-        if (a.score >= 8 && b.score < 8) return -1;
-        if (a.score < 8 && b.score >= 8) return 1;
+        // Sort by user rating descending, then by popularity (least members first)
+        if (b.score !== a.score) {
+          return b.score - a.score;
+        }
         return a.popularity - b.popularity;
       });
     
@@ -748,11 +747,11 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
         popularity: item.node?.num_list_users ?? Number.MAX_SAFE_INTEGER,
         score: item.list_status.score
       }))
-      .filter(item => item.popularity < 100000) // Filter to rare items
       .sort((a, b) => {
-        // Prioritize high-rated rare items, then by popularity
-        if (a.score >= 8 && b.score < 8) return -1;
-        if (a.score < 8 && b.score >= 8) return 1;
+        // Sort by user rating descending, then by popularity (least members first)
+        if (b.score !== a.score) {
+          return b.score - a.score;
+        }
         return a.popularity - b.popularity;
       });
     
@@ -1966,6 +1965,15 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                   </>
                 )}
               </div>
+              {stats.longestStreak && stats.longestStreak > 0 && (
+                <div className="text-center">
+                  <p className="body-sm text-white/50 mt-2 font-regular">Longest streak:</p>
+                  <p className="number-lg text-white ">
+                    <AnimatedNumber value={stats.longestStreak} />
+                  </p>
+                  <p className="body-md text-white font-medium">days in a row</p>
+                </div>
+              )}
             </motion.div>
           </SlideLayout>
         );
@@ -2458,12 +2466,21 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                     transition={{ duration: 0.2, ease: smoothEase }}
                   >
                     {item.coverImage && (
-                      <motion.img
-                        src={item.coverImage}
-                        alt={item.title}
-                        className="w-20 h-28 object-cover rounded-lg"
-                        crossOrigin="anonymous"
-                      />
+                      <a 
+                        href={item.malId ? `https://myanimelist.net/anime/${item.malId}` : '#'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <motion.img
+                          src={item.coverImage}
+                          alt={item.title}
+                          className="w-20 h-28 object-cover rounded-lg cursor-pointer"
+                          crossOrigin="anonymous"
+                          whileHover={{ scale: 1.05 }}
+                          transition={{ duration: 0.2, ease: smoothEase }}
+                        />
+                      </a>
                     )}
                     <div className="flex-1">
                       <h3 className="title-md font-semibold text-white">{item.title}</h3>
@@ -2662,6 +2679,15 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                     </p>
                     <p className="heading-md text-white mt-2 font-medium">hours</p>
                     <p className="body-sm text-white/50 mt-2 font-regular">spent flipping pages</p> 
+                  </div>
+                )}
+                {stats.longestStreak && stats.longestStreak > 0 && (
+                  <div>
+                    <p className="body-sm text-white/50 mt-2 font-regular">Longest streak:</p>
+                    <p className="number-lg text-white ">
+                      <AnimatedNumber value={stats.longestStreak} />
+                    </p>
+                    <p className="body-md text-white font-medium">days in a row</p>
                   </div>
                 )}
               </div>
@@ -3144,12 +3170,21 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                     transition={{ duration: 0.2, ease: smoothEase }}
                   >
                     {item.coverImage && (
-                      <motion.img
-                        src={item.coverImage}
-                        alt={item.title}
-                        className="w-20 h-28 object-cover rounded-lg"
-                        crossOrigin="anonymous"
-                      />
+                      <a 
+                        href={item.mangaId ? `https://myanimelist.net/manga/${item.mangaId}` : '#'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <motion.img
+                          src={item.coverImage}
+                          alt={item.title}
+                          className="w-20 h-28 object-cover rounded-lg cursor-pointer"
+                          crossOrigin="anonymous"
+                          whileHover={{ scale: 1.05 }}
+                          transition={{ duration: 0.2, ease: smoothEase }}
+                        />
+                      </a>
                     )}
                     <div className="flex-1">
                       <h3 className="title-md font-semibold text-white">{item.title}</h3>
@@ -3314,45 +3349,35 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
       case 'episode_comparison':
         if (!stats.episodeComparison) return null;
         const { userEpisodes, averageEpisodes, percentage, isAboveAverage, allTimeEpisodes, averageAllTime, allTimePercentage, isAboveAverageAllTime } = stats.episodeComparison;
+        // Show only selected year OR all time, not both
+        const showAllTime = stats.selectedYear === 'all';
+        const displayEpisodes = showAllTime ? allTimeEpisodes : userEpisodes;
+        const displayAverage = showAllTime ? averageAllTime : averageEpisodes;
+        const displayPercentage = showAllTime ? allTimePercentage : percentage;
+        const displayIsAboveAverage = showAllTime ? isAboveAverageAllTime : isAboveAverage;
+        const displayLabel = showAllTime ? 'All Time' : (stats.selectedYear === 'all' ? 'All Time' : stats.selectedYear.toString());
+        
         return (
           <SlideLayout bgColor="green">
             <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
               How do you compare?
             </motion.h2>
-            <motion.div className="mt-4 text-center relative z-10 space-y-6" {...fadeSlideUp} data-framer-motion>
-              <div>
-                <p className="body-sm text-white/70 mb-2">This Year</p>
-                <p className="number-lg text-white">
-                  <AnimatedNumber value={userEpisodes} />
-                </p>
-                <p className="body-md text-white font-regular mt-2">episodes watched</p>
-                <p className="body-sm text-white/70 mt-2 text-container">
-                  {isAboveAverage ? (
-                    <>You watched <span className="text-white font-semibold">{percentage}%</span> more episodes than the average MAL user!</>
-                  ) : (
-                    <>You watched <span className="text-white font-semibold">{Math.abs(percentage - 100)}%</span> of the average MAL user's episodes.</>
-                  )}
-                </p>
-              </div>
-              {allTimeEpisodes !== undefined && (
-                <div>
-                  <p className="body-sm text-white/70 mb-2">All Time</p>
-                  <p className="number-lg text-white">
-                    <AnimatedNumber value={allTimeEpisodes} />
-                  </p>
-                  <p className="body-md text-white font-regular mt-2">episodes watched</p>
-                  <p className="body-sm text-white/70 mt-2 text-container">
-                    {isAboveAverageAllTime ? (
-                      <>You watched <span className="text-white font-semibold">{allTimePercentage}%</span> more episodes than the average MAL user!</>
-                    ) : (
-                      <>You watched <span className="text-white font-semibold">{Math.abs(allTimePercentage - 100)}%</span> of the average MAL user's episodes.</>
-                    )}
-                  </p>
-                </div>
-              )}
+            <motion.div className="mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
+              <p className="body-sm text-white/70 mb-2">{displayLabel}</p>
+              <p className="number-lg text-white">
+                <AnimatedNumber value={displayEpisodes} />
+              </p>
+              <p className="body-md text-white font-regular mt-2">episodes watched</p>
+              <p className="body-sm text-white/70 mt-2 text-container">
+                {displayIsAboveAverage ? (
+                  <>You watched <span className="text-white font-semibold">{displayPercentage}%</span> more episodes than the average MAL user!</>
+                ) : (
+                  <>You watched <span className="text-white font-semibold">{Math.abs(displayPercentage - 100)}%</span> of the average MAL user's episodes.</>
+                )}
+              </p>
             </motion.div>
             <motion.h3 className="body-sm font-regular text-white/50 mt-6 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
-              {isAboveAverage ? "You're above average!" : 'Keep watching to beat the average!'}
+              {displayIsAboveAverage ? "You're above average!" : 'Keep watching to beat the average!'}
             </motion.h3>
           </SlideLayout>
         );
