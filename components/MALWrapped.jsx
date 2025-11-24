@@ -200,6 +200,14 @@ export default function MALWrapped() {
       { id: 'hidden_gems_anime' },
       { id: 'didnt_land_anime' },
       { id: 'planned_anime' },
+      ...(stats.milestones && stats.milestones.length > 0 && stats.thisYearMilestone ? [{ id: 'milestones' }] : []),
+      ...(stats.badges && stats.badges.length > 0 ? [{ id: 'badges' }] : []),
+      ...(stats.longestStreak && stats.longestStreak > 0 ? [{ id: 'streak' }] : []),
+      ...(stats.rarestAnime && stats.rarestAnime.length > 0 ? [{ id: 'rarest_anime' }] : []),
+      ...(stats.episodeComparison ? [{ id: 'episode_comparison' }] : []),
+      ...(stats.yearComparison ? [{ id: 'year_comparison' }] : []),
+      ...(stats.obscureStudios && stats.obscureStudios.length > 0 ? [{ id: 'obscure_creators' }] : []),
+      ...(stats.animeTwin ? [{ id: 'anime_twin' }] : []),
     ] : []),
     { id: 'anime_to_manga_transition' },
     { id: 'manga_count' },
@@ -212,6 +220,8 @@ export default function MALWrapped() {
       { id: 'hidden_gems_manga' },
       { id: 'didnt_land_manga' },
       { id: 'planned_manga' },
+      ...(stats.rarestManga && stats.rarestManga.length > 0 ? [{ id: 'rarest_manga' }] : []),
+      ...(stats.mangaTwin ? [{ id: 'manga_twin' }] : []),
     ] : []),
     { id: 'finale' },
   ] : [];
@@ -673,6 +683,278 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5);
 
+    // ========== NEW UNIQUE FEATURES ==========
+    
+    // 1. Milestones & Achievements
+    // Calculate total completed anime across all time (for milestone detection)
+    const allCompletedAnime = anime.filter(item => item.list_status?.status === 'completed');
+    const totalCompletedAnime = allCompletedAnime.length;
+    const milestones = [];
+    if (totalCompletedAnime >= 100) {
+      milestones.push({ type: '100_completed', count: 100 });
+    }
+    if (totalCompletedAnime >= 250) {
+      milestones.push({ type: '250_completed', count: 250 });
+    }
+    if (totalCompletedAnime >= 500) {
+      milestones.push({ type: '500_completed', count: 500 });
+    }
+    if (totalCompletedAnime >= 1000) {
+      milestones.push({ type: '1000_completed', count: 1000 });
+    }
+    
+    // Check if user hit a milestone this year
+    // Sort all completed anime by finish date to find which one was the milestone
+    const sortedCompletedAnime = allCompletedAnime
+      .filter(item => item.list_status?.finish_date)
+      .sort((a, b) => {
+        const dateA = new Date(a.list_status?.finish_date || 0);
+        const dateB = new Date(b.list_status?.finish_date || 0);
+        return dateA - dateB;
+      });
+    
+    const thisYearMilestone = milestones.find(m => {
+      // Check if the m.count-th completed anime was finished this year
+      if (sortedCompletedAnime.length < m.count) return false;
+      const milestoneItem = sortedCompletedAnime[m.count - 1];
+      if (!milestoneItem) return false;
+      const finishDate = milestoneItem.list_status?.finish_date;
+      if (!finishDate) return false;
+      try {
+        const year = new Date(finishDate).getFullYear();
+        return year === currentYear;
+      } catch (e) {
+        return false;
+      }
+    });
+
+    // 2. Rarity Features - Rarest anime and manga
+    const rarestAnime = completedAnime
+      .map(item => ({
+        ...item,
+        popularity: item.node?.num_list_users ?? Number.MAX_SAFE_INTEGER
+      }))
+      .sort((a, b) => a.popularity - b.popularity)
+      .slice(0, 3);
+    
+    const rarestManga = completedManga
+      .map(item => ({
+        ...item,
+        popularity: item.node?.num_list_users ?? Number.MAX_SAFE_INTEGER
+      }))
+      .sort((a, b) => a.popularity - b.popularity)
+      .slice(0, 3);
+    
+    // Count hidden gems (rarer than 90% of MAL users - using popularity threshold)
+    const hiddenGemsCount = completedAnime.filter(item => {
+      const popularity = item.node?.num_list_users ?? Number.MAX_SAFE_INTEGER;
+      return popularity < 10000; // Very rare threshold
+    }).length;
+
+    // 3. Streak Calculation (consecutive days watching)
+    const watchDates = new Set();
+    thisYearAnime.forEach(item => {
+      const startDate = item.list_status?.start_date;
+      const finishDate = item.list_status?.finish_date;
+      const updatedAt = item.list_status?.updated_at;
+      
+      // Get all dates when user was active
+      [startDate, finishDate, updatedAt].forEach(dateStr => {
+        if (dateStr) {
+          try {
+            const date = new Date(dateStr);
+            const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD
+            watchDates.add(dateKey);
+          } catch (e) {
+            // Ignore invalid dates
+          }
+        }
+      });
+    });
+    
+    // Calculate longest streak
+    const sortedDates = Array.from(watchDates).sort();
+    let longestStreak = 0;
+    let currentStreak = 0;
+    let lastDate = null;
+    
+    sortedDates.forEach(dateStr => {
+      const currentDate = new Date(dateStr);
+      if (lastDate) {
+        const daysDiff = Math.floor((currentDate - lastDate) / (1000 * 60 * 60 * 24));
+        if (daysDiff === 1) {
+          currentStreak++;
+        } else {
+          longestStreak = Math.max(longestStreak, currentStreak);
+          currentStreak = 1;
+        }
+      } else {
+        currentStreak = 1;
+      }
+      lastDate = currentDate;
+    });
+    longestStreak = Math.max(longestStreak, currentStreak);
+
+    // 4. Badge System
+    const badges = [];
+    
+    // Genre Specialist - if top genre has >30% of entries
+    if (topGenres.length > 0) {
+      const topGenreCount = topGenres[0][1];
+      const genrePercentage = (topGenreCount / thisYearAnime.length) * 100;
+      if (genrePercentage > 30) {
+        badges.push({ 
+          type: 'genre_specialist', 
+          name: `${topGenres[0][0]} Specialist`,
+          description: `${Math.round(genrePercentage)}% of your anime were ${topGenres[0][0]}`
+        });
+      }
+    }
+    
+    // Genre Explorer - if user has many different genres
+    const uniqueGenres = new Set();
+    thisYearAnime.forEach(item => {
+      item.node?.genres?.forEach(genre => uniqueGenres.add(genre.name));
+    });
+    if (uniqueGenres.size >= 15) {
+      badges.push({ 
+        type: 'genre_explorer', 
+        name: 'Genre Explorer',
+        description: `You explored ${uniqueGenres.size} different genres`
+      });
+    }
+    
+    // Binge King - if user watched a lot of episodes
+    if (totalEpisodes >= 500) {
+      badges.push({ 
+        type: 'binge_king', 
+        name: 'Binge King',
+        description: `You watched ${totalEpisodes} episodes this year`
+      });
+    }
+    
+    // Hidden Gem Hunter - if user has many hidden gems
+    if (hiddenGemsCount >= 10) {
+      badges.push({ 
+        type: 'hidden_gem_hunter', 
+        name: 'Hidden Gem Hunter',
+        description: `You discovered ${hiddenGemsCount} rare anime`
+      });
+    }
+    
+    // Streak Master - if user has long streak
+    if (longestStreak >= 30) {
+      badges.push({ 
+        type: 'streak_master', 
+        name: 'Streak Master',
+        description: `You watched anime ${longestStreak} days in a row`
+      });
+    }
+
+    // 5. Year-on-Year Comparison (if not 'all' year)
+    let yearComparison = null;
+    if (currentYear !== 'all' && typeof currentYear === 'number') {
+      const previousYear = currentYear - 1;
+      const previousYearAnime = anime.filter(item => {
+        const finishDate = item.list_status?.finish_date;
+        const startDate = item.list_status?.start_date;
+        const updatedAt = item.list_status?.updated_at;
+        let dateToCheck = finishDate || startDate || updatedAt;
+        if (!dateToCheck) return false;
+        try {
+          const year = new Date(dateToCheck).getFullYear();
+          return year === previousYear;
+        } catch (e) {
+          return false;
+        }
+      });
+      
+      const previousYearEpisodes = previousYearAnime.reduce((sum, item) => 
+        sum + (item.list_status?.num_episodes_watched || 0), 0
+      );
+      
+      if (previousYearEpisodes > 0) {
+        const growth = ((totalEpisodes - previousYearEpisodes) / previousYearEpisodes) * 100;
+        yearComparison = {
+          previousYear,
+          previousEpisodes: previousYearEpisodes,
+          currentEpisodes: totalEpisodes,
+          growth: Math.round(growth),
+          isGrowth: growth > 0
+        };
+      }
+    }
+
+    // 6. Anime/Manga Twin Suggestion
+    // Based on top genres and preferences
+    let animeTwin = null;
+    let mangaTwin = null;
+    
+    if (topGenres.length > 0) {
+      const topGenreName = topGenres[0][0];
+      // Find a popular anime in the same genre as a "twin"
+      const genreAnime = thisYearAnime
+        .filter(item => item.node?.genres?.some(g => g.name === topGenreName))
+        .sort((a, b) => (b.list_status?.score || 0) - (a.list_status?.score || 0));
+      
+      if (genreAnime.length > 0) {
+        animeTwin = {
+          title: genreAnime[0].node?.title,
+          genre: topGenreName,
+          reason: `Your love for ${topGenreName} matches perfectly`
+        };
+      }
+    }
+    
+    if (topManga.length > 0) {
+      const topMangaItem = topManga[0];
+      const topMangaGenres = topMangaItem.node?.genres?.map(g => g.name) || [];
+      if (topMangaGenres.length > 0) {
+        mangaTwin = {
+          title: topMangaItem.node?.title,
+          genre: topMangaGenres[0],
+          reason: `Your top manga reflects your ${topMangaGenres[0]} taste`
+        };
+      }
+    }
+
+    // 7. Episode Count Comparison (estimate average MAL user)
+    // Rough estimate: average MAL user watches ~50-100 episodes per year
+    const averageEpisodes = 75;
+    const episodeComparison = {
+      userEpisodes: totalEpisodes,
+      averageEpisodes,
+      percentage: Math.round((totalEpisodes / averageEpisodes) * 100),
+      isAboveAverage: totalEpisodes > averageEpisodes
+    };
+
+    // 8. Obscure Creators (studios/authors with low popularity)
+    const obscureStudios = [];
+    const studioPopularity = {};
+    thisYearAnime.forEach(item => {
+      item.node?.studios?.forEach(studio => {
+        if (!studioPopularity[studio.name]) {
+          studioPopularity[studio.name] = {
+            name: studio.name,
+            anime: [],
+            totalPopularity: 0,
+            count: 0
+          };
+        }
+        const popularity = item.node?.num_list_users ?? 0;
+        studioPopularity[studio.name].anime.push(item);
+        studioPopularity[studio.name].totalPopularity += popularity;
+        studioPopularity[studio.name].count++;
+      });
+    });
+    
+    const studioAvgPopularity = Object.values(studioPopularity).map(studio => ({
+      ...studio,
+      avgPopularity: studio.totalPopularity / studio.count
+    })).sort((a, b) => a.avgPopularity - b.avgPopularity).slice(0, 3);
+    
+    obscureStudios.push(...studioAvgPopularity);
+
     const statsData = {
       thisYearAnime: thisYearAnime.length > 0 ? thisYearAnime : [],
       totalAnime: thisYearAnime.length,
@@ -700,6 +982,20 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
       totalEpisodes: totalEpisodes,
       totalSeasons: totalSeasons,
       totalTimeSpent: totalHours + mangaHours, // Combined time in hours
+      // New unique features
+      milestones: milestones,
+      thisYearMilestone: thisYearMilestone,
+      rarestAnime: rarestAnime,
+      rarestManga: rarestManga,
+      hiddenGemsCount: hiddenGemsCount,
+      longestStreak: longestStreak,
+      badges: badges,
+      yearComparison: yearComparison,
+      animeTwin: animeTwin,
+      mangaTwin: mangaTwin,
+      episodeComparison: episodeComparison,
+      obscureStudios: obscureStudios,
+      totalCompletedAnime: totalCompletedAnime,
     };
     
     setStats(statsData);
@@ -1077,11 +1373,12 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
       // Spotify-like background colors with subtle tint (solid colors)
       const bgColorClasses = {
         black: 'bg-gradient-to-br from-purple-800 via-indigo-900 to-black',
-pink: 'bg-gradient-to-br from-pink-700 via-fuchsia-800 to-purple-950',
-yellow: 'bg-gradient-to-br from-amber-700 via-orange-800 to-rose-900',
-blue: 'bg-gradient-to-br from-cyan-700 via-blue-800 to-indigo-950',
-green: 'bg-gradient-to-br from-emerald-700 via-teal-800 to-blue-950',
-red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
+        pink: 'bg-gradient-to-br from-pink-700 via-fuchsia-800 to-purple-950',
+        yellow: 'bg-gradient-to-br from-amber-700 via-orange-800 to-rose-900',
+        blue: 'bg-gradient-to-br from-cyan-700 via-blue-800 to-indigo-950',
+        green: 'bg-gradient-to-br from-emerald-700 via-teal-800 to-blue-950',
+        red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950',
+        purple: 'bg-gradient-to-br from-purple-700 via-violet-800 to-indigo-950'
       };
       
       return (
@@ -2092,6 +2389,11 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
             {gems.length > 0 ? (
               <motion.div className="relative z-10" {...fadeSlideUp} data-framer-motion>
                 <GridImages items={gems} maxItems={3} />
+                {stats.hiddenGemsCount > 0 && (
+                  <motion.p className="body-sm text-white/70 mt-4 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+                    You watched <span className="text-white font-semibold">{stats.hiddenGemsCount}</span> hidden gem anime—rarer than 90% of MAL users!
+                  </motion.p>
+                )}
                 <motion.h3 className="body-sm font-regular text-white/50 mt-4 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>A true hidden-gem hunter
             </motion.h3>
               </motion.div>
@@ -2801,6 +3103,339 @@ red: 'bg-gradient-to-br from-red-700 via-rose-800 to-purple-950'
           </SlideLayout>
         );
 
+      // ========== NEW UNIQUE FEATURES ==========
+      
+      case 'milestones':
+        if (!stats.thisYearMilestone) return null;
+        const milestoneCount = stats.thisYearMilestone.count;
+        const milestonePercent = Math.min(100, Math.max(1, Math.round((milestoneCount / 1000000) * 100))); // Rough estimate
+        return (
+          <SlideLayout bgColor="yellow">
+            <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+              You hit a major milestone!
+            </motion.h2>
+            <motion.div className="mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
+              <p className="number-xl text-white">
+                <AnimatedNumber value={milestoneCount} />
+              </p>
+              <p className="heading-md text-white font-semibold mt-2">
+                completed anime
+              </p>
+              <p className="body-sm text-white/70 mt-4 text-container">
+                That's a milestone shared by only the top {milestonePercent}% of MAL users!
+              </p>
+            </motion.div>
+            <motion.h3 className="body-sm font-regular text-white/50 mt-6 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+              Keep the momentum going!
+            </motion.h3>
+          </SlideLayout>
+        );
+
+      case 'badges':
+        if (!stats.badges || stats.badges.length === 0) return null;
+        return (
+          <SlideLayout bgColor="purple">
+            <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+              You earned some impressive badges
+            </motion.h2>
+            <motion.div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10" {...fadeSlideUp} data-framer-motion>
+              {stats.badges.map((badge, idx) => (
+                <motion.div
+                  key={badge.type}
+                  className="border-box-cyan rounded-xl overflow-hidden"
+                  style={{ padding: '2px' }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: idx * 0.1 }}
+                >
+                  <motion.div
+                    className="bg-white/5 rounded-xl p-4 h-full"
+                    whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
+                    transition={{ duration: 0.2, ease: smoothEase }}
+                  >
+                    <p className="heading-md font-semibold text-white">{badge.name}</p>
+                    <p className="body-sm text-white/70 mt-2 font-regular">{badge.description}</p>
+                  </motion.div>
+                </motion.div>
+              ))}
+            </motion.div>
+            <motion.h3 className="body-sm font-regular text-white/50 mt-6 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+              Your dedication shows!
+            </motion.h3>
+          </SlideLayout>
+        );
+
+      case 'streak':
+        if (!stats.longestStreak || stats.longestStreak === 0) return null;
+        return (
+          <SlideLayout bgColor="blue">
+            <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+              Your longest streak
+            </motion.h2>
+            <motion.div className="mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
+              <p className="number-xl text-white">
+                <AnimatedNumber value={stats.longestStreak} />
+              </p>
+              <p className="heading-md text-white font-semibold mt-2">
+                days in a row
+              </p>
+              <p className="body-sm text-white/70 mt-4 text-container">
+                You watched anime {stats.longestStreak} days in a row!
+              </p>
+            </motion.div>
+            <motion.h3 className="body-sm font-regular text-white/50 mt-6 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+              Now that's consistency!
+            </motion.h3>
+          </SlideLayout>
+        );
+
+      case 'rarest_anime':
+        if (!stats.rarestAnime || stats.rarestAnime.length === 0) return null;
+        const rarestAnimeItems = stats.rarestAnime.map(item => ({
+          title: item.node?.title || '',
+          coverImage: item.node?.main_picture?.large || item.node?.main_picture?.medium || '',
+          popularity: item.popularity,
+          malId: item.node?.id
+        }));
+        return (
+          <SlideLayout bgColor="red">
+            <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+              You watched some truly rare anime
+            </motion.h2>
+            <motion.div className="mt-4 relative z-10" {...fadeSlideUp} data-framer-motion>
+              {rarestAnimeItems.map((item, idx) => (
+                <motion.div
+                  key={idx}
+                  className="mb-4 border-box-cyan rounded-xl overflow-hidden"
+                  style={{ padding: '2px' }}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.4, delay: idx * 0.1 }}
+                >
+                  <motion.div
+                    className="bg-white/5 rounded-xl p-4 flex items-center gap-4"
+                    whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
+                    transition={{ duration: 0.2, ease: smoothEase }}
+                  >
+                    {item.coverImage && (
+                      <motion.img
+                        src={item.coverImage}
+                        alt={item.title}
+                        className="w-20 h-28 object-cover rounded-lg"
+                        crossOrigin="anonymous"
+                      />
+                    )}
+                    <div className="flex-1">
+                      <h3 className="title-md font-semibold text-white">{item.title}</h3>
+                      <p className="body-sm text-white/70 mt-1 font-regular">
+                        Only {item.popularity.toLocaleString()} people completed this on MAL!
+                      </p>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              ))}
+            </motion.div>
+            <motion.h3 className="body-sm font-regular text-white/50 mt-4 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+              Rarer than 90% of MAL users!
+            </motion.h3>
+          </SlideLayout>
+        );
+
+      case 'rarest_manga':
+        if (!stats.rarestManga || stats.rarestManga.length === 0) return null;
+        const rarestMangaItems = stats.rarestManga.map(item => ({
+          title: item.node?.title || '',
+          coverImage: item.node?.main_picture?.large || item.node?.main_picture?.medium || '',
+          popularity: item.popularity,
+          mangaId: item.node?.id
+        }));
+        return (
+          <SlideLayout bgColor="red">
+            <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+              You read some truly rare manga
+            </motion.h2>
+            <motion.div className="mt-4 relative z-10" {...fadeSlideUp} data-framer-motion>
+              {rarestMangaItems.map((item, idx) => (
+                <motion.div
+                  key={idx}
+                  className="mb-4 border-box-cyan rounded-xl overflow-hidden"
+                  style={{ padding: '2px' }}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.4, delay: idx * 0.1 }}
+                >
+                  <motion.div
+                    className="bg-white/5 rounded-xl p-4 flex items-center gap-4"
+                    whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
+                    transition={{ duration: 0.2, ease: smoothEase }}
+                  >
+                    {item.coverImage && (
+                      <motion.img
+                        src={item.coverImage}
+                        alt={item.title}
+                        className="w-20 h-28 object-cover rounded-lg"
+                        crossOrigin="anonymous"
+                      />
+                    )}
+                    <div className="flex-1">
+                      <h3 className="title-md font-semibold text-white">{item.title}</h3>
+                      <p className="body-sm text-white/70 mt-1 font-regular">
+                        Only {item.popularity.toLocaleString()} people completed this on MAL!
+                      </p>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              ))}
+            </motion.div>
+            <motion.h3 className="body-sm font-regular text-white/50 mt-4 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+              Most unique manga: Only {rarestMangaItems[0]?.popularity.toLocaleString()} people completed this title!
+            </motion.h3>
+          </SlideLayout>
+        );
+
+      case 'episode_comparison':
+        if (!stats.episodeComparison) return null;
+        const { userEpisodes, averageEpisodes, percentage, isAboveAverage } = stats.episodeComparison;
+        return (
+          <SlideLayout bgColor="green">
+            <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+              How do you compare?
+            </motion.h2>
+            <motion.div className="mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
+              <p className="number-lg text-white">
+                <AnimatedNumber value={userEpisodes} />
+              </p>
+              <p className="body-md text-white font-regular mt-2">episodes watched</p>
+              <p className="body-sm text-white/70 mt-4 text-container">
+                {isAboveAverage ? (
+                  <>You watched <span className="text-white font-semibold">{percentage}%</span> more episodes than the average MAL user!</>
+                ) : (
+                  <>You watched <span className="text-white font-semibold">{Math.abs(percentage - 100)}%</span> of the average MAL user's episodes.</>
+                )}
+              </p>
+            </motion.div>
+            <motion.h3 className="body-sm font-regular text-white/50 mt-6 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+              {isAboveAverage ? "You're above average!" : 'Keep watching to beat the average!'}
+            </motion.h3>
+          </SlideLayout>
+        );
+
+      case 'year_comparison':
+        if (!stats.yearComparison) return null;
+        const { previousYear, previousEpisodes, currentEpisodes, growth, isGrowth } = stats.yearComparison;
+        return (
+          <SlideLayout bgColor="yellow">
+            <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+              Year-on-year growth
+            </motion.h2>
+            <motion.div className="mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
+              <div className="mb-6">
+                <p className="body-sm text-white/70">{previousYear}</p>
+                <p className="number-md text-white">
+                  <AnimatedNumber value={previousEpisodes} />
+                </p>
+                <p className="body-sm text-white/50 font-regular">episodes</p>
+              </div>
+              <div className="mb-6">
+                <p className="body-sm text-white/70">{stats.selectedYear}</p>
+                <p className="number-md text-white">
+                  <AnimatedNumber value={currentEpisodes} />
+                </p>
+                <p className="body-sm text-white/50 font-regular">episodes</p>
+              </div>
+              <p className="heading-lg text-white font-semibold mt-4">
+                {isGrowth ? `+${growth}%` : `${growth}%`}
+              </p>
+              <p className="body-sm text-white/70 mt-2 text-container">
+                {isGrowth ? (
+                  <>You watched <span className="text-white font-semibold">{Math.abs(growth)}%</span> more episodes than last year!</>
+                ) : (
+                  <>You watched <span className="text-white font-semibold">{Math.abs(growth)}%</span> fewer episodes than last year.</>
+                )}
+              </p>
+            </motion.div>
+            <motion.h3 className="body-sm font-regular text-white/50 mt-6 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+              {isGrowth ? "You're on the rise!" : 'Time to catch up!'}
+            </motion.h3>
+          </SlideLayout>
+        );
+
+      case 'obscure_creators':
+        if (!stats.obscureStudios || stats.obscureStudios.length === 0) return null;
+        return (
+          <SlideLayout bgColor="purple">
+            <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+              You finished shows from obscure studios
+            </motion.h2>
+            <motion.div className="mt-4 relative z-10" {...fadeSlideUp} data-framer-motion>
+              {stats.obscureStudios.slice(0, 3).map((studio, idx) => (
+                <motion.div
+                  key={idx}
+                  className="mb-4 border-box-cyan rounded-xl overflow-hidden"
+                  style={{ padding: '2px' }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: idx * 0.1 }}
+                >
+                  <motion.div
+                    className="bg-white/5 rounded-xl p-4"
+                    whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
+                    transition={{ duration: 0.2, ease: smoothEase }}
+                  >
+                    <h3 className="title-md font-semibold text-white">{studio.name}</h3>
+                    <p className="body-sm text-white/70 mt-1 font-regular">
+                      Ranked among the least popular creators
+                    </p>
+                    <p className="body-sm text-white/50 mt-1 font-regular">
+                      {studio.count} {studio.count === 1 ? 'anime' : 'anime'} watched
+                    </p>
+                  </motion.div>
+                </motion.div>
+              ))}
+            </motion.div>
+            <motion.h3 className="body-sm font-regular text-white/50 mt-4 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+              You have unique taste!
+            </motion.h3>
+          </SlideLayout>
+        );
+
+      case 'anime_twin':
+        if (!stats.animeTwin) return null;
+        return (
+          <SlideLayout bgColor="pink">
+            <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+              Your anime twin
+            </motion.h2>
+            <motion.div className="mt-6 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
+              <p className="heading-lg text-white font-semibold">{stats.animeTwin.title}</p>
+              <p className="body-md text-white/70 mt-4 text-container">
+                {stats.animeTwin.reason}
+              </p>
+            </motion.div>
+            <motion.h3 className="body-sm font-regular text-white/50 mt-6 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+              A series that best matches your vibes
+            </motion.h3>
+          </SlideLayout>
+        );
+
+      case 'manga_twin':
+        if (!stats.mangaTwin) return null;
+        return (
+          <SlideLayout bgColor="pink">
+            <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+              Your manga twin
+            </motion.h2>
+            <motion.div className="mt-6 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
+              <p className="heading-lg text-white font-semibold">{stats.mangaTwin.title}</p>
+              <p className="body-md text-white/70 mt-4 text-container">
+                {stats.mangaTwin.reason}
+              </p>
+            </motion.div>
+            <motion.h3 className="body-sm font-regular text-white/50 mt-6 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+              A series that best matches your vibes
+            </motion.h3>
+          </SlideLayout>
+        );
 
       case 'finale': {
         const totalTimeSpent = stats.totalTimeSpent || 0;
