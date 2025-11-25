@@ -177,6 +177,16 @@ function getComparisonCopy(percentage, nounPlural) {
   };
 }
 
+function getCompletionDays(startDate, finishDate) {
+  if (!startDate || !finishDate) return null;
+  const start = new Date(startDate);
+  const end = new Date(finishDate);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return null;
+  const diff = end.getTime() - start.getTime();
+  if (diff < 0) return null;
+  return Math.max(1, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+}
+
 export default function MALWrapped() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [username, setUsername] = useState('');
@@ -824,7 +834,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
       badgeCandidates.push({ 
         type: 'the_hunter', 
         name: 'The Hunter',
-        description: `${hiddenGemsCount} hidden gems discovered—finding and completing rare manga and anime that most fans overlook.`,
+        description: `Gon seeks the rarest finds, and so do you. You’ve uncovered ${hiddenGemsCount} hidden gems most fans miss`,
         score: hiddenGemsCount * 10
       });
     }
@@ -843,15 +853,15 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
     });
     if (uniqueGenres.size >= 20 || uniqueAuthors.size >= 20) {
       const descText = uniqueGenres.size >= 20 && uniqueAuthors.size >= 20
-        ? `${uniqueGenres.size} genres and ${uniqueAuthors.size} authors explored`
+        ? `Like Luffy, you crave adventure! This year, you explored ${uniqueGenres.size} genres and ${uniqueAuthors.size} authors`
         : uniqueGenres.size >= 20
-        ? `${uniqueGenres.size} genres explored`
-        : `${uniqueAuthors.size} authors explored`;
+        ? `Like Luffy, you crave adventure! This year, you explored ${uniqueGenres.size} genres`
+        : `Like Luffy, you crave adventure! This year, you explored ${uniqueAuthors.size} authors`;
       
       badgeCandidates.push({ 
         type: 'the_explorer', 
         name: 'The Explorer',
-        description: `${descText}—always seeking new worlds and stories.`,
+        description: `${descText}, always seeking new worlds and stories.`,
         score: uniqueGenres.size + uniqueAuthors.size
       });
     }
@@ -862,7 +872,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
       badgeCandidates.push({ 
         type: 'the_archivist', 
         name: 'The Archivist',
-        description: `${totalCompleted} completed anime and manga—a true collector of stories.`,
+        description: `Myne’s love of stories is endless, and yours is too. You’ve finished ${totalCompleted} anime and manga. A  true collector`,
         score: totalCompleted
       });
     }
@@ -873,60 +883,83 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
       badgeCandidates.push({ 
         type: 'the_strategist', 
         name: 'The Strategist',
-        description: `${totalPlanned} titles in your Plan to Watch/Read list—your next great adventure is always planned.`,
+        description: `Light always has a plan. Your next move? ${totalPlanned} titles lined up in your planned list. Always two steps ahead.`,
         score: totalPlanned
       });
     }
     
-    // The Binge Warrior - Watched/read a lot (1000+ episodes or equivalent)
+    // The Binge Warrior - Completed a title within 1-3 days
     if (totalEpisodes >= 1000 || totalChapters >= 2000) {
-      // Find top binge (highest episodes/chapters in shortest time)
-      let topBingeTitle = '';
-      if (totalEpisodes >= 1000) {
-        const topBingeAnime = thisYearAnime
-          .filter(item => {
-            const episodes = item.list_status?.num_episodes_watched || 0;
-            const startDate = item.list_status?.start_date;
-            const finishDate = item.list_status?.finish_date;
-            if (!startDate || !finishDate || episodes < 20) return false;
-            const days = Math.max(1, Math.floor((new Date(finishDate) - new Date(startDate)) / (1000 * 60 * 60 * 24)));
-            return episodes / days > 5; // More than 5 episodes per day
-          })
-          .sort((a, b) => {
-            const aEp = a.list_status?.num_episodes_watched || 0;
-            const bEp = b.list_status?.num_episodes_watched || 0;
-            return bEp - aEp;
-          })[0];
-        if (topBingeAnime) {
-          topBingeTitle = topBingeAnime.node?.title || '';
-        }
-      }
-      if (!topBingeTitle && totalChapters >= 2000) {
-        const topBingeManga = filteredManga
-          .filter(item => {
+      const bingeThresholdDays = 3;
+      const bingeAnimeCandidates = thisYearAnime
+        .map(item => {
+          const episodes = item.list_status?.num_episodes_watched || 0;
+          const days = getCompletionDays(item.list_status?.start_date, item.list_status?.finish_date);
+          return {
+            item,
+            episodes,
+            days,
+            status: item.list_status?.status
+          };
+        })
+        .filter(candidate => 
+          candidate.status === 'completed' &&
+          candidate.days !== null &&
+          candidate.days <= bingeThresholdDays &&
+          candidate.episodes > 0
+        )
+        .sort((a, b) => b.episodes - a.episodes);
+      
+      let bingeEntry = bingeAnimeCandidates[0]
+        ? {
+            title: bingeAnimeCandidates[0].item.node?.title || '',
+            amount: bingeAnimeCandidates[0].episodes,
+            unit: 'episodes',
+            days: bingeAnimeCandidates[0].days
+          }
+        : null;
+      
+      if (!bingeEntry) {
+        const bingeMangaCandidates = filteredManga
+          .map(item => {
             const chapters = item.list_status?.num_chapters_read || 0;
-            return chapters >= 50;
+            const days = getCompletionDays(item.list_status?.start_date, item.list_status?.finish_date);
+            return {
+              item,
+              chapters,
+              days,
+              status: item.list_status?.status
+            };
           })
-          .sort((a, b) => {
-            const aCh = a.list_status?.num_chapters_read || 0;
-            const bCh = b.list_status?.num_chapters_read || 0;
-            return bCh - aCh;
-          })[0];
-        if (topBingeManga) {
-          topBingeTitle = topBingeManga.node?.title || '';
+          .filter(candidate =>
+            candidate.status === 'completed' &&
+            candidate.days !== null &&
+            candidate.days <= bingeThresholdDays &&
+            candidate.chapters > 0
+          )
+          .sort((a, b) => b.chapters - a.chapters);
+        
+        if (bingeMangaCandidates[0]) {
+          bingeEntry = {
+            title: bingeMangaCandidates[0].item.node?.title || '',
+            amount: bingeMangaCandidates[0].chapters,
+            unit: 'chapters',
+            days: bingeMangaCandidates[0].days
+          };
         }
       }
       
-      const bingeDesc = topBingeTitle 
-        ? `${totalEpisodes >= 1000 ? totalEpisodes + ' episodes' : ''}${totalEpisodes >= 1000 && totalChapters >= 2000 ? ' and ' : ''}${totalChapters >= 2000 ? totalChapters + ' chapters' : ''}—blazed through "${topBingeTitle.substring(0, 30)}${topBingeTitle.length > 30 ? '...' : ''}" and more.`
-        : `${totalEpisodes >= 1000 ? totalEpisodes + ' episodes' : ''}${totalEpisodes >= 1000 && totalChapters >= 2000 ? ' and ' : ''}${totalChapters >= 2000 ? totalChapters + ' chapters' : ''}—your energy knows no bounds.`;
-      
-      badgeCandidates.push({ 
-        type: 'the_binge_warrior', 
-        name: 'The Binge Warrior',
-        description: bingeDesc,
-        score: totalEpisodes + (totalChapters / 2)
-      });
+      if (bingeEntry) {
+        const titlePreview = bingeEntry.title.substring(0, 30) + (bingeEntry.title.length > 30 ? '...' : '');
+        const bingeDesc = `Naruto never gives up, and neither did you! You blitzed through "${titlePreview}" in just ${bingeEntry.days} day${bingeEntry.days > 1 ? 's' : ''}. That's ${bingeEntry.amount} ${bingeEntry.unit} of pure focus.`;
+        
+        badgeCandidates.push({ 
+          type: 'the_binge_warrior', 
+          name: 'The Binge Warrior',
+          description: bingeDesc,
+          score: bingeEntry.amount + (3 - bingeEntry.days) * 50
+        });
+      }
     }
     
     // The Loyalist - 4-5+ anime/manga from same studio/author
@@ -942,7 +975,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
       badgeCandidates.push({ 
         type: 'the_loyalist', 
         name: 'The Loyalist',
-        description: `${loyalistCount} titles from ${loyalistName}—your favorite ${loyalistType} is always at the top of your list.`,
+        description: `Rem is loyal to the end. With ${loyalistCount} works from ${loyalistName}, your favorite ${loyalistType}, you’re just as devoted.`,
         score: loyalistCount
       });
     }
@@ -991,15 +1024,15 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
       badgeCandidates.push({ 
         type: 'the_rookie', 
         name: 'The Rookie',
-        description: `Started your MAL journey in ${currentYear}—welcome to an endless world of adventure!`,
+        description: `Deku’s story might be complete, but yours is just beginning! Welcome to MAL, your journey begins now`,
         score: 1000 // High score to prioritize if they qualify
       });
     }
     
-    // Sort badges by score (most impressive first) and take only top 2
+    // Sort badges by score (most impressive first) and take only top 3
     const badges = badgeCandidates
       .sort((a, b) => b.score - a.score)
-      .slice(0, 2)
+      .slice(0, 3)
       .map(({ score, ...badge }) => badge); // Remove score from final badge object
 
     // 5. Year-on-Year Comparison (if not 'all' year)
