@@ -724,13 +724,14 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
       }
     });
 
-    // 2. Rarity Features - Hidden gems: least members, sorted by user rating descending
+    // 2. Rarity Features - Hidden gems: least members (below 70000), sorted by user rating descending
     const allRareAnime = completedAnime
       .map(item => ({
         ...item,
         popularity: item.node?.num_list_users ?? Number.MAX_SAFE_INTEGER,
         score: item.list_status.score
       }))
+      .filter(item => item.popularity < 70000) // Only members below 70000
       .sort((a, b) => {
         // Sort by user rating descending, then by popularity (least members first)
         if (b.score !== a.score) {
@@ -942,6 +943,29 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
       sum + (item.list_status?.num_episodes_watched || 0), 0
     );
     
+    // Calculate average user rating vs average MAL rating
+    const userRatings = ratedAnime
+      .filter(item => item.list_status?.score > 0)
+      .map(item => item.list_status.score);
+    const averageUserRating = userRatings.length > 0 
+      ? userRatings.reduce((sum, rating) => sum + rating, 0) / userRatings.length 
+      : 0;
+    
+    // Calculate average MAL rating (mean) for rated anime
+    const malRatings = ratedAnime
+      .filter(item => item.node?.mean && item.node.mean > 0)
+      .map(item => item.node.mean);
+    const averageMALRating = malRatings.length > 0
+      ? malRatings.reduce((sum, rating) => sum + rating, 0) / malRatings.length
+      : 7.0; // Default average MAL rating
+    
+    const ratingComparison = {
+      userRating: Math.round(averageUserRating * 10) / 10,
+      malRating: Math.round(averageMALRating * 10) / 10,
+      difference: Math.round((averageUserRating - averageMALRating) * 10) / 10,
+      isAboveAverage: averageUserRating > averageMALRating
+    };
+    
     const episodeComparison = {
       userEpisodes: totalEpisodes,
       averageEpisodes: averageEpisodesPerYear,
@@ -950,7 +974,8 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
       allTimeEpisodes: allTimeEpisodes,
       averageAllTime: averageEpisodesAllTime,
       allTimePercentage: Math.round((allTimeEpisodes / averageEpisodesAllTime) * 100),
-      isAboveAverageAllTime: allTimeEpisodes > averageEpisodesAllTime
+      isAboveAverageAllTime: allTimeEpisodes > averageEpisodesAllTime,
+      ratingComparison: ratingComparison
     };
 
     // Removed obscure studios calculation
@@ -1932,29 +1957,30 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
             <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
             That adds up to
             </motion.h2>
-            <motion.div className="mt-4 space-y-4 relative z-10" {...fadeSlideUp} data-framer-motion>
-              <div className="text-center">
+            <motion.div className="mt-4 space-y-4 relative z-10 flex flex-col items-center" {...fadeSlideUp} data-framer-motion>
+              <div className="text-center w-full">
                 <p className="number-lg text-white ">
                   <AnimatedNumber value={stats.totalEpisodes || 0} />
                 </p>
                 <p className="body-md text-white font-regular">episodes</p>
                 <p className="body-sm text-white/50 mt-2 font-regular">and</p>
               </div>
-              <div className="text-center">
+              <div className="text-center w-full">
                 <p className="number-lg text-white ">
                   <AnimatedNumber value={stats.totalSeasons || 0} />
                 </p>
                 <p className="body-md text-white font-regular">seasons</p>
                 <p className="body-sm text-white/50 mt-2 font-regular">or basically,</p>
               </div>
-              <div className="text-center">
+              <div className="text-center w-full">
                 {stats.watchDays > 0 ? (
                   <>
                     <p className="number-lg text-white ">
                       <AnimatedNumber value={stats.watchDays} />
                     </p>
                     <p className="body-md text-white font-medium">days</p>
-                    <p className="body-sm text-white/50 mt-2 font-regular">of your life gone</p>                  </>
+                    <p className="body-sm text-white/50 mt-2 font-regular">of your life gone</p>
+                  </>
                 ) : (
                   <>
                     <p className="number-lg text-white ">
@@ -1966,7 +1992,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                 )}
               </div>
               {stats.longestStreak && stats.longestStreak > 0 && (
-                <div className="text-center">
+                <div className="text-center w-full">
                   <p className="body-sm text-white/50 mt-2 font-regular">Longest streak:</p>
                   <p className="number-lg text-white ">
                     <AnimatedNumber value={stats.longestStreak} />
@@ -3348,7 +3374,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
 
       case 'episode_comparison':
         if (!stats.episodeComparison) return null;
-        const { userEpisodes, averageEpisodes, percentage, isAboveAverage, allTimeEpisodes, averageAllTime, allTimePercentage, isAboveAverageAllTime } = stats.episodeComparison;
+        const { userEpisodes, averageEpisodes, percentage, isAboveAverage, allTimeEpisodes, averageAllTime, allTimePercentage, isAboveAverageAllTime, ratingComparison } = stats.episodeComparison;
         // Show only selected year OR all time, not both
         const showAllTime = stats.selectedYear === 'all';
         const displayEpisodes = showAllTime ? allTimeEpisodes : userEpisodes;
@@ -3357,24 +3383,97 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
         const displayIsAboveAverage = showAllTime ? isAboveAverageAllTime : isAboveAverage;
         const displayLabel = showAllTime ? 'All Time' : (stats.selectedYear === 'all' ? 'All Time' : stats.selectedYear.toString());
         
+        // Calculate progress bar percentage (cap at 200% for display)
+        const episodeProgress = Math.min(200, Math.max(0, displayPercentage));
+        
         return (
           <SlideLayout bgColor="green">
             <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
               How do you compare?
             </motion.h2>
-            <motion.div className="mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
-              <p className="body-sm text-white/70 mb-2">{displayLabel}</p>
-              <p className="number-lg text-white">
-                <AnimatedNumber value={displayEpisodes} />
-              </p>
-              <p className="body-md text-white font-regular mt-2">episodes watched</p>
-              <p className="body-sm text-white/70 mt-2 text-container">
-                {displayIsAboveAverage ? (
-                  <>You watched <span className="text-white font-semibold">{displayPercentage}%</span> more episodes than the average MAL user!</>
-                ) : (
-                  <>You watched <span className="text-white font-semibold">{Math.abs(displayPercentage - 100)}%</span> of the average MAL user's episodes.</>
-                )}
-              </p>
+            <motion.div className="mt-6 space-y-8 relative z-10" {...fadeSlideUp} data-framer-motion>
+              {/* Episodes Comparison */}
+              <div className="text-center">
+                <p className="body-sm text-white/70 mb-2">{displayLabel} Episodes</p>
+                <p className="number-lg text-white">
+                  <AnimatedNumber value={displayEpisodes} />
+                </p>
+                <p className="body-md text-white font-regular mt-2">episodes watched</p>
+                
+                {/* Progress Bar */}
+                <div className="mt-4 max-w-md mx-auto">
+                  <div className="w-full bg-white/10 rounded-full h-3 overflow-hidden">
+                    <motion.div
+                      className="h-full bg-gradient-to-r from-green-500 to-emerald-400"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${Math.min(100, episodeProgress)}%` }}
+                      transition={{ duration: 1, delay: 0.5, ease: smoothEase }}
+                    />
+                  </div>
+                  <div className="flex justify-between mt-2 text-xs text-white/60">
+                    <span>0</span>
+                    <span>{displayAverage.toLocaleString()}</span>
+                    <span>{displayAverage * 2 >= displayEpisodes ? (displayAverage * 2).toLocaleString() : displayEpisodes.toLocaleString()}</span>
+                  </div>
+                </div>
+                
+                <p className="body-sm text-white/70 mt-4 text-container">
+                  {displayIsAboveAverage ? (
+                    <>You watched <span className="text-white font-semibold">{displayPercentage}%</span> more episodes than the average MAL user!</>
+                  ) : (
+                    <>You watched <span className="text-white font-semibold">{Math.abs(displayPercentage - 100)}%</span> of the average MAL user's episodes.</>
+                  )}
+                </p>
+              </div>
+              
+              {/* Rating Comparison */}
+              {ratingComparison && ratingComparison.userRating > 0 && (
+                <div className="text-center">
+                  <p className="body-sm text-white/70 mb-2">Average Rating</p>
+                  <div className="flex items-center justify-center gap-4 mb-2">
+                    <div>
+                      <p className="number-md text-white">
+                        {ratingComparison.userRating.toFixed(1)}
+                      </p>
+                      <p className="body-sm text-white/70">Your avg</p>
+                    </div>
+                    <span className="text-white/50">vs</span>
+                    <div>
+                      <p className="number-md text-white">
+                        {ratingComparison.malRating.toFixed(1)}
+                      </p>
+                      <p className="body-sm text-white/70">MAL avg</p>
+                    </div>
+                  </div>
+                  
+                  {/* Progress Bar for Rating */}
+                  <div className="mt-4 max-w-md mx-auto">
+                    <div className="w-full bg-white/10 rounded-full h-3 overflow-hidden">
+                      <motion.div
+                        className="h-full bg-gradient-to-r from-yellow-500 to-amber-400"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${(ratingComparison.userRating / 10) * 100}%` }}
+                        transition={{ duration: 1, delay: 0.7, ease: smoothEase }}
+                      />
+                    </div>
+                    <div className="flex justify-between mt-2 text-xs text-white/60">
+                      <span>0</span>
+                      <span>{ratingComparison.malRating.toFixed(1)}</span>
+                      <span>10</span>
+                    </div>
+                  </div>
+                  
+                  <p className="body-sm text-white/70 mt-4 text-container">
+                    {ratingComparison.isAboveAverage ? (
+                      <>Your ratings are <span className="text-white font-semibold">{Math.abs(ratingComparison.difference).toFixed(1)}</span> points higher than the MAL average!</>
+                    ) : ratingComparison.difference < 0 ? (
+                      <>Your ratings are <span className="text-white font-semibold">{Math.abs(ratingComparison.difference).toFixed(1)}</span> points lower than the MAL average.</>
+                    ) : (
+                      <>Your ratings match the MAL average!</>
+                    )}
+                  </p>
+                </div>
+              )}
             </motion.div>
             <motion.h3 className="body-sm font-regular text-white/50 mt-6 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
               {displayIsAboveAverage ? "You're above average!" : 'Keep watching to beat the average!'}
