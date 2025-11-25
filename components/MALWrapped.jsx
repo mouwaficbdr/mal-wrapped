@@ -742,14 +742,15 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
       }
     });
 
-    // 2. Rarity Features - Hidden gems: least members (below 70000), sorted by user rating descending
+    // 2. Rarity Features - Hidden gems: least members (below threshold), sorted by user rating descending
+    const HIDDEN_GEM_THRESHOLD = 70000;
     const allRareAnime = completedAnime
       .map(item => ({
         ...item,
         popularity: item.node?.num_list_users ?? Number.MAX_SAFE_INTEGER,
         score: item.list_status.score
       }))
-      .filter(item => item.popularity < 70000) // Only members below 70000
+      .filter(item => item.popularity <= HIDDEN_GEM_THRESHOLD) // Only members below threshold
       .sort((a, b) => {
         // Sort by user rating descending, then by popularity (least members first)
         if (b.score !== a.score) {
@@ -766,6 +767,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
         popularity: item.node?.num_list_users ?? Number.MAX_SAFE_INTEGER,
         score: item.list_status.score
       }))
+      .filter(item => item.popularity <= HIDDEN_GEM_THRESHOLD)
       .sort((a, b) => {
         // Sort by user rating descending, then by popularity (least members first)
         if (b.score !== a.score) {
@@ -776,10 +778,10 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
     
     const rareMangaGems = deduplicateByTitle(allRareManga).slice(0, 3);
     
-    // Count hidden gems (rarer than 90% of MAL users - using popularity threshold)
-    const hiddenGemsCount = completedAnime.filter(item => {
+    // Count hidden gems (rarer than threshold across anime + manga)
+    const hiddenGemsCount = [...completedAnime, ...completedManga].filter(item => {
       const popularity = item.node?.num_list_users ?? Number.MAX_SAFE_INTEGER;
-      return popularity < 10000; // Very rare threshold
+      return popularity <= HIDDEN_GEM_THRESHOLD;
     }).length;
 
     // 3. Streak Calculation (consecutive days watching)
@@ -1291,9 +1293,9 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
       isAboveAverageAllTime: allTimeEpisodes > averageEpisodesAllTime
     };
 
-    // Manga comparison (estimate average MAL user reads ~300 chapters per year, 2500 all-time)
-    const averageChaptersPerYear = 300;
-    const averageChaptersAllTime = 2500;
+    // Manga comparison (estimate average MAL user reads ~950 chapters per year, 9500 all-time)
+    const averageChaptersPerYear = 950;
+    const averageChaptersAllTime = 9500;
     const allTimeChapters = (manga || []).reduce((sum, item) => 
       sum + (item.list_status?.num_chapters_read || 0), 0
     );
@@ -2543,7 +2545,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                         >
                           <motion.div 
                             className="bg-black/70 rounded-xl w-full h-full flex flex-row items-center relative z-10"
-                            whileHover={{ scale: 1.02, backgroundColor: 'rgba(0, 0, 0, 0.45)' }}
+                            whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.45)' }}
                             transition={{ duration: 0.3, ease: smoothEase }}
                           >
                             <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-10 w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 bg-white text-black rounded-full flex items-center justify-center font-semibold text-xs sm:text-sm md:text-base">1</div>
@@ -2842,7 +2844,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
               {rareAnimeItems.map((item, idx) => (
                 <motion.div
                   key={idx}
-                  className="mb-4 rounded-xl overflow-hidden"
+                  className="mb-4 rounded-xl overflow-visible"
                   style={{ padding: '2px' }}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -3311,7 +3313,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                         >
                           <motion.div 
                             className="bg-black/70 rounded-xl w-full h-full flex flex-row items-center relative z-10"
-                            whileHover={{ scale: 1.02, backgroundColor: 'rgba(0, 0, 0, 0.45)' }}
+                            whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.45)' }}
                             transition={{ duration: 0.3, ease: smoothEase }}
                           >
                             <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-10 w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 bg-white text-black rounded-full flex items-center justify-center font-semibold text-xs sm:text-sm md:text-base">1</div>
