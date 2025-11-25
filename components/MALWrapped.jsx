@@ -809,27 +809,40 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
     // 4. Badge System - New badge definitions, only top 2
     const badgeCandidates = [];
     
-    // The Hunter - Hidden gems (rare anime/manga)
+    // The Hunter - Hidden gems (10+ rare anime/manga)
     if (hiddenGemsCount >= 10) {
       badgeCandidates.push({ 
         type: 'the_hunter', 
         name: 'The Hunter',
-        description: "You're always chasing after hidden gems—finding and completing rare manga and anime that most fans overlook.",
+        description: `${hiddenGemsCount} hidden gems discovered—finding and completing rare manga and anime that most fans overlook.`,
         score: hiddenGemsCount * 10
       });
     }
     
-    // The Explorer - Many genres/seasons explored
+    // The Explorer - 20+ genres and authors
     const uniqueGenres = new Set();
     thisYearAnime.forEach(item => {
       item.node?.genres?.forEach(genre => uniqueGenres.add(genre.name));
     });
-    if (uniqueGenres.size >= 15) {
+    const uniqueAuthors = new Set();
+    filteredManga.forEach(item => {
+      item.node?.authors?.forEach(author => {
+        const name = `${(author.node?.first_name || '').trim()} ${(author.node?.last_name || '').trim()}`.trim();
+        if (name) uniqueAuthors.add(name);
+      });
+    });
+    if (uniqueGenres.size >= 20 || uniqueAuthors.size >= 20) {
+      const descText = uniqueGenres.size >= 20 && uniqueAuthors.size >= 20
+        ? `${uniqueGenres.size} genres and ${uniqueAuthors.size} authors explored`
+        : uniqueGenres.size >= 20
+        ? `${uniqueGenres.size} genres explored`
+        : `${uniqueAuthors.size} authors explored`;
+      
       badgeCandidates.push({ 
         type: 'the_explorer', 
         name: 'The Explorer',
-        description: 'You journeyed across seasons and genres, always seeking new worlds and stories in both anime and manga.',
-        score: uniqueGenres.size
+        description: `${descText}—always seeking new worlds and stories.`,
+        score: uniqueGenres.size + uniqueAuthors.size
       });
     }
     
@@ -839,64 +852,136 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
       badgeCandidates.push({ 
         type: 'the_archivist', 
         name: 'The Archivist',
-        description: 'Your completed shelf keeps growing—100+ finished anime and manga mark you as a true collector of stories.',
+        description: `${totalCompleted} completed anime and manga—a true collector of stories.`,
         score: totalCompleted
       });
     }
     
-    // The Strategist - Large plan to watch/read list
+    // The Strategist - 20+ planned to watch/read
     const totalPlanned = plannedAnime.length + plannedManga.length;
-    if (totalPlanned >= 50) {
+    if (totalPlanned >= 20) {
       badgeCandidates.push({ 
         type: 'the_strategist', 
         name: 'The Strategist',
-        description: 'Your Plan to Watch/Read list is legendary. Your next great adventure is always planned out and waiting.',
+        description: `${totalPlanned} titles in your Plan to Watch/Read list—your next great adventure is always planned.`,
         score: totalPlanned
       });
     }
     
     // The Binge Warrior - Watched/read a lot (1000+ episodes or equivalent)
     if (totalEpisodes >= 1000 || totalChapters >= 2000) {
+      // Find top binge (highest episodes/chapters in shortest time)
+      let topBingeTitle = '';
+      if (totalEpisodes >= 1000) {
+        const topBingeAnime = thisYearAnime
+          .filter(item => {
+            const episodes = item.list_status?.num_episodes_watched || 0;
+            const startDate = item.list_status?.start_date;
+            const finishDate = item.list_status?.finish_date;
+            if (!startDate || !finishDate || episodes < 20) return false;
+            const days = Math.max(1, Math.floor((new Date(finishDate) - new Date(startDate)) / (1000 * 60 * 60 * 24)));
+            return episodes / days > 5; // More than 5 episodes per day
+          })
+          .sort((a, b) => {
+            const aEp = a.list_status?.num_episodes_watched || 0;
+            const bEp = b.list_status?.num_episodes_watched || 0;
+            return bEp - aEp;
+          })[0];
+        if (topBingeAnime) {
+          topBingeTitle = topBingeAnime.node?.title || '';
+        }
+      }
+      if (!topBingeTitle && totalChapters >= 2000) {
+        const topBingeManga = filteredManga
+          .filter(item => {
+            const chapters = item.list_status?.num_chapters_read || 0;
+            return chapters >= 50;
+          })
+          .sort((a, b) => {
+            const aCh = a.list_status?.num_chapters_read || 0;
+            const bCh = b.list_status?.num_chapters_read || 0;
+            return bCh - aCh;
+          })[0];
+        if (topBingeManga) {
+          topBingeTitle = topBingeManga.node?.title || '';
+        }
+      }
+      
+      const bingeDesc = topBingeTitle 
+        ? `${totalEpisodes >= 1000 ? totalEpisodes + ' episodes' : ''}${totalEpisodes >= 1000 && totalChapters >= 2000 ? ' and ' : ''}${totalChapters >= 2000 ? totalChapters + ' chapters' : ''}—blazed through "${topBingeTitle.substring(0, 30)}${topBingeTitle.length > 30 ? '...' : ''}" and more.`
+        : `${totalEpisodes >= 1000 ? totalEpisodes + ' episodes' : ''}${totalEpisodes >= 1000 && totalChapters >= 2000 ? ' and ' : ''}${totalChapters >= 2000 ? totalChapters + ' chapters' : ''}—your energy knows no bounds.`;
+      
       badgeCandidates.push({ 
         type: 'the_binge_warrior', 
         name: 'The Binge Warrior',
-        description: 'You blazed through entire series or long arcs in one sitting—whether manga marathon or anime binge, your energy knows no bounds.',
+        description: bingeDesc,
         score: totalEpisodes + (totalChapters / 2)
       });
     }
     
-    // The Loyalist - Favorite studios/authors (top studio/author has significant entries)
+    // The Loyalist - 4-5+ anime/manga from same studio/author
     const topStudioCount = topStudios.length > 0 ? topStudios[0][1] : 0;
     const topAuthorCount = topAuthors.length > 0 ? topAuthors[0][1] : 0;
-    if (topStudioCount >= 10 || topAuthorCount >= 10) {
+    if (topStudioCount >= 4 || topAuthorCount >= 4) {
+      const loyalistName = topStudioCount >= topAuthorCount 
+        ? topStudios[0]?.[0] || ''
+        : topAuthors[0]?.[0] || '';
+      const loyalistCount = Math.max(topStudioCount, topAuthorCount);
+      const loyalistType = topStudioCount >= topAuthorCount ? 'studio' : 'author';
+      
       badgeCandidates.push({ 
         type: 'the_loyalist', 
         name: 'The Loyalist',
-        description: 'Whether studio, author, your favorite creators are always at the top of your list. Devotion pays off!',
-        score: Math.max(topStudioCount, topAuthorCount)
+        description: `${loyalistCount} titles from ${loyalistName}—your favorite ${loyalistType} is always at the top of your list.`,
+        score: loyalistCount
       });
     }
     
-    // The Genre Master - Dedicated to one genre (>40% of entries)
+    // The Genre Master - 40+ anime same genre
     if (topGenres.length > 0 && thisYearAnime.length > 0) {
       const topGenreCount = topGenres[0][1];
       const genrePercentage = (topGenreCount / thisYearAnime.length) * 100;
-      if (genrePercentage > 40) {
+      if (topGenreCount >= 40 || genrePercentage > 40) {
         badgeCandidates.push({ 
           type: 'the_genre_master', 
           name: 'The Genre Master',
-          description: `You mastered a genre a lot, dedicating most of your year to exploring its depths in both manga and anime.`,
+          description: `${topGenreCount} ${topGenres[0][0]} anime—dedicated to exploring its depths.`,
           score: genrePercentage
         });
       }
     }
     
-    // The Rookie - New user (very few completed items, <20 total)
-    if (totalCompleted < 20 && thisYearAnime.length < 30) {
+    // The Rookie - Started using MAL that year (check if earliest entry is this year)
+    let isRookie = false;
+    if (currentYear !== 'all' && typeof currentYear === 'number') {
+      const allAnimeDates = anime
+        .filter(item => item.list_status?.start_date || item.list_status?.finish_date)
+        .map(item => {
+          const dateStr = item.list_status?.start_date || item.list_status?.finish_date;
+          return dateStr ? new Date(dateStr).getFullYear() : null;
+        })
+        .filter(year => year !== null);
+      const allMangaDates = (manga || [])
+        .filter(item => item.list_status?.start_date || item.list_status?.finish_date)
+        .map(item => {
+          const dateStr = item.list_status?.start_date || item.list_status?.finish_date;
+          return dateStr ? new Date(dateStr).getFullYear() : null;
+        })
+        .filter(year => year !== null);
+      
+      const earliestYear = Math.min(
+        ...(allAnimeDates.length > 0 ? allAnimeDates : [currentYear]),
+        ...(allMangaDates.length > 0 ? allMangaDates : [currentYear])
+      );
+      
+      isRookie = earliestYear === currentYear && totalCompleted < 20;
+    }
+    
+    if (isRookie) {
       badgeCandidates.push({ 
         type: 'the_rookie', 
         name: 'The Rookie',
-        description: 'A new journey begins! You started reading manga or watching anime this year—welcome to an endless world of adventure.',
+        description: `Started your MAL journey in ${currentYear}—welcome to an endless world of adventure!`,
         score: 1000 // High score to prioritize if they qualify
       });
     }
@@ -3610,7 +3695,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                       </motion.div>
                       <div className="flex-1 min-w-0">
                         <p className="heading-md font-semibold text-white mb-1">{badge.name}</p>
-                        <p className="body-sm text-white/70 font-regular leading-relaxed">{badge.description}</p>
+                        <p className="text-xs text-white/60 font-regular leading-relaxed">{badge.description}</p>
                       </div>
                     </div>
                   </motion.div>
