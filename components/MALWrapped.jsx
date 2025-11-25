@@ -2121,12 +2121,11 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
         );
 
       case 'anime_time':
-        // Calculate comparison percentage for progress bar
+        // Get average episodes for comparison
         const animeComparison = stats.episodeComparison;
-        const animeDisplayPercentage = animeComparison 
-          ? (stats.selectedYear === 'all' ? animeComparison.allTimePercentage : animeComparison.percentage)
-          : 0;
-        const animeProgress = Math.min(100, Math.max(0, animeDisplayPercentage));
+        const avgEpisodesForDisplay = animeComparison 
+          ? (stats.selectedYear === 'all' ? animeComparison.averageAllTime : animeComparison.averageEpisodes)
+          : (stats.selectedYear === 'all' ? 5497 : 650);
         
         return (
           <SlideLayout bgColor="green">
@@ -2140,13 +2139,6 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                 </p>
                 <p className="body-md text-white font-regular">episodes</p>
                 <p className="body-sm text-white/50 mt-2 font-regular">and</p>
-              </div>
-              <div className="text-center">
-                <p className="number-lg text-white ">
-                  <AnimatedNumber value={stats.totalSeasons || 0} />
-                </p>
-                <p className="body-md text-white font-regular">seasons</p>
-                <p className="body-sm text-white/50 mt-2 font-regular">or basically,</p>
               </div>
               <div className="text-center">
                 {stats.watchDays > 0 ? (
@@ -2167,26 +2159,11 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                   </>
                 )}
               </div>
-              
-              {/* Progress Bar for Comparison */}
-              {animeComparison && (
-                <div className="mt-6 w-full max-w-md">
-                  <div className="w-full bg-white/10 rounded-full h-3 overflow-hidden">
-                    <motion.div
-                      className="h-full bg-gradient-to-r from-green-500 to-emerald-400"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${animeProgress}%` }}
-                      transition={{ duration: 1, delay: 0.5, ease: smoothEase }}
-                    />
-                  </div>
-                  <p className="body-sm text-white/70 mt-4 text-center">
-                    You watched <span className="text-white font-semibold">{animeDisplayPercentage}%</span> of the average MAL user's episodes.
-                  </p>
-                  <p className="body-sm text-white/50 mt-2 text-center">
-                    Keep watching to beat the average!
-                  </p>
-                </div>
-              )}
+              <div className="text-center mt-4">
+                <p className="body-sm text-white/60 font-regular">
+                  Average MAL user: {avgEpisodesForDisplay.toLocaleString()} episodes
+                </p>
+              </div>
             </motion.div>
           </SlideLayout>
         );
@@ -2879,13 +2856,6 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                 </p>
                 <p className="body-md text-white font-regular">chapters</p>
                 <p className="body-sm text-white/50 mt-2 font-regular">and</p>
-              </div>
-              <div className="text-center">
-                <p className="number-lg text-white ">
-                  <AnimatedNumber value={stats.totalVolumes || 0} />
-                </p>
-                <p className="body-md text-white font-regular">volumes</p>
-                <p className="body-sm text-white/50 mt-2 font-regular">or basically,</p>
               </div>
               {stats.mangaDays > 0 ? (
                 <div className="text-center">
