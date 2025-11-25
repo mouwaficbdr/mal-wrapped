@@ -3558,16 +3558,16 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
       case 'badges':
         if (!stats.badges || stats.badges.length === 0) return null;
         
-        // Icon mapping for different badge types
-        const badgeIcons = {
-          'the_hunter': '🎯',
-          'the_explorer': '🌍',
-          'the_archivist': '📚',
-          'the_strategist': '🗺️',
-          'the_binge_warrior': '⚡',
-          'the_loyalist': '❤️',
-          'the_genre_master': '👑',
-          'the_rookie': '🌱'
+        // Character image mapping for different badge types
+        const badgeImages = {
+          'the_hunter': '/badges/the-hunter.webp', // Light Yagami
+          'the_explorer': '/badges/the-explorer.webp', // Monkey D. Luffy
+          'the_archivist': '/badges/the-archivist.webp', // Girl reading book
+          'the_strategist': '/badges/the-strategist.webp', // Boy with green hair and lightning
+          'the_binge_warrior': '/badges/the-binge-warrior.webp', // Naruto eating ramen
+          'the_loyalist': '/badges/the-loyalist.webp', // Sailor Moon
+          'the_genre_master': '/badges/the-genre-master.webp', // Gon Freecss
+          'the_rookie': '/badges/the-rookie.webp' // Rem
         };
         
         return (
@@ -3592,12 +3592,21 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                   >
                     <div className="flex items-center gap-3">
                       <motion.div
-                        className="text-2xl flex-shrink-0"
+                        className="w-16 h-16 flex-shrink-0 rounded-full overflow-hidden border-box-cyan"
+                        style={{ padding: '2px' }}
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         transition={{ duration: 0.4, delay: idx * 0.1 + 0.2, type: "spring", stiffness: 200 }}
                       >
-                        {badgeIcons[badge.type] || '🏆'}
+                        <img
+                          src={badgeImages[badge.type] || '/badges/default-badge.webp'}
+                          alt={badge.name}
+                          className="w-full h-full object-cover rounded-full"
+                          crossOrigin="anonymous"
+                          onError={(e) => {
+                            e.target.src = '/anime-character.webp';
+                          }}
+                        />
                       </motion.div>
                       <div className="flex-1 min-w-0">
                         <p className="heading-md font-semibold text-white mb-1">{badge.name}</p>
