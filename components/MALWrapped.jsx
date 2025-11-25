@@ -1066,25 +1066,30 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
         : bestMatch.genres;
       
       const genreText = matchedGenres.length > 0 ? matchedGenres[0] : (topGenres[0]?.[0] || bestMatch.genres[0] || 'anime');
-      const topGenreNames = userTopGenres.length > 0 
-        ? userTopGenres.join(', ')
-        : (topGenres[0]?.[0] || 'anime');
       
-      // Use top 3 genres for the reason text
-      const top3GenreNames = topGenres.length >= 3
-        ? `${topGenres[0][0]}, ${topGenres[1][0]}, and ${topGenres[2][0]}`
-        : topGenres.length === 2
-        ? `${topGenres[0][0]} and ${topGenres[1][0]}`
-        : topGenres.length === 1
-        ? topGenres[0][0]
-        : 'anime';
+      // Use only matching genres for the reason text
+      let matchingGenreNames = '';
+      if (matchedGenres.length > 0) {
+        if (matchedGenres.length >= 3) {
+          matchingGenreNames = `${matchedGenres[0]}, ${matchedGenres[1]}, and ${matchedGenres[2]}`;
+        } else if (matchedGenres.length === 2) {
+          matchingGenreNames = `${matchedGenres[0]} and ${matchedGenres[1]}`;
+        } else {
+          matchingGenreNames = matchedGenres[0];
+        }
+      } else if (topGenres.length > 0) {
+        // Fallback to top genre if no matches found
+        matchingGenreNames = topGenres[0][0];
+      } else {
+        matchingGenreNames = 'anime';
+      }
       
       characterTwin = {
         title: bestMatch.name,
         series: bestMatch.series,
         genre: genreText,
-        reason: topGenres.length > 0
-          ? `Based on your love for ${top3GenreNames}, ${bestMatch.name} from "${bestMatch.series}" matches your vibes`
+        reason: matchingGenreNames !== 'anime'
+          ? `Based on your love for ${matchingGenreNames}, ${bestMatch.name} from "${bestMatch.series}" matches your vibes`
           : `${bestMatch.name} from "${bestMatch.series}" matches your anime journey`,
         coverImage: '/anime-character.webp', // Will be updated with character image
         type: 'character',
@@ -2116,6 +2121,13 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
         );
 
       case 'anime_time':
+        // Calculate comparison percentage for progress bar
+        const animeComparison = stats.episodeComparison;
+        const animeDisplayPercentage = animeComparison 
+          ? (stats.selectedYear === 'all' ? animeComparison.allTimePercentage : animeComparison.percentage)
+          : 0;
+        const animeProgress = Math.min(100, Math.max(0, animeDisplayPercentage));
+        
         return (
           <SlideLayout bgColor="green">
             <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
@@ -2143,7 +2155,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                       <AnimatedNumber value={stats.watchDays} />
                     </p>
                     <p className="body-md text-white font-medium">days</p>
-                    <p className="body-sm text-white/50 mt-2 font-regular">of your life gone</p>
+                    <p className="body-sm text-white/50 mt-2 font-regular">of nonstop binge</p>
                   </>
                 ) : (
                   <>
@@ -2155,13 +2167,24 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                   </>
                 )}
               </div>
-              {stats.longestStreak && stats.longestStreak > 0 && (
-                <div className="text-center">
-                  <p className="body-sm text-white/50 font-regular">Longest streak:</p>
-                  <p className="number-lg text-white ">
-                    <AnimatedNumber value={stats.longestStreak} />
+              
+              {/* Progress Bar for Comparison */}
+              {animeComparison && (
+                <div className="mt-6 w-full max-w-md">
+                  <div className="w-full bg-white/10 rounded-full h-3 overflow-hidden">
+                    <motion.div
+                      className="h-full bg-gradient-to-r from-green-500 to-emerald-400"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${animeProgress}%` }}
+                      transition={{ duration: 1, delay: 0.5, ease: smoothEase }}
+                    />
+                  </div>
+                  <p className="body-sm text-white/70 mt-4 text-center">
+                    You watched <span className="text-white font-semibold">{animeDisplayPercentage}%</span> of the average MAL user's episodes.
                   </p>
-                  <p className="body-md text-white font-medium">days in a row</p>
+                  <p className="body-sm text-white/50 mt-2 text-center">
+                    Keep watching to beat the average!
+                  </p>
                 </div>
               )}
             </motion.div>
@@ -2881,15 +2904,6 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                   <p className="body-sm text-white/50 mt-2 font-regular">spent flipping pages</p>
                 </div>
               )}
-              {stats.longestStreak && stats.longestStreak > 0 && (
-                <div className="text-center">
-                  <p className="body-sm text-white/50 font-regular">Longest streak:</p>
-                  <p className="number-lg text-white ">
-                    <AnimatedNumber value={stats.longestStreak} />
-                  </p>
-                  <p className="body-md text-white font-medium">days in a row</p>
-                </div>
-              )}
             </motion.div>
           </SlideLayout>
         );
@@ -3489,41 +3503,57 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
 
       case 'badges':
         if (!stats.badges || stats.badges.length === 0) return null;
+        
+        // Icon mapping for different badge types
+        const badgeIcons = {
+          'genre_master': '🎯',
+          'genre_explorer': '🌍',
+          'binge_legend': '⚡',
+          'hidden_gem_hunter': '💎',
+          'streak_master': '🔥',
+          'completion_champion': '✅',
+          'rating_perfectionist': '⭐'
+        };
+        
         return (
           <SlideLayout bgColor="purple">
             <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
               You earned some impressive badges
             </motion.h2>
-            <motion.div className="mt-8 flex flex-col items-center gap-6 relative z-10" {...fadeSlideUp} data-framer-motion>
+            <motion.div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto relative z-10" {...fadeSlideUp} data-framer-motion>
               {stats.badges.map((badge, idx) => (
                 <motion.div
                   key={badge.type}
-                  className="border-box-cyan rounded-xl overflow-hidden w-full max-w-md"
+                  className="border-box-cyan rounded-xl overflow-hidden"
                   style={{ padding: '2px' }}
                   initial={{ opacity: 0, scale: 0.9, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: idx * 0.2, ease: smoothEase }}
+                  transition={{ duration: 0.4, delay: idx * 0.1, ease: smoothEase }}
                 >
                   <motion.div
-                    className="bg-gradient-to-br from-white/10 to-white/5 rounded-xl p-6 h-full text-center"
+                    className="bg-gradient-to-br from-white/10 to-white/5 rounded-xl p-4 h-full"
                     whileHover={{ scale: 1.02, backgroundColor: 'rgba(255, 255, 255, 0.12)' }}
                     transition={{ duration: 0.3, ease: smoothEase }}
                   >
-                    <motion.div
-                      className="text-4xl mb-3"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ duration: 0.4, delay: idx * 0.2 + 0.3, type: "spring", stiffness: 200 }}
-                    >
-                      🏆
-                    </motion.div>
-                    <p className="heading-lg font-bold text-white mb-3">{badge.name}</p>
-                    <p className="body-md text-white/80 mt-2 font-regular leading-relaxed">{badge.description}</p>
+                    <div className="flex items-center gap-3">
+                      <motion.div
+                        className="text-2xl flex-shrink-0"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ duration: 0.4, delay: idx * 0.1 + 0.2, type: "spring", stiffness: 200 }}
+                      >
+                        {badgeIcons[badge.type] || '🏆'}
+                      </motion.div>
+                      <div className="flex-1 min-w-0">
+                        <p className="heading-md font-semibold text-white mb-1">{badge.name}</p>
+                        <p className="body-sm text-white/70 font-regular leading-relaxed">{badge.description}</p>
+                      </div>
+                    </div>
                   </motion.div>
                 </motion.div>
               ))}
             </motion.div>
-            <motion.h3 className="body-sm font-regular text-white/50 mt-8 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+            <motion.h3 className="body-sm font-regular text-white/50 mt-6 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
               Your dedication shows!
             </motion.h3>
           </SlideLayout>
@@ -3575,17 +3605,13 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                 </div>
                 
                 <p className="body-sm text-white/70 mt-4 text-container">
-                  {displayIsAboveAverage ? (
-                    <>You watched <span className="text-white font-semibold">{displayPercentage}%</span> more episodes than the average MAL user!</>
-                  ) : (
-                    <>You watched <span className="text-white font-semibold">{Math.abs(displayPercentage - 100)}%</span> of the average MAL user's episodes.</>
-                  )}
+                  You watched <span className="text-white font-semibold">{displayPercentage}%</span> of the average MAL user's episodes.
                 </p>
               </div>
               
             </motion.div>
             <motion.h3 className="body-sm font-regular text-white/50 mt-6 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
-              {displayIsAboveAverage ? "You're above average!" : 'Keep watching to beat the average!'}
+              Keep watching to beat the average!
             </motion.h3>
           </SlideLayout>
         );
