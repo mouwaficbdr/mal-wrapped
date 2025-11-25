@@ -166,6 +166,17 @@ function AnimatedNumber({ value, duration = 1.5, className = '' }) {
   );
 }
 
+function getComparisonCopy(percentage, nounPlural) {
+  if (!percentage || percentage <= 0) return null;
+  const isAboveAverage = percentage >= 100;
+  return {
+    prefix: isAboveAverage ? "That's " : "That's only ",
+    suffix: isAboveAverage
+      ? ` more ${nounPlural} compared to an average MAL user.`
+      : ` ${nounPlural} compared to an average MAL user.`
+  };
+}
+
 export default function MALWrapped() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [username, setUsername] = useState('');
@@ -201,9 +212,6 @@ export default function MALWrapped() {
       { id: 'didnt_land_anime' },
       { id: 'planned_anime' },
       ...(stats.milestones && stats.milestones.length > 0 && stats.thisYearMilestone ? [{ id: 'milestones' }] : []),
-      ...(stats.badges && stats.badges.length > 0 ? [{ id: 'badges' }] : []),
-      ...(stats.episodeComparison ? [{ id: 'episode_comparison' }] : []),
-      ...(stats.characterTwin ? [{ id: 'character_twin' }] : []),
     ] : []),
     { id: 'anime_to_manga_transition' },
     { id: 'manga_count' },
@@ -217,6 +225,8 @@ export default function MALWrapped() {
       { id: 'didnt_land_manga' },
       { id: 'planned_manga' },
     ] : []),
+    ...(stats.badges && stats.badges.length > 0 ? [{ id: 'badges' }] : []),
+    ...(stats.characterTwin ? [{ id: 'character_twin' }] : []),
     { id: 'finale' },
   ] : [];
 
@@ -2274,6 +2284,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
         const animeDisplayPercentage = animeComparison 
           ? (stats.selectedYear === 'all' ? animeComparison.allTimePercentage : animeComparison.percentage)
           : 0;
+        const animeComparisonCopy = getComparisonCopy(animeDisplayPercentage, 'episodes');
         
         return (
           <SlideLayout bgColor="green">
@@ -2285,7 +2296,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                 <p className="number-lg text-white ">
                   <AnimatedNumber value={stats.totalEpisodes || 0} />
                 </p>
-                <p className="body-md text-white font-regular">episodes</p>
+                <p className="body-md text-white font-medium">episodes</p>
                 <p className="body-sm text-white/50 mt-2 font-regular">and</p>
               </div>
               <div className="text-center">
@@ -2303,14 +2314,16 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                       <AnimatedNumber value={stats.watchTime} />
                     </p>
                     <p className="heading-md text-white font-medium">hours</p>
-                    <p className="body-sm text-white/50 mt-2 font-regular">of your life gone</p>
+                    <p className="body-sm text-white/50 mt-2 font-regular">of nonstop binge</p>
                   </>
                 )}
               </div>
-              {animeComparison && animeDisplayPercentage > 0 && (
-                <div className="text-center mt-4 w-full max-w-md">
+              {animeComparison && animeDisplayPercentage > 0 && animeComparisonCopy && (
+                <div className="text-center mt-4 w-full">
                   <p className="body-sm text-white/70 font-regular">
-                    You watched <span className="text-white font-semibold">{animeDisplayPercentage}%</span> of the average MAL user's episodes.
+                    {animeComparisonCopy.prefix}
+                    <span className="text-white font-semibold">{animeDisplayPercentage}%</span>
+                    {animeComparisonCopy.suffix}
                   </p>
                   <p className="body-sm text-white/50 mt-2 font-regular">
                     Keep watching to beat the average!
@@ -3002,6 +3015,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
         const mangaDisplayPercentage = mangaComparison 
           ? (stats.selectedYear === 'all' ? mangaComparison.allTimePercentage : mangaComparison.percentage)
           : 0;
+        const mangaComparisonCopy = getComparisonCopy(mangaDisplayPercentage, 'chapters');
         
         return (
           <SlideLayout bgColor="blue">
@@ -3033,10 +3047,12 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                   <p className="body-sm text-white/50 mt-2 font-regular">spent flipping pages</p>
                 </div>
               )}
-              {mangaComparison && mangaDisplayPercentage > 0 && (
+              {mangaComparison && mangaDisplayPercentage > 0 && mangaComparisonCopy && (
                 <div className="text-center mt-4 w-full max-w-md">
                   <p className="body-sm text-white/70 font-regular">
-                    You read <span className="text-white font-semibold">{mangaDisplayPercentage}%</span> of the average MAL user's chapters.
+                    {mangaComparisonCopy.prefix}
+                    <span className="text-white font-semibold">{mangaDisplayPercentage}%</span>
+                    {mangaComparisonCopy.suffix}
                   </p>
                   <p className="body-sm text-white/50 mt-2 font-regular">
                     Keep reading to beat the average!
@@ -3677,8 +3693,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                   >
                     <div className="flex items-center gap-3">
                       <motion.div
-                        className="w-16 h-16 flex-shrink-0 rounded-full overflow-hidden border-box-cyan"
-                        style={{ padding: '2px' }}
+                        className="w-16 h-16 flex-shrink-0 rounded-full overflow-hidden"
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         transition={{ duration: 0.4, delay: idx * 0.1 + 0.2, type: "spring", stiffness: 200 }}
@@ -3694,8 +3709,8 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                         />
                       </motion.div>
                       <div className="flex-1 min-w-0">
-                        <p className="heading-md font-semibold text-white mb-1">{badge.name}</p>
-                        <p className="text-xs text-white/60 font-regular leading-relaxed">{badge.description}</p>
+                        <p className="heading-sm font-semibold text-white mb-1">{badge.name}</p>
+                        <p className="body-xs text-white/60 font-regular leading-relaxed">{badge.description}</p>
                       </div>
                     </div>
                   </motion.div>
@@ -3704,63 +3719,6 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
             </motion.div>
             <motion.h3 className="body-sm font-regular text-white/50 mt-6 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
               Your dedication shows!
-            </motion.h3>
-          </SlideLayout>
-        );
-
-      case 'episode_comparison':
-        if (!stats.episodeComparison) return null;
-        const { userEpisodes, averageEpisodes, percentage, isAboveAverage, allTimeEpisodes, averageAllTime, allTimePercentage, isAboveAverageAllTime } = stats.episodeComparison;
-        // Show only selected year OR all time, not both
-        const showAllTime = stats.selectedYear === 'all';
-        const displayEpisodes = showAllTime ? allTimeEpisodes : userEpisodes;
-        const displayAverage = showAllTime ? averageAllTime : averageEpisodes;
-        const displayPercentage = showAllTime ? allTimePercentage : percentage;
-        const displayIsAboveAverage = showAllTime ? isAboveAverageAllTime : isAboveAverage;
-        const displayLabel = showAllTime ? 'All Time' : (stats.selectedYear === 'all' ? 'All Time' : stats.selectedYear.toString());
-        
-        // Calculate progress bar percentage (cap at 200% for display)
-        const episodeProgress = Math.min(200, Math.max(0, displayPercentage));
-        
-        return (
-          <SlideLayout bgColor="green">
-            <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
-              How do you compare?
-            </motion.h2>
-            <motion.div className="mt-6 space-y-8 relative z-10" {...fadeSlideUp} data-framer-motion>
-              {/* Episodes Comparison */}
-              <div className="text-center">
-                <p className="body-sm text-white/70 mb-2">{displayLabel} Episodes</p>
-                <p className="number-lg text-white">
-                  <AnimatedNumber value={displayEpisodes} />
-                </p>
-                <p className="body-md text-white font-regular mt-2">episodes watched</p>
-                
-                {/* Progress Bar */}
-                <div className="mt-4 max-w-md mx-auto">
-                  <div className="w-full bg-white/10 rounded-full h-3 overflow-hidden">
-                    <motion.div
-                      className="h-full bg-gradient-to-r from-green-500 to-emerald-400"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${Math.min(100, episodeProgress)}%` }}
-                      transition={{ duration: 1, delay: 0.5, ease: smoothEase }}
-                    />
-                  </div>
-                  <div className="flex justify-between mt-2 text-xs text-white/60">
-                    <span>0</span>
-                    <span>{displayAverage.toLocaleString()}</span>
-                    <span>{displayAverage * 2 >= displayEpisodes ? (displayAverage * 2).toLocaleString() : displayEpisodes.toLocaleString()}</span>
-                  </div>
-                </div>
-                
-                <p className="body-sm text-white/70 mt-4 text-container">
-                  You watched <span className="text-white font-semibold">{displayPercentage}%</span> of the average MAL user's episodes.
-                </p>
-              </div>
-              
-            </motion.div>
-            <motion.h3 className="body-sm font-regular text-white/50 mt-6 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
-              Keep watching to beat the average!
             </motion.h3>
           </SlideLayout>
         );
@@ -3797,14 +3755,12 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
               </div>
               <p className="heading-lg text-white font-semibold text-center">{stats.characterTwin.title}</p>
               {stats.characterTwin.series && (
-                <p className="body-sm text-white/60 mt-2 text-center">{stats.characterTwin.series}</p>
+                <p className="body-md text-white/60 text-center">{stats.characterTwin.series}</p>
               )}
-              <p className="body-md text-white/70 mt-4 text-container text-center">
-                {stats.characterTwin.reason}
-              </p>
+             
             </motion.div>
             <motion.h3 className="body-sm font-regular text-white/50 mt-6 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
-              A character that best matches your vibes
+            {stats.characterTwin.reason}
             </motion.h3>
           </SlideLayout>
         );
