@@ -77,17 +77,8 @@ const float = {
   }
 };
 
-// Stagger container variants - simplified on mobile
-const getStaggerContainer = (isMobile) => isMobile ? {
-  initial: { opacity: 0 },
-  animate: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.05,
-      delayChildren: 0
-    }
-  }
-} : {
+// Stagger container variants
+const staggerContainer = {
   initial: { opacity: 0 },
   animate: {
     opacity: 1,
@@ -98,18 +89,7 @@ const getStaggerContainer = (isMobile) => isMobile ? {
   }
 };
 
-const staggerContainer = getStaggerContainer(false); // Default for backward compatibility
-
-const getStaggerItem = (isMobile) => isMobile ? {
-  initial: { opacity: 0 },
-  animate: {
-    opacity: 1,
-    transition: {
-      duration: 0.2,
-      ease: smoothEase
-    }
-  }
-} : {
+const staggerItem = {
   initial: { opacity: 0, y: 20 },
   animate: {
     opacity: 1,
@@ -121,19 +101,11 @@ const getStaggerItem = (isMobile) => isMobile ? {
   }
 };
 
-const staggerItem = getStaggerItem(false); // Default for backward compatibility
 
-
-// Hover effects - disabled on mobile
-const getHoverImage = (isMobile) => isMobile ? {} : {
+const hoverImage = {
   scale: 1.1,
   transition: { duration: 0.3, ease: smoothEase }
 };
-
-const hoverImage = getHoverImage(false); // Keep for backward compatibility
-
-// Helper to get hover props conditionally
-const getHoverProps = (isMobile, hoverProps) => isMobile ? {} : hoverProps;
 
 // Animated Number Component using Framer Motion
 function AnimatedNumber({ value, duration = 1.5, className = '' }) {
@@ -232,19 +204,6 @@ export default function MALWrapped() {
   const [emailCopied, setEmailCopied] = useState(false);
   const shareMenuRef = useRef(null);
   const slideRef = useRef(null);
-  
-  // Detect mobile for simplified animations
-  const [isMobile, setIsMobile] = useState(() => 
-    typeof window !== 'undefined' && window.innerWidth < 768
-  );
-  
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   const hasAnime = stats && stats.thisYearAnime && stats.thisYearAnime.length > 0;
   const hasManga = stats && mangaList && mangaList.length > 0;
@@ -2031,7 +1990,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
         </div>
           <motion.div 
             className="w-full relative z-20"
-            variants={getStaggerContainer(isMobile)}
+            variants={staggerContainer}
             initial="initial"
             animate="animate"
           >
@@ -2057,9 +2016,6 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
       const [scrollPosition, setScrollPosition] = useState(0);
       const [gapSize, setGapSize] = useState('2px');
       const [itemsPerView, setItemsPerView] = useState(3);
-      
-      // Disable hover on mobile
-      const effectiveShowHover = showHover && !isMobile;
       
       // Optimized deduplication
       const uniqueItemsMap = new Map();
@@ -2162,9 +2118,9 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
             maskImage: shouldScroll ? 'none' : 'linear-gradient(to right, black 0%, black 100%)',
             WebkitMaskImage: shouldScroll ? 'none' : 'linear-gradient(to right, black 0%, black 100%)'
           }}
-          onMouseEnter={() => effectiveShowHover && setIsHovered(true)}
+          onMouseEnter={() => showHover && setIsHovered(true)}
           onMouseLeave={() => {
-            effectiveShowHover && setIsHovered(false);
+            showHover && setIsHovered(false);
             setHoveredItem(null);
           }}
         >
@@ -2186,9 +2142,9 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
               const content = (
                 <motion.div 
                   className="flex flex-col flex-shrink-0 items-center w-full"
-                  initial={isMobile ? false : { opacity: 0, scale: 0.9 }}
-                  animate={isMobile ? false : { opacity: 1, scale: 1 }}
-                  transition={isMobile ? {} : { 
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ 
                     duration: 0.4,
                     delay: (idx % visibleItems.length) * 0.05,
                     ease: smoothEase
@@ -2197,8 +2153,8 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                   <motion.div 
                 className="aspect-[2/3] w-full bg-transparent rounded-lg relative" 
                     style={{ maxHeight: '275px', maxWidth: '100%', boxSizing: 'border-box', overflow: 'hidden' }}
-                    whileHover={isMobile ? {} : { borderColor: '#ffffff' }}
-                    transition={isMobile ? {} : { duration: 0.3, ease: smoothEase }}
+                    whileHover={{ borderColor: '#ffffff' }}
+                    transition={{ duration: 0.3, ease: smoothEase }}
                   >
                     {item.coverImage && (
                       <motion.img 
@@ -2206,10 +2162,10 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                         alt={item.title || ''} 
                         crossOrigin="anonymous" 
                         className="w-full h-full object-cover rounded-lg"
-                        whileHover={isMobile ? {} : getHoverImage(false)}
+                        whileHover={hoverImage}
                       />
                     )}
-                    {effectiveShowHover && hoveredItem === actualIndex && item.title && (
+                    {showHover && hoveredItem === actualIndex && item.title && (
                       <motion.div 
                         className="absolute inset-0 bg-black/80 flex items-center justify-center p-2 z-10 rounded-lg pointer-events-none"
                         initial={{ opacity: 0 }}
@@ -2301,9 +2257,9 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
             const itemContent = (
                 <motion.div 
                   className="flex flex-col items-center w-full"
-                  initial={isMobile ? false : { opacity: 0, y: 20 }}
-                  animate={isMobile ? false : { opacity: 1, y: 0 }}
-                  transition={isMobile ? {} : { 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ 
                     duration: 0.5,
                     delay: idx * 0.08,
                     ease: smoothEase
@@ -2312,8 +2268,8 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                   <motion.div 
                 className="aspect-[2/3] bg-transparent rounded-lg overflow-hidden relative w-full" 
                     style={{ maxHeight: '275px', maxWidth: '183px', width: '100%', boxSizing: 'border-box' }}
-                    whileHover={getHoverProps(isMobile, { borderColor: '#ffffff' })}
-                    transition={isMobile ? {} : { duration: 0.3, ease: smoothEase}}
+                    whileHover={{ borderColor: '#ffffff' }}
+                    transition={{ duration: 0.3, ease: smoothEase}}
                   >
                   
                   {item.coverImage && (
@@ -2322,7 +2278,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                       alt={item.title || ''} 
                       crossOrigin="anonymous" 
                       className="w-full h-full object-cover rounded-lg"
-                      whileHover={getHoverImage(isMobile)}
+                      whileHover={hoverImage}
                     />
                   )}
                   
@@ -2376,7 +2332,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
               </motion.div>
               <motion.div 
                 className="mt-4 w-full max-w-3xl flex items-center justify-center gap-6 sm:gap-8 mb-6 sm:mb-8 relative z-20"
-                variants={getStaggerItem(isMobile)}
+                variants={staggerItem}
               >
                 <div className="relative w-36 h-36 flex items-center justify-center flex-shrink-0 z-20">
                   <motion.a
@@ -2387,8 +2343,8 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.6, ease: smoothEase }}
-                    whileHover={getHoverProps(isMobile, { scale: 1.05 })}
-                    whileTap={isMobile ? {} : { scale: 0.95 }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                   >
                     <img 
                       src={userImage} 
@@ -2547,8 +2503,8 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                       <motion.div key={idx} className="text-center rounded-xl" style={{ padding: '2px' }} variants={staggerItem}>
                         <motion.div 
                           className="bg-black/70 rounded-xl p-2 h-full"
-                          whileHover={getHoverProps(isMobile, { scale: 1.02, backgroundColor: 'rgba(0, 0, 0, 0.45)' })}
-                          transition={isMobile ? {} : { duration: 0.3, ease: smoothEase }}
+                          whileHover={{ scale: 1.02, backgroundColor: 'rgba(0, 0, 0, 0.45)' }}
+                          transition={{ duration: 0.3, ease: smoothEase }}
                         >
                           <p className="heading-sm font-semibold text-white truncate"><span className="body-xs font-regular text-white/70">{idx + 2}.</span> {genreName}</p>
                           <p className="body-xs text-white/70 font-regular">{count} series</p>
@@ -2609,7 +2565,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.3, delay: 0, ease: smoothEase }}
-                    whileHover={getHoverProps(isMobile, { borderColor: '#ffffff' })}
+                    whileHover={{ borderColor: '#ffffff' }}
                   >
                     {topItem.node?.main_picture?.large && (
                       <motion.img 
@@ -2617,7 +2573,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                         alt={topItem.node.title} 
                         crossOrigin="anonymous" 
                         className="w-full h-full object-cover rounded-lg"
-                        whileHover={getHoverImage(isMobile)}
+                        whileHover={hoverImage}
                       />
                     )}
                   </motion.div>
@@ -2692,8 +2648,8 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                         >
                           <motion.div 
                             className="bg-black/70 rounded-xl w-full h-full flex flex-row items-center relative z-10"
-                            whileHover={getHoverProps(isMobile, { backgroundColor: 'rgba(0, 0, 0, 0.45)' })}
-                            transition={isMobile ? {} : { duration: 0.3, ease: smoothEase }}
+                            whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.45)' }}
+                            transition={{ duration: 0.3, ease: smoothEase }}
                           >
                             <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-10 w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 bg-black/70 text-white rounded-full flex items-center justify-center font-semibold text-xs sm:text-sm md:text-base">1</div>
                             {(() => {
@@ -2702,8 +2658,8 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                                 <motion.div 
                                   className="bg-transparent rounded-xl overflow-hidden relative z-10 aspect-[2/3] max-h-[225px]" 
                               style={{ boxSizing: 'border-box' }}
-                                  whileHover={getHoverProps(isMobile, { borderColor: '#ffffff' })}
-                                  transition={isMobile ? {} : { duration: 0.3, ease: smoothEase}}
+                                  whileHover={{ borderColor: '#ffffff' }}
+                                  transition={{ duration: 0.3, ease: smoothEase}}
                                 >
                                   {featured.coverImage && (
                                     <motion.img 
@@ -2711,7 +2667,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                                       crossOrigin="anonymous" 
                                       alt={featured.title} 
                                       className="w-full h-full object-cover rounded-xl"
-                                      whileHover={getHoverImage(isMobile)}
+                                      whileHover={hoverImage}
                                     />
                                   )}
                                 </motion.div>
@@ -2782,7 +2738,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                                         alt={item.title} 
                                         crossOrigin="anonymous" 
                                         className="w-full h-full object-cover rounded-xl"
-                                        whileHover={getHoverImage(isMobile)}
+                                        whileHover={hoverImage}
                                       />
                                     )}
                                   </motion.div>
@@ -2857,8 +2813,8 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                       <motion.div key={idx} className="text-center rounded-xl" style={{ padding: '2px' }} variants={staggerItem}>
                         <motion.div 
                           className="bg-black/70 rounded-xl p-2 h-full"
-                          whileHover={getHoverProps(isMobile, { scale: 1.02, backgroundColor: 'rgba(0, 0, 0, 0.45)' })}
-                          transition={isMobile ? {} : { duration: 0.3, ease: smoothEase }}
+                          whileHover={{ scale: 1.02, backgroundColor: 'rgba(0, 0, 0, 0.45)' }}
+                          transition={{ duration: 0.3, ease: smoothEase }}
                         >
                           <p className="heading-sm font-semibold text-white truncate"><span className="heading-xs font-regular text-white/70">{idx + 2}.</span> {studioName}</p>
                           <p className="mono text-white/70 font-regular">{count} series</p>
@@ -2916,14 +2872,14 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                     key={season} 
                     className="rounded-xl" 
                     style={{ padding: '2px' }}
-                    variants={getStaggerItem(isMobile)}
+                    variants={staggerItem}
                     initial="initial"
                     animate="animate"
                   >
                     <motion.div 
                       className="bg-black/70 rounded-xl p-2 h-full"
-                      whileHover={getHoverProps(isMobile, { scale: 1.02, backgroundColor: 'rgba(0, 0, 0, 0.45)' })}
-                      transition={isMobile ? {} : { duration: 0.3, ease: smoothEase }}
+                      whileHover={{ scale: 1.02, backgroundColor: 'rgba(0, 0, 0, 0.45)' }}
+                      transition={{ duration: 0.3, ease: smoothEase }}
                     >
                       <h3 className="heading-md font-semibold text-white mb-1 sm:mb-2 text-sm sm:text-base">{season}{seasonYear}</h3>
                     {highlight && (
@@ -2941,7 +2897,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                                     alt={highlight.node.title} 
                                     crossOrigin="anonymous" 
                                     className="w-full h-full object-cover rounded-xl"
-                                    whileHover={getHoverImage(isMobile)}
+                                    whileHover={hoverImage}
                                   />
                             )}
                               </div>  
@@ -3014,8 +2970,8 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                           alt={item.title}
                           className="w-16 md:w-20 h-24 md:h-28 object-cover rounded-lg cursor-pointer"
                           crossOrigin="anonymous"
-                          whileHover={getHoverProps(isMobile, { scale: 1.05 })}
-                          transition={isMobile ? {} : { duration: 0.2, ease: smoothEase }}
+                          whileHover={{ scale: 1.05 }}
+                          transition={{ duration: 0.2, ease: smoothEase }}
                         />
                       </a>
                     )}
@@ -3376,7 +3332,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                           alt={topItem.node.title} 
                           crossOrigin="anonymous" 
                           className="w-full h-full object-cover rounded-lg"
-                          whileHover={getHoverImage(isMobile)}
+                          whileHover={hoverImage}
                         />
                       )}
                     </motion.div>
@@ -3453,8 +3409,8 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                         >
                           <motion.div 
                             className="bg-black/70 rounded-xl w-full h-full flex flex-row items-center relative z-10"
-                            whileHover={getHoverProps(isMobile, { backgroundColor: 'rgba(0, 0, 0, 0.45)' })}
-                            transition={isMobile ? {} : { duration: 0.3, ease: smoothEase }}
+                            whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.45)' }}
+                            transition={{ duration: 0.3, ease: smoothEase }}
                           >
                             <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-10 w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 bg-black/70 text-white rounded-full flex items-center justify-center font-semibold text-xs sm:text-sm md:text-base">1</div>
                             {(() => {
@@ -3463,8 +3419,8 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                                 <motion.div 
                                   className="bg-transparent rounded-xl overflow-hidden relative z-10" 
                                   style={{ boxSizing: 'border-box', aspectRatio: '2/3', maxHeight: '225px' }}
-                                  whileHover={getHoverProps(isMobile, { borderColor: '#ffffff' })}
-                                  transition={isMobile ? {} : { duration: 0.3, ease: smoothEase}}
+                                  whileHover={{ borderColor: '#ffffff' }}
+                                  transition={{ duration: 0.3, ease: smoothEase}}
                                 >
                                   {featured.coverImage && (
                                     <motion.img 
@@ -3472,7 +3428,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                                       crossOrigin="anonymous" 
                                       alt={featured.title} 
                                       className="w-full h-full object-cover rounded-xl"
-                                      whileHover={getHoverImage(isMobile)}
+                                      whileHover={hoverImage}
                                     />
                                   )}
                                 </motion.div>
@@ -3543,7 +3499,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                                         alt={item.title} 
                                         crossOrigin="anonymous" 
                                         className="w-full h-full object-cover rounded-xl"
-                                        whileHover={getHoverImage(isMobile)}
+                                        whileHover={hoverImage}
                                       />
                                     )}
                                   </motion.div>
@@ -3722,8 +3678,8 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                           alt={item.title}
                           className="w-16 md:w-20 h-24 md:h-28 object-cover rounded-lg cursor-pointer"
                           crossOrigin="anonymous"
-                          whileHover={getHoverProps(isMobile, { scale: 1.05 })}
-                          transition={isMobile ? {} : { duration: 0.2, ease: smoothEase }}
+                          whileHover={{ scale: 1.05 }}
+                          transition={{ duration: 0.2, ease: smoothEase }}
                         />
                       </a>
                     )}
@@ -3862,8 +3818,8 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                 >
                   <motion.div
                     className="bg-black/60 rounded-xl p-2 md:p-4 h-full"
-                    whileHover={getHoverProps(isMobile, { scale: 1.02, backgroundColor: 'rgba(0, 0, 0, 0.45)'})}
-                    transition={isMobile ? {} : { duration: 0.3, ease: smoothEase }}
+                    whileHover={{ scale: 1.02, backgroundColor: 'rgba(0, 0, 0, 0.45)'}}
+                    transition={{ duration: 0.3, ease: smoothEase }}
                   >
                     <div className="flex items-center gap-3">
                       <motion.div
@@ -4035,14 +3991,14 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
           <SlideLayout  bgColor="blue">
                 <motion.div 
               className="w-full h-full flex flex-col items-center justify-center relative z-20 px-4 sm:px-6 md:px-8"
-              variants={getStaggerContainer(isMobile)}
+              variants={staggerContainer}
               initial="initial"
               animate="animate"
             >
               {/* Image with Heading */}
               <motion.div 
                 className="w-full max-w-3xl flex items-center justify-center gap-6 sm:gap-8 mb-6 sm:mb-8 relative z-20"
-                variants={getStaggerItem(isMobile)}
+                variants={staggerItem}
               >
                 <div className="relative w-28 h-28 sm:w-32 sm:h-32 md:w-40 md:h-40 flex items-center justify-center flex-shrink-0 z-20">
                   <motion.a
@@ -4053,8 +4009,8 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.6, ease: smoothEase }}
-                    whileHover={getHoverProps(isMobile, { scale: 1.05 })}
-                    whileTap={isMobile ? {} : { scale: 0.95 }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                   >
                     <img 
                       src={userImage} 
@@ -4080,7 +4036,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
               <div className="w-full max-w-3xl flex flex-col gap-6 md:gap-8 text-white relative z-20">
                 <motion.div 
                   className="grid grid-cols-2 gap-4 md:gap-6 relative z-20"
-                  variants={getStaggerItem(isMobile)}
+                  variants={staggerItem}
                 >
                   <div className="space-y-1">
                     <p className="body-sm text-white/70 font-medium mb-1">Top Anime</p>
@@ -4106,7 +4062,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
 
                 <motion.div 
                   className="grid grid-cols-2 gap-4 md:gap-6 relative z-20"
-                  variants={getStaggerItem(isMobile)}
+                  variants={staggerItem}
                 >
                   <div className="space-y-1">
                     {finaleTopGenre && (
@@ -4129,7 +4085,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
 
                 <motion.div 
                   className="grid grid-cols-2 sm:grid-cols-3 gap-4 md:gap-6 relative z-20"
-                  variants={getStaggerItem(isMobile)}
+                  variants={staggerItem}
                 >
                   <div className="space-y-1">
                     <p className="body-sm text-white/70 font-medium mb-1">Watched</p>
@@ -4410,13 +4366,13 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                       backgroundColor: 'rgba(255, 255, 255, 0.05)',
                       border: '1px solid rgba(255, 255, 255, 0.1)'
                     }}
-                    whileHover={getHoverProps(isMobile, { 
+                    whileHover={{ 
                       scale: 1.1, 
                       backgroundColor: 'rgba(16, 185, 129, 0.8)',
                       borderColor: 'rgba(16, 185, 129, 0.8)'
-                    })}
-                    whileTap={isMobile ? {} : { scale: 0.9 }}
-                    transition={isMobile ? {} : { duration: 0.2 }}
+                    }}
+                    whileTap={{ scale: 0.9 }}
+                    transition={{ duration: 0.2 }}
                   >
                     <Download className="w-4 h-4 sm:w-5 sm:h-5" />
                     <span className="text-xs sm:text-sm font-medium">Download</span>
@@ -4430,13 +4386,13 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                     backgroundColor: 'rgba(255, 255, 255, 0.05)',
                     border: '1px solid rgba(255, 255, 255, 0.1)'
                   }}
-                  whileHover={getHoverProps(isMobile, { 
+                  whileHover={{ 
                     scale: 1.1, 
                     backgroundColor: 'rgba(211, 68, 68, 0.8)',
                     borderColor: 'rgba(211, 68, 68, 0.8)'
-                  })}
-                  whileTap={isMobile ? {} : { scale: 0.9 }}
-                  transition={isMobile ? {} : { duration: 0.2 }}
+                  }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={{ duration: 0.2 }}
                 >
                   <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
                   <span className="text-xs sm:text-sm font-medium">Log Out</span>
@@ -4475,9 +4431,9 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                 onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))}
                 disabled={currentSlide === 0}
                   className="p-1.5 sm:p-2 text-white rounded-full border-box-cyan disabled:opacity-30 transition-all"
-                  whileHover={getHoverProps(isMobile, { scale: currentSlide === 0 ? 1 : 1.1 })}
-                  whileTap={isMobile ? {} : { scale: 0.9 }}
-                  transition={isMobile ? {} : { duration: 0.2 }}
+                  whileHover={{ scale: currentSlide === 0 ? 1 : 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={{ duration: 0.2 }}
               >
                   <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
                 </motion.button>
@@ -4493,12 +4449,12 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                         type="button"
                         onClick={handleShareButtonClick}
                         className="p-1.5 sm:p-2 text-white rounded-full border-box-cyan flex items-center gap-1.5 sm:gap-2"
-                        whileHover={getHoverProps(isMobile, { 
+                        whileHover={{ 
                           scale: 1.1, 
                           backgroundColor: 'rgba(64, 101, 204, 0.8)',
                           borderColor: 'rgba(64, 101, 204, 0.8)'
-                        })}
-                        whileTap={isMobile ? {} : { scale: 0.9 }}
+                        }}
+                        whileTap={{ scale: 0.9 }}
                         transition={{ duration: 0.2 }}
                       >
                         <Share2 className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -4564,9 +4520,9 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                   onClick={() => setCurrentSlide(Math.min(slides.length - 1, currentSlide + 1))}
                   disabled={currentSlide === slides.length - 1}
                   className="p-1.5 sm:p-2 text-white rounded-full border-box-cyan disabled:opacity-30"
-                  whileHover={getHoverProps(isMobile, { scale: currentSlide === slides.length - 1 ? 1 : 1.1 })}
-                    whileTap={isMobile ? {} : { scale: 0.9 }}
-                    transition={isMobile ? {} : { duration: 0.2 }}
+                  whileHover={{ scale: currentSlide === slides.length - 1 ? 1 : 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    transition={{ duration: 0.2 }}
                   >
                   <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
                   </motion.button>
@@ -4712,7 +4668,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-1.5 md:gap-2 text-white hover:text-white/70 transition-colors group text-sm md:text-base"
-                  whileHover={getHoverProps(isMobile, { x: 4 })}
+                  whileHover={{ x: 4 }}
                             >
                   <span>Portfolio</span>
                   <ExternalLink size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -4722,7 +4678,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-1.5 md:gap-2 text-white hover:text-white/70 transition-colors group text-sm md:text-base"
-                  whileHover={getHoverProps(isMobile, { x: 4 })}
+                  whileHover={{ x: 4 }}
                             >
                   <span>About Me</span>
                   <ExternalLink size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -4732,7 +4688,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-1.5 md:gap-2 text-white hover:text-white/70 transition-colors group text-sm md:text-base"
-                  whileHover={getHoverProps(isMobile, { x: 4 })}
+                  whileHover={{ x: 4 }}
                             >
                   <span>Resume</span>
                   <ExternalLink size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
