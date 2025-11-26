@@ -173,7 +173,7 @@ function getComparisonCopy(percentage, nounPlural) {
     prefix: isAboveAverage ? "That's " : "That's only ",
     suffix: isAboveAverage
       ? ` ${nounPlural} more compared to other MAL users. You’re leaving the crowd behind!`
-      : ` ${nounPlural} compared to other MAL users. Don’t worry, every hero has a slower arc!`
+      : ` ${nounPlural} compared to other MAL users. Don’t worry, every hero has a slow arc!`
   };
 }
 
@@ -3884,7 +3884,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                   return (
                     <>
                       {beforeLoveFor}
-                      <span className="font-bold">{loveForText}</span>
+                      <span className="font-regular">{loveForText}</span>
                       {afterLoveFor}
                       <span className="font-bold">{characterName}</span>
                       {afterName}
