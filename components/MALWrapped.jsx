@@ -1336,7 +1336,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
         series: bestMatch.series,
         genre: genreText,
         reason: matchingGenreNames !== 'anime'
-          ? `Based on your love for ${matchingGenreNames}, ${bestMatch.name} from "${bestMatch.series}" matches your vibes`
+          ? `Based on your love for ${matchingGenreNames}, ${<span className="font-bold">{bestMatch.name}</span>} from '${<span className="font-bold">{bestMatch.series}</span>}' matches your vibes`
           : `${bestMatch.name} from "${bestMatch.series}" matches your anime journey`,
         coverImage: '/anime-character.webp', // Will be updated with character image
         type: 'character',
@@ -2462,8 +2462,8 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
             {topGenre ? (
               <>
                 <motion.div className="mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
-                  <p className="heading-lg font-semibold text-white "><span className="heading-md font-regular text-white/70">1.</span> {topGenre}</p>
-                  <p className="body-sm text-white/70 font-regular">{stats.topGenres[0][1]} series</p>
+                  <p className="heading-lg font-semibold text-white "><span className="body-lg font-bold text-white/70">1.</span> {topGenre}</p>
+                  <p className="body-md text-white/70 font-regular">{stats.topGenres[0][1]} series</p>
                 </motion.div>
                 {genreAnime.length > 0 && <div className="relative z-10"><ImageCarousel items={genreAnime} maxItems={10} showHover={true} showNames={false} /></div>}
                 {otherGenres.length > 0 && (
@@ -2620,7 +2620,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                             whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.45)' }}
                             transition={{ duration: 0.3, ease: smoothEase }}
                           >
-                            <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-10 w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 bg-white text-black rounded-full flex items-center justify-center font-semibold text-xs sm:text-sm md:text-base">1</div>
+                            <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-10 w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 bg-black/70 text-white rounded-full flex items-center justify-center font-semibold text-xs sm:text-sm md:text-base">1</div>
                             {(() => {
                               const featuredUrl = featured.malId ? `https://myanimelist.net/anime/${featured.malId}` : (featured.mangaId ? `https://myanimelist.net/manga/${featured.mangaId}` : null);
                               const featuredImage = (
@@ -2700,7 +2700,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                                     whileHover={{ borderColor: '#ffffff' }}
                                     transition={{ duration: 0.3, ease: smoothEase}}
                                   >
-                                    <div className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 z-10 w-5 h-5 sm:w-6 sm:h-6 bg-white text-black rounded-full flex items-center justify-center font-semibold text-xs sm:text-sm">{index + 2}</div>
+                                    <div className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 z-10 w-5 h-5 sm:w-6 sm:h-6 bg-black/70 text-white rounded-full flex items-center justify-center font-semibold text-xs sm:text-sm">{index + 2}</div>
                                     {item.coverImage && (
                                       <motion.img 
                                         src={item.coverImage} 
@@ -2855,7 +2855,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                       <>
                           <div className="flex gap-1.5 sm:gap-2">
                             <motion.div 
-                              className="bg-transparent aspect-[2/3] rounded-lg overflow-hidden relative w-14 sm:w-18 md:w-22" 
+                              className="bg-transparent aspect-[2/3] rounded-lg overflow-hidden relative w-16 md:w-20" 
                               style={{ boxSizing: 'border-box' }}
                               transition={{ duration: 0.3, ease: smoothEase }}
                             >
@@ -2873,8 +2873,9 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                             </motion.div>
                           <div className="flex-1 min-w-0">
                               <p className="title-md truncate font-semibold text-white">{highlight.node?.title}</p>
-                              <p className="body-sm text-white/70 truncate font-medium">{highlight.node?.studios?.[0]?.name || ''}<span className="mono text-yellow-300 mt-1 sm:mt-2 font-semibold mt-1">★ {highlight.list_status?.score ? Math.round(highlight.list_status.score) : 'Not Rated'}</span></p>
-                              <p className="mono text-white/70 truncate mt-1 sm:mt-2 font-regular">{seasonData.totalAnime} anime this season</p>
+                              <p className="body-sm text-white/70 truncate font-medium">{highlight.node?.studios?.[0]?.name || ''}</p>
+                              <p className="mono text-yellow-300 mt-1 sm:mt-2 font-semibold mt-1">★ {highlight.list_status?.score ? Math.round(highlight.list_status.score) : 'Not Rated'}</p>
+                              <p className="mono text-white/70 truncate mt-1 sm:mt-2 font-regular">{seasonData.totalAnime} anime watched this season</p>
                           </div>
                         </div>
                       </>
@@ -2975,12 +2976,12 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
         return (
           <SlideLayout  bgColor="red">
             <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
-            Not everything hit the way you hoped
+            You rated these anime the lowest
             </motion.h2>
             {didntLand.length > 0 ? (
               <motion.div className="relative z-10" {...fadeSlideUp} data-framer-motion>
                 <GridImages items={didntLand} maxItems={3} />
-                <motion.h3 className="body-sm font-regular text-white/70 mt-4 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>Better luck next season
+                <motion.h3 className="body-sm font-regular text-white/70 mt-4 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>Not everything hit the way you hoped
             </motion.h3>
               </motion.div>
             ) : (
@@ -2999,7 +3000,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
         return (
           <SlideLayout  bgColor="green">
             <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
-            Your planned list only got longer
+            You planned to watch these anime
             </motion.h2>
             {plannedAnimeItems.length > 0 ? (
               <motion.div className="relative z-10" {...fadeSlideUp} data-framer-motion>
@@ -3222,8 +3223,8 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
             {topMangaGenre ? (
               <>
                 <motion.div className="mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
-                  <p className="heading-lg font-semibold text-white "><span className="heading-md font-regular text-white/70">1.</span> {topMangaGenre[0]}</p>
-                  <p className="body-sm text-white/70 font-regular">{topMangaGenre[1]} manga</p>
+                  <p className="heading-lg font-semibold text-white "><span className="body-lg font-bold text-white/70">1.</span> {topMangaGenre[0]}</p>
+                  <p className="body-md  text-white/70 font-regular">{topMangaGenre[1]} manga</p>
                 </motion.div>
                 {mangaGenreItems.length > 0 && <div className="relative z-10"><ImageCarousel items={mangaGenreItems} maxItems={10} showHover={true} showNames={false} /></div>}
                 {otherMangaGenres.length > 0 && (
@@ -3235,7 +3236,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                           whileHover={{ scale: 1.02, backgroundColor: 'rgba(0, 0, 0, 0.45)' }}
                           transition={{ duration: 0.3, ease: smoothEase }}
                         >
-                          <p className="heading-sm font-semibold text-white truncate"><span className="heading-xs font-regular text-white/70">{idx + 2}.</span> {genreName}</p>
+                          <p className="heading-sm font-semibold text-white truncate"><span className="body-sm font-bold text-white/70">{idx + 2}.</span> {genreName}</p>
                           <p className="mono text-white/70 font-regular">{count} manga</p>
                       </motion.div>
                       </motion.div>
@@ -3380,7 +3381,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                             whileHover={{ backgroundColor: 'rgba(0, 0, 0, 0.45)' }}
                             transition={{ duration: 0.3, ease: smoothEase }}
                           >
-                            <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-10 w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 bg-white text-black rounded-full flex items-center justify-center font-semibold text-xs sm:text-sm md:text-base">1</div>
+                            <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-10 w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 bg-black/70 text-white rounded-full flex items-center justify-center font-semibold text-xs sm:text-sm md:text-base">1</div>
                             {(() => {
                               const featuredUrl = featured.malId ? `https://myanimelist.net/anime/${featured.malId}` : (featured.mangaId ? `https://myanimelist.net/manga/${featured.mangaId}` : null);
                               const featuredImage = (
@@ -3460,7 +3461,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                                     whileHover={{ borderColor: '#ffffff' }}
                                     transition={{ duration: 0.3, ease: smoothEase}}
                                   >
-                                    <div className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 z-10 w-5 h-5 sm:w-6 sm:h-6 bg-white text-black rounded-full flex items-center justify-center font-semibold text-xs sm:text-sm">{index + 2}</div>
+                                    <div className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 z-10 w-5 h-5 sm:w-6 sm:h-6 bg-black/70 text-white rounded-full flex items-center justify-center font-semibold text-xs sm:text-sm">{index + 2}</div>
                                     {item.coverImage && (
                                       <motion.img 
                                         src={item.coverImage} 
@@ -3571,11 +3572,11 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                     {otherAuthors.map(([authorName, count], idx) => (
                       <motion.div key={idx} className="text-center rounded-xl" style={{ padding: '2px' }} variants={staggerItem}>
                         <motion.div 
-                          className="bg-black/70 rounded-xl p-2 h-full"
+                          className="bg-black/70 rounded-xl p-4 h-full"
                           whileHover={{ scale: 1.02, backgroundColor: 'rgba(0, 0, 0, 0.45)' }}
                           transition={{ duration: 0.3 , ease: smoothEase }}
                         >
-                          <p className="heading-sm font-semibold text-white truncate"><span className="heading-xs font-regular text-white/70">{idx + 2}.</span> {authorName}</p>
+                          <p className="heading-sm font-semibold text-white truncate"><span className="body-sm font-bold text-white/70">{idx + 2}.</span> {authorName}</p>
                           <p className="mono text-white/70 font-regular">{count} titles</p>
                       </motion.div>
                       </motion.div>
@@ -3659,7 +3660,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                           <span className="mono text-yellow-300 font-semibold">★ {Math.round(item.userRating)}</span>
                         </div>
                       )}
-                      <p className="body-sm text-white/70 mt-1 font-regular">
+                      <p className="text-sm text-white/70 mt-1 font-regular">
                         Only {item.popularity.toLocaleString()} people read this!
                       </p>
                     </div>
@@ -3683,7 +3684,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
         return (
           <SlideLayout  bgColor="red">
           <motion.h2 className="body-md font-regular text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
-          Manga you rated the lowest
+          These manga weren't to your taste
             </motion.h2>
             {mangaDidntLand.length > 0 ? (
               <motion.div {...fadeSlideUp} data-framer-motion>
@@ -3791,7 +3792,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                   >
                     <div className="flex items-center gap-3">
                       <motion.div
-                        className="w-20 md:w-24 h-20 md:h-24 flex-shrink-0 rounded-full overflow-hidden"
+                        className="w-16 md:w-20 h-16 md:h-20 flex-shrink-0 rounded-full overflow-hidden"
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         transition={{ duration: 0.4, delay: idx * 0.1 + 0.2, type: "spring", stiffness: 200 }}
@@ -3808,7 +3809,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                       </motion.div>
                       <div className="flex-1 min-w-0">
                         <p className="heading-sm font-semibold text-white mb-1">{badge.name}</p>
-                        <p className="body-xs text-white/60 font-regular leading-relaxed">{badge.description}</p>
+                        <p className="text-sm text-white/70 font-regular leading-relaxed">{badge.description}</p>
                       </div>
                     </div>
                   </motion.div>
