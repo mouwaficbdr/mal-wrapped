@@ -446,39 +446,36 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
       return Array.from(map.values());
     };
     
-    // Filter anime based on selected year
-    // Use finish_date if available, otherwise use start_date or updated_at
-    const filteredAnime = currentYear === 'all' ? anime : anime.filter(item => {
-      const finishDate = item.list_status?.finish_date;
-      const startDate = item.list_status?.start_date;
-      const updatedAt = item.list_status?.updated_at;
-      
-      // Try finish_date first, then start_date, then updated_at
-      let dateToCheck = finishDate || startDate || updatedAt;
-      if (!dateToCheck) return false;
-      
+    // Helper to get year from item's date fields
+    const getItemYear = (item) => {
+      const dateStr = item.list_status?.finish_date || item.list_status?.start_date || item.list_status?.updated_at;
+      if (!dateStr) return null;
       try {
-        const year = new Date(dateToCheck).getFullYear();
-        return year === currentYear;
-      } catch (e) {
-        return false;
+        return new Date(dateStr).getFullYear();
+      } catch {
+        return null;
       }
-    });
-
-    const thisYearAnime = filteredAnime;
+    };
+    
+    // Helper to filter items by year
+    const filterByYear = (items) => {
+      if (currentYear === 'all') return items;
+      return items.filter(item => getItemYear(item) === currentYear);
+    };
+    
+    // Filter anime based on selected year
+    const thisYearAnime = filterByYear(anime);
 
     // Get anime with ratings (completed or watching) from filtered list
     const ratedAnime = thisYearAnime.filter(item => {
-      const status = item.list_status?.status;
-      const score = item.list_status?.score;
-      return (status === 'completed' || status === 'watching') && score && score > 0;
+      const { status, score } = item.list_status || {};
+      return (status === 'completed' || status === 'watching') && score > 0;
     });
 
     // Get completed anime for specific stats
     const completedAnime = thisYearAnime.filter(item => {
-      const status = item.list_status?.status;
-      const score = item.list_status?.score;
-      return status === 'completed' && score && score > 0;
+      const { status, score } = item.list_status || {};
+      return status === 'completed' && score > 0;
     });
     
     // Calculate genres (from filtered anime)
@@ -602,32 +599,18 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
     });
 
     // Manga stats - filter by year
-    const filteredManga = currentYear === 'all' ? manga : manga.filter(item => {
-      const finishDate = item.list_status?.finish_date;
-      const startDate = item.list_status?.start_date;
-      const updatedAt = item.list_status?.updated_at;
-      
-      let dateToCheck = finishDate || startDate || updatedAt;
-      if (!dateToCheck) return false;
-      
-      try {
-        const year = new Date(dateToCheck).getFullYear();
-        return year === currentYear;
-      } catch (e) {
-        return false;
-      }
-    });
+    const filteredManga = filterByYear(manga);
 
     // Get manga with ratings (completed or reading)
     const ratedManga = filteredManga.filter(item => {
-      const status = item.list_status?.status;
-      const score = item.list_status?.score;
-      return (status === 'completed' || status === 'reading') && score && score > 0;
+      const { status, score } = item.list_status || {};
+      return (status === 'completed' || status === 'reading') && score > 0;
     });
 
-    const completedManga = filteredManga.filter(item => 
-      item.list_status?.status === 'completed' && item.list_status?.score > 0
-    );
+    const completedManga = filteredManga.filter(item => {
+      const { status, score } = item.list_status || {};
+      return status === 'completed' && score > 0;
+    });
 
     const topManga = ratedManga
       .sort((a, b) => b.list_status.score - a.list_status.score)
@@ -1015,26 +998,12 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
     // The Rookie - Started using MAL that year (check if earliest entry is this year)
     let isRookie = false;
     if (currentYear !== 'all' && typeof currentYear === 'number') {
-      const allAnimeDates = anime
-        .filter(item => item.list_status?.start_date || item.list_status?.finish_date)
-        .map(item => {
-          const dateStr = item.list_status?.start_date || item.list_status?.finish_date;
-          return dateStr ? new Date(dateStr).getFullYear() : null;
-        })
-        .filter(year => year !== null);
-      const allMangaDates = (manga || [])
-        .filter(item => item.list_status?.start_date || item.list_status?.finish_date)
-        .map(item => {
-          const dateStr = item.list_status?.start_date || item.list_status?.finish_date;
-          return dateStr ? new Date(dateStr).getFullYear() : null;
-        })
-        .filter(year => year !== null);
+      const allYears = [
+        ...anime.map(getItemYear),
+        ...(manga || []).map(getItemYear)
+      ].filter(year => year !== null);
       
-      const earliestYear = Math.min(
-        ...(allAnimeDates.length > 0 ? allAnimeDates : [currentYear]),
-        ...(allMangaDates.length > 0 ? allMangaDates : [currentYear])
-      );
-      
+      const earliestYear = allYears.length > 0 ? Math.min(...allYears) : currentYear;
       isRookie = earliestYear === currentYear && totalCompleted < 20;
     }
     
@@ -1057,39 +1026,14 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
     let yearComparison = null;
     if (currentYear !== 'all' && typeof currentYear === 'number') {
       const previousYear = currentYear - 1;
-      const previousYearAnime = anime.filter(item => {
-        const finishDate = item.list_status?.finish_date;
-        const startDate = item.list_status?.start_date;
-        const updatedAt = item.list_status?.updated_at;
-        let dateToCheck = finishDate || startDate || updatedAt;
-        if (!dateToCheck) return false;
-        try {
-          const year = new Date(dateToCheck).getFullYear();
-          return year === previousYear;
-        } catch (e) {
-          return false;
-        }
-      });
-      
+      const previousYearAnime = anime.filter(item => getItemYear(item) === previousYear);
       const previousYearEpisodes = previousYearAnime.reduce((sum, item) => 
         sum + (item.list_status?.num_episodes_watched || 0), 0
       );
       const previousYearAnimeCount = previousYearAnime.length;
       
       // Get previous year manga
-      const previousYearManga = (manga || []).filter(item => {
-        const finishDate = item.list_status?.finish_date;
-        const startDate = item.list_status?.start_date;
-        const updatedAt = item.list_status?.updated_at;
-        let dateToCheck = finishDate || startDate || updatedAt;
-        if (!dateToCheck) return false;
-        try {
-          const year = new Date(dateToCheck).getFullYear();
-          return year === previousYear;
-        } catch (e) {
-          return false;
-        }
-      });
+      const previousYearManga = (manga || []).filter(item => getItemYear(item) === previousYear);
       const previousYearMangaCount = previousYearManga.length;
       
       if (previousYearEpisodes > 0 || previousYearAnimeCount > 0) {
