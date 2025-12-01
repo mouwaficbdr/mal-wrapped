@@ -2438,24 +2438,6 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                   <p className="body-sm text-white/70 font-medium">{stats.topGenres[0][1]} series</p>
                 </motion.div>
                 {genreAnime.length > 0 && <div className="relative z-10"><ImageCarousel items={genreAnime} maxItems={10} showHover={true} showNames={false} /></div>}
-                {otherGenres.length > 0 && (
-                  <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-1.5 md:gap-2 relative z-10">
-                    {otherGenres.map(([genreName, count], idx) => (
-                      <motion.div key={idx} className="text-center rounded-xl" style={{ padding: '2px' }} variants={staggerItem}>
-                        <motion.div 
-                          className="bg-black/70 rounded-xl p-2 h-full"
-                          whileHover={{ scale: 1.02, backgroundColor: 'rgba(0, 0, 0, 0.45)' }}
-                          transition={{ duration: 0.3, ease: smoothEase }}
-                        >
-                          <p className="heading-sm font-semibold text-white truncate"><span className="body-sm font-bold text-white/70">{idx + 2}.</span> {genreName}</p>
-                          <p className="text-sm text-white/70 font-regular">{count} series</p>
-                      </motion.div>
-                      </motion.div>
-                    ))}
-                    
-                  </div>
-                  
-                )}
                 <motion.h3 className="body-sm font-regular text-white/70 mt-4 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>You know what you love
             </motion.h3>
               </>
@@ -2490,9 +2472,9 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                   data-framer-motion
                 >
                   <img 
-                    src="/anime-character.webp" 
+                    src="https://media1.tenor.com/m/Y9mAEIcjy5kAAAAC/absolute-cinema-cinema.gif" 
                     alt="Anime character"
-                    className="w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 object-contain"
+                    className="h-48 sm:h-56 md:h-64 object-contain rounded-xl"
                   />
                 </motion.div>
                 <h2 className="body-md font-medium font-medium text-white mt-4 text-container z-10 relative">But one show rose above everything</h2>
@@ -2994,9 +2976,9 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                 data-framer-motion
               >
                 <img 
-                  src="https://media1.tenor.com/m/mBirR1dhU4sAAAAC/kon-keion.gif" 
+                  src="https://media1.tenor.com/m/6906u9o39PMAAAAC/asteroid-in-love-mira-konohata.gif" 
                   alt="Manga character"
-                  className="w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 object-contain"
+                  className="h-48 sm:h-56 md:h-64 object-contain rounded-xl"
                 />
               </motion.div>
               <motion.h2 className="body-md font-medium text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
@@ -3199,22 +3181,6 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                   <p className="body-sm text-white/70 font-regular">{topMangaGenre[1]} manga</p>
                 </motion.div>
                 {mangaGenreItems.length > 0 && <div className="relative z-10"><ImageCarousel items={mangaGenreItems} maxItems={10} showHover={true} showNames={false} /></div>}
-                {otherMangaGenres.length > 0 && (
-                  <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2 relative z-10">
-                    {otherMangaGenres.map(([genreName, count], idx) => (
-                  <motion.div key={idx} className="text-center rounded-xl" style={{ padding: '2px' }} variants={staggerItem}>
-                        <motion.div 
-                      className="bg-black/70 rounded-xl p-2 h-full"
-                          whileHover={{ scale: 1.02, backgroundColor: 'rgba(0, 0, 0, 0.45)' }}
-                          transition={{ duration: 0.3, ease: smoothEase }}
-                        >
-                          <p className="heading-sm font-semibold text-white truncate"><span className="body-sm font-bold text-white/70">{idx + 2}.</span> {genreName}</p>
-                          <p className="text-sm text-white/70 font-regular">{count} manga</p>
-                      </motion.div>
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
                 <motion.h3 className="body-sm font-regular text-white/70 text-center text-container relative z-10 mt-4" {...fadeSlideUp} data-framer-motion>
                 Clearly, you have a type
             </motion.h3>
@@ -3249,9 +3215,9 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                     data-framer-motion
                   >
                     <img 
-                      src="/manga-character.webp" 
+                      src="https://media1.tenor.com/m/X1zk_5PC2RUAAAAC/chrollo-lucilfer.gif " 
                       alt="Manga character"
-                      className="w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 object-contain"
+                      className="h-48 sm:h-56 md:h-64 object-contain rounded-xl"
                     />
                   </motion.div>
                   <h2 className="body-md font-regular text-white mt-4 text-container z-10 relative">But one manga kept you turning pages nonstop</h2>
@@ -3539,24 +3505,6 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                 {authorManga.length > 0 && (
                   <div className="relative z-10"><ImageCarousel items={authorManga} maxItems={10} showHover={true} showNames={false} /></div>
                 )}
-                {otherAuthors.length > 0 && (
-                  <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-2 relative z-10">
-                    {otherAuthors.map(([authorName, count], idx) => (
-                      <motion.div key={idx} className="text-center rounded-xl" style={{ padding: '2px' }} variants={staggerItem}>
-                        <motion.div 
-                          className="bg-black/70 rounded-xl p-4 h-full"
-                          whileHover={{ scale: 1.02, backgroundColor: 'rgba(0, 0, 0, 0.45)' }}
-                          transition={{ duration: 0.3 , ease: smoothEase }}
-                        >
-                          <p className="heading-sm font-semibold text-white truncate"><span className="body-sm font-bold text-white/70">{idx + 2}.</span> {authorName}</p>
-                          <p className="text-sm text-white/70 font-regular">{count} manga</p>
-                      </motion.div>
-                      </motion.div>
-                      
-                    ))}
-                  </div>
-                  
-                )}
                 <motion.h3 className="body-sm font-regular text-white/70 text-center text-container relative z-10 mt-4" {...fadeSlideUp} data-framer-motion>
                 You know who delivers good writing
             </motion.h3>
@@ -3736,7 +3684,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
           'the_explorer': '/badges/the-explorer.webp', // Monkey D. Luffy
           'the_archivist': '/badges/the-archivist.webp', // Girl reading book
           'the_strategist': '/badges/the-strategist.webp', // Boy with green hair and lightning
-          'the_sprinter': '/badges/the-binge-warrior.webp', // Naruto eating ramen
+          'the_sprinter': '/badges/the_sprinter.webp', // Naruto eating ramen
           'the_loyalist': '/badges/the-loyalist.webp', // Sailor Moon
           'the_specialist': '/badges/the-genre-master.webp', // Gon Freecss
           'the_rookie': '/badges/the-rookie.webp' // Rem
