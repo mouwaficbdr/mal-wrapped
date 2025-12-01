@@ -4223,7 +4223,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                   <motion.img
                     src="/avatar.webp"
                     alt="XAvishkar"
-                    className="relative w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 object-contain pointer-events-none z-10 mt-1 mx-auto"
+                    className="relative w-40 h-40 sm:w-44 sm:h-44 md:w-48 md:h-48 object-contain pointer-events-none z-10 mt-1 mb-1 mx-auto rounded-xl"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, ease: smoothEase }}
