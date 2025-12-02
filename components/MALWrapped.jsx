@@ -1725,65 +1725,10 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
     }
   }
 
-  async function shareToSocial(platform) {
+  function shareToSocial(platform) {
     const yearText = stats?.selectedYear && stats.selectedYear !== 'all' ? `${stats.selectedYear} ` : '';
     const shareText = `Check out your ${yearText}MyAnimeList Wrapped!`;
     const shareUrl = window.location.href;
-    
-    // Try to use Web Share API with image first (works on mobile and some desktop browsers)
-    if (navigator.share && navigator.canShare) {
-      // Find finale slide index
-      const finaleIndex = slides.findIndex(slide => slide.id === 'finale');
-      const slideIndex = finaleIndex !== -1 ? finaleIndex : currentSlide;
-      
-      // Save current slide
-      const previousSlide = currentSlide;
-      
-      try {
-        // Navigate to the slide we want to share
-        setCurrentSlide(slideIndex);
-        
-        // Wait for slide to render
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Generate PNG of the slide
-        const result = await generatePNG();
-        
-        if (result && result.file) {
-          const shareData = {
-            title: `My ${yearText}MAL Wrapped`,
-            text: shareText,
-            url: shareUrl,
-            files: [result.file],
-          };
-          
-          if (navigator.canShare(shareData)) {
-            await navigator.share(shareData);
-            // Restore previous slide
-            setCurrentSlide(previousSlide);
-            setShowShareMenu(false);
-            return;
-          }
-        }
-        
-        // If sharing failed, restore slide
-        setCurrentSlide(previousSlide);
-      } catch (error) {
-        // Always restore slide on error
-        setCurrentSlide(previousSlide);
-        
-        if (error?.name !== 'AbortError') {
-          console.error('Error sharing with image:', error);
-          // Fall through to URL sharing
-        } else {
-          // User cancelled
-          setShowShareMenu(false);
-          return;
-        }
-      }
-    }
-    
-    // Fallback to URL-based sharing for desktop or platforms that don't support file sharing
     const encodedText = encodeURIComponent(shareText);
     const encodedUrl = encodeURIComponent(shareUrl);
     
@@ -1839,6 +1784,28 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedYear]);
+
+  // Auto-advance slides every 15 seconds
+  useEffect(() => {
+    // Only auto-advance when wrapped is loaded and user is authenticated
+    if (!stats || !isAuthenticated || !slides || slides.length === 0) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setCurrentSlide((prevSlide) => {
+        // Skip welcome slide (index 0) - start from slide 1
+        const nextSlide = prevSlide + 1;
+        // Loop back to slide 1 (skip welcome) when reaching the end
+        if (nextSlide >= slides.length) {
+          return 1;
+        }
+        return nextSlide;
+      });
+    }, 15000); // 15 seconds
+
+    return () => clearInterval(interval);
+  }, [stats, isAuthenticated, slides]);
 
   async function handleBegin() {
     if (typeof window === 'undefined') {
