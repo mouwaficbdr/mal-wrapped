@@ -1814,7 +1814,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
     setSlideProgress(0);
     
     // Only animate progress if wrapped is loaded and user is authenticated
-    if (!stats || !isAuthenticated || !slides || slides.length === 0) {
+    if (!stats || !isAuthenticated) {
       return;
     }
 
@@ -1825,6 +1825,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
 
     const duration = 10000; // 10 seconds to match auto-advance
     const startTime = Date.now();
+    let animationFrameId = null;
     
     const updateProgress = () => {
       const elapsed = Date.now() - startTime;
@@ -1832,14 +1833,18 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
       setSlideProgress(progress);
       
       if (progress < 1) {
-        requestAnimationFrame(updateProgress);
+        animationFrameId = requestAnimationFrame(updateProgress);
       }
     };
     
-    const frameId = requestAnimationFrame(updateProgress);
+    animationFrameId = requestAnimationFrame(updateProgress);
     
-    return () => cancelAnimationFrame(frameId);
-  }, [currentSlide, stats, isAuthenticated, slides]);
+    return () => {
+      if (animationFrameId !== null) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
+  }, [currentSlide, stats, isAuthenticated]);
 
   // Instagram story-style tap handlers for mobile navigation
   const handleSlideTap = (e) => {
@@ -4429,11 +4434,12 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                 {slides.map((_, i) => {
                   const isCompleted = i < currentSlide;
                   const isActive = i === currentSlide;
-                  const width = isCompleted 
-                    ? '100%' 
-                    : isActive 
-                      ? `${slideProgress * 100}%` 
-                      : '0%';
+                  let width = '0%';
+                  if (isCompleted) {
+                    width = '100%';
+                  } else if (isActive) {
+                    width = `${Math.max(0, Math.min(100, slideProgress * 100))}%`;
+                  }
                   return (
                     <div key={i} className="flex-1 h-1 sm:h-1.5 rounded-full bg-white/10 overflow-hidden">
                       <div 
