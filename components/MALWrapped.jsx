@@ -3039,13 +3039,15 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
         }));
         return (
           <SlideLayout  bgColor="red">
-            <motion.h2 className="body-md font-medium text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
-            You rated these anime the lowest
-            </motion.h2>
+            {didntLand.length > 0 && (
+              <motion.h2 className="body-md font-medium text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+              Not every anime hit the way you hoped
+              </motion.h2>
+            )}
             {didntLand.length > 0 ? (
               <motion.div className="relative z-10" {...fadeSlideUp} data-framer-motion>
                 <GridImages items={didntLand} maxItems={3} />
-                <motion.h3 className="body-sm font-regular text-white/70 mt-4 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>Not everything hit the way you hoped
+                <motion.h3 className="body-sm font-regular text-white/70 mt-4 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>Better luck next season!
             </motion.h3>
               </motion.div>
             ) : (
@@ -3063,9 +3065,11 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
         }));
         return (
           <SlideLayout  bgColor="green">
-            <motion.h2 className="body-md font-medium text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
-            Your planned-to-watch list only got longer
-            </motion.h2>
+            {plannedAnimeItems.length > 0 && (
+              <motion.h2 className="body-md font-medium text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+              Your planned-to-watch list only got longer
+              </motion.h2>
+            )}
             {plannedAnimeItems.length > 0 ? (
               <motion.div className="relative z-10" {...fadeSlideUp} data-framer-motion>
                 <GridImages items={plannedAnimeItems} maxItems={3} />
@@ -3746,9 +3750,11 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
         }));
         return (
           <SlideLayout  bgColor="red">
-          <motion.h2 className="body-md font-medium text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
-          But even great readers hit a few misses
-            </motion.h2>
+          {mangaDidntLand.length > 0 && (
+            <motion.h2 className="body-md font-medium text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+            But even great readers hit a few misses
+              </motion.h2>
+          )}
             {mangaDidntLand.length > 0 ? (
               <motion.div {...fadeSlideUp} data-framer-motion>
                 <GridImages items={mangaDidntLand} maxItems={3} />
@@ -3772,9 +3778,11 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
         }));
         return (
           <SlideLayout  bgColor="green">
-            <motion.h2 className="body-md font-medium text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
-            You planned to read these manga, but haven't yet
-            </motion.h2>
+            {plannedMangaItems.length > 0 && (
+              <motion.h2 className="body-md font-medium text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+              You planned to read these manga, but haven't yet
+              </motion.h2>
+            )}
             {plannedMangaItems.length > 0 ? (
               <motion.div {...fadeSlideUp} data-framer-motion>
                 <GridImages items={plannedMangaItems} maxItems={3} />
