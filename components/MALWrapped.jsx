@@ -189,8 +189,6 @@ function getCompletionDays(startDate, finishDate) {
 
 export default function MALWrapped() {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [touchStart, setTouchStart] = useState(null);
-  const [touchEnd, setTouchEnd] = useState(null);
   const [username, setUsername] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState('');
@@ -1809,61 +1807,40 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
     return () => clearInterval(interval);
   }, [stats, isAuthenticated, slides]);
 
-  // Touch and swipe handlers for mobile navigation
-  const minSwipeDistance = 50; // Minimum distance for a swipe
-
-  const onTouchStart = (e) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const onTouchMove = (e) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-
-    if (isLeftSwipe && currentSlide < slides.length - 1) {
-      // Swipe left - go to next slide
-      setCurrentSlide((prev) => Math.min(slides.length - 1, prev + 1));
-    } else if (isRightSwipe && currentSlide > 0) {
-      // Swipe right - go to previous slide
-      setCurrentSlide((prev) => Math.max(0, prev - 1));
-    }
-    
-    setTouchStart(null);
-    setTouchEnd(null);
-  };
-
-  // Tap handlers for left/right sides of screen (Instagram story style)
+  // Instagram story-style tap handlers for mobile navigation
   const handleSlideTap = (e) => {
     // Don't handle tap if user clicked on an interactive element
-    if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON' || e.target.closest('a') || e.target.closest('button')) {
+    const target = e.target;
+    if (
+      target.tagName === 'A' || 
+      target.tagName === 'BUTTON' || 
+      target.closest('a') || 
+      target.closest('button') ||
+      target.closest('[data-exclude-from-screenshot]')
+    ) {
       return;
     }
     
     if (!slides || slides.length === 0) return;
     
     const screenWidth = window.innerWidth;
-    const tapX = e.clientX;
+    const tapX = e.clientX || (e.touches && e.touches[0]?.clientX) || (e.changedTouches && e.changedTouches[0]?.clientX);
     
     if (!tapX) return;
     
+    // Divide screen into thirds - left third goes back, right third goes forward
     const leftThird = screenWidth / 3;
     const rightThird = (screenWidth / 3) * 2;
     
     if (tapX < leftThird && currentSlide > 0) {
       // Tap left side - go to previous slide
       e.preventDefault();
+      e.stopPropagation();
       setCurrentSlide((prev) => Math.max(0, prev - 1));
     } else if (tapX > rightThird && currentSlide < slides.length - 1) {
       // Tap right side - go to next slide
       e.preventDefault();
+      e.stopPropagation();
       setCurrentSlide((prev) => Math.min(slides.length - 1, prev + 1));
     }
   };
@@ -4434,10 +4411,8 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                 key={currentSlide} 
                 className="w-full flex-grow flex items-center justify-center overflow-y-auto py-2 sm:py-4 relative" 
                 style={{ zIndex: 0 }}
-                onTouchStart={onTouchStart}
-                onTouchMove={onTouchMove}
-                onTouchEnd={onTouchEnd}
                 onClick={handleSlideTap}
+                onTouchEnd={handleSlideTap}
               >
                 {/* Top gradient fade - above rainbow shapes, below content */}
                
