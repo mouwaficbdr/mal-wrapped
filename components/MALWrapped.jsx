@@ -189,7 +189,6 @@ function getCompletionDays(startDate, finishDate) {
 
 export default function MALWrapped() {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [slideProgress, setSlideProgress] = useState(0);
   const [username, setUsername] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState('');
@@ -1786,7 +1785,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedYear]);
 
-  // Auto-advance slides every 10 seconds
+  // Auto-advance slides every 15 seconds
   useEffect(() => {
     // Only auto-advance when wrapped is loaded and user is authenticated
     if (!stats || !isAuthenticated || !slides || slides.length === 0) {
@@ -1803,53 +1802,10 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
         }
         return nextSlide;
       });
-    }, 10000); // 10 seconds
+    }, 10000); // 15 seconds
 
     return () => clearInterval(interval);
   }, [stats, isAuthenticated, slides]);
-
-  // Animate progress bar for current slide
-  useEffect(() => {
-    // Reset progress immediately when slide changes (don't wait)
-    setSlideProgress(0);
-    
-    // Only animate progress if wrapped is loaded and user is authenticated
-    if (!stats || !isAuthenticated) {
-      return;
-    }
-
-    // Skip progress animation for welcome slide
-    if (currentSlide === 0) {
-      return;
-    }
-
-    const duration = 10000; // 10 seconds to match auto-advance
-    const startTime = Date.now();
-    let animationFrameId = null;
-    let isCancelled = false;
-    
-    const updateProgress = () => {
-      if (isCancelled) return;
-      
-      const elapsed = Date.now() - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      setSlideProgress(progress);
-      
-      if (progress < 1) {
-        animationFrameId = requestAnimationFrame(updateProgress);
-      }
-    };
-    
-    // Start animation immediately on next frame
-    animationFrameId = requestAnimationFrame(updateProgress);
-    
-    return () => {
-      isCancelled = true;
-      if (animationFrameId !== null) {
-        cancelAnimationFrame(animationFrameId);
-      }
-    };
-  }, [currentSlide, stats, isAuthenticated]);
 
   // Instagram story-style tap handlers for mobile navigation
   const handleSlideTap = (e) => {
@@ -4439,21 +4395,11 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                 {slides.map((_, i) => {
                   const isCompleted = i < currentSlide;
                   const isActive = i === currentSlide;
-                  let width = '0%';
-                  if (isCompleted) {
-                    width = '100%';
-                  } else if (isActive) {
-                    width = `${Math.max(0, Math.min(100, slideProgress * 100))}%`;
-                  }
                   return (
                     <div key={i} className="flex-1 h-1 sm:h-1.5 rounded-full bg-white/10 overflow-hidden">
                       <div 
-                        className={`h-full rounded-full ${isActive ? 'bg-white' : 'bg-white/30'}`} 
-                        style={{ 
-                          width: width,
-                          transition: isActive ? 'none' : 'width 0.3s ease-out',
-                          willChange: isActive ? 'width' : 'auto'
-                        }} 
+                        className={`h-full rounded-full transition-all duration-500 ease-out ${isActive ? 'bg-white' : 'bg-white/30'}`} 
+                        style={{ width: (isCompleted || isActive) ? '100%' : '0%' }} 
                       />
                     </div>
                   );
