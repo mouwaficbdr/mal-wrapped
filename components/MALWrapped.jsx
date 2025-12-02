@@ -247,6 +247,41 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
     ? window.location.origin.replace(/^https?:\/\//, '').toUpperCase()
     : 'MAL-WRAPPED.VERCEL.APP';
 
+  // Get slide-specific watermark text
+  function getWatermarkText(slideId) {
+    if (!slideId) return websiteUrl;
+    
+    const watermarkMap = {
+      'welcome': 'MAL-WRAPPED.VERCEL.APP',
+      'anime_count': 'My Anime Journey',
+      'anime_time': 'My Anime Watchtime',
+      'top_genre': 'My Most Watched Genres',
+      'drumroll_anime': 'My Top Anime',
+      'top_5_anime': 'My Top 5 Anime',
+      'top_studio': 'My Favorite Studio',
+      'seasonal_highlights': 'My Seasonal Highlights',
+      'hidden_gems_anime': 'My Hidden Anime Gems',
+      'didnt_land_anime': 'My Least Rated Anime',
+      'planned_anime': 'My Planned-to-Watch Anime',
+      'milestones': 'My Milestones',
+      'anime_to_manga_transition': 'MAL-WRAPPED.VERCEL.APP',
+      'manga_count': 'My Manga Journey',
+      'manga_time': 'My Manga Reading Time',
+      'top_manga_genre': 'My Most Read Genres',
+      'drumroll_manga': 'My Top Manga',
+      'top_5_manga': 'My Top 5 Manga',
+      'top_author': 'My Favorite Authors',
+      'hidden_gems_manga': 'My Hidden Manga Gems',
+      'didnt_land_manga': 'My Least Rated Manga',
+      'planned_manga': 'My Planned-to-Read Manga',
+      'badges': 'My Badges',
+      'character_twin': 'My Anime Twin',
+      'finale': 'MAL-WRAPPED.VERCEL.APP'
+    };
+    
+    return watermarkMap[slideId] || websiteUrl;
+  }
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -1548,7 +1583,8 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
             ctx.drawImage(img, 0, 0);
             
             // Add watermark at the bottom - adjust font size based on scale
-            const watermarkText = websiteUrl;
+            const currentSlideId = slides[currentSlide]?.id;
+            const watermarkText = getWatermarkText(currentSlideId);
             const fontSize = 40; // Smaller font on mobile
             ctx.font = `bold ${fontSize}px "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif`;
             ctx.textAlign = 'center';
