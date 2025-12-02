@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, Download, LogOut, Share2, Github, Youtube, Linkedin, Instagram, ExternalLink, Copy } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -209,37 +209,40 @@ export default function MALWrapped() {
   const hasAnime = stats && stats.thisYearAnime && stats.thisYearAnime.length > 0;
   const hasManga = stats && mangaList && mangaList.length > 0;
   
-  const slides = stats ? [
-    { id: 'welcome' },
-    { id: 'anime_count' },
-    ...(hasAnime ? [
-      { id: 'anime_time' },
-      { id: 'top_genre' },
-      { id: 'drumroll_anime' },
-      { id: 'top_5_anime' },
-      // { id: 'top_studio' },
-      { id: 'seasonal_highlights' },
-      { id: 'hidden_gems_anime' },
-      { id: 'didnt_land_anime' },
-      { id: 'planned_anime' },
-      ...(stats.milestones && stats.milestones.length > 0 && stats.thisYearMilestone ? [{ id: 'milestones' }] : []),
-    ] : []),
-    { id: 'anime_to_manga_transition' },
-    { id: 'manga_count' },
-    ...(hasManga ? [
-      { id: 'manga_time' },
-      { id: 'top_manga_genre' },
-      { id: 'drumroll_manga' },
-      { id: 'top_5_manga' },
-      { id: 'top_author' },
-      { id: 'hidden_gems_manga' },
-      { id: 'didnt_land_manga' },
-      { id: 'planned_manga' },
-    ] : []),
-    ...(stats.badges && stats.badges.length > 0 ? [{ id: 'badges' }] : []),
-    ...(stats.characterTwin ? [{ id: 'character_twin' }] : []),
-    { id: 'finale' },
-  ] : [];
+  const slides = useMemo(() => {
+    if (!stats) return [];
+    return [
+      { id: 'welcome' },
+      { id: 'anime_count' },
+      ...(hasAnime ? [
+        { id: 'anime_time' },
+        { id: 'top_genre' },
+        { id: 'drumroll_anime' },
+        { id: 'top_5_anime' },
+        // { id: 'top_studio' },
+        { id: 'seasonal_highlights' },
+        { id: 'hidden_gems_anime' },
+        { id: 'didnt_land_anime' },
+        { id: 'planned_anime' },
+        ...(stats.milestones && stats.milestones.length > 0 && stats.thisYearMilestone ? [{ id: 'milestones' }] : []),
+      ] : []),
+      { id: 'anime_to_manga_transition' },
+      { id: 'manga_count' },
+      ...(hasManga ? [
+        { id: 'manga_time' },
+        { id: 'top_manga_genre' },
+        { id: 'drumroll_manga' },
+        { id: 'top_5_manga' },
+        { id: 'top_author' },
+        { id: 'hidden_gems_manga' },
+        { id: 'didnt_land_manga' },
+        { id: 'planned_manga' },
+      ] : []),
+      ...(stats.badges && stats.badges.length > 0 ? [{ id: 'badges' }] : []),
+      ...(stats.characterTwin ? [{ id: 'character_twin' }] : []),
+      { id: 'finale' },
+    ];
+  }, [stats, hasAnime, hasManga]);
 
   
 const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, .4) 25%, rgba(0, 0, 0, 0.3) 60%, rgba(0, 0, 0, .4) 80%, rgba(0, 0, 0, 1) 100%)';
@@ -1786,7 +1789,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedYear]);
 
-  // Auto-advance slides every 15 seconds
+  // Auto-advance slides every 10 seconds
   useEffect(() => {
     // Only auto-advance when wrapped is loaded and user is authenticated
     if (!stats || !isAuthenticated || !slides || slides.length === 0) {
@@ -1803,10 +1806,10 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
         }
         return nextSlide;
       });
-    }, 10000); // 15 seconds
+    }, 10000); // 10 seconds
 
     return () => clearInterval(interval);
-  }, [stats, isAuthenticated, slides]);
+  }, [stats, isAuthenticated, slides.length]);
 
   // Animate progress bar for current slide over 10 seconds (matching auto-advance)
   useEffect(() => {
@@ -1849,7 +1852,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
         cancelAnimationFrame(animationFrameId);
       }
     };
-  }, [currentSlide, stats, isAuthenticated, slides]);
+  }, [currentSlide, stats, isAuthenticated, slides.length]);
 
   // Instagram story-style tap handlers for mobile navigation
   const handleSlideTap = (e) => {
