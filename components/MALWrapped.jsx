@@ -2435,7 +2435,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
               <>
                 <motion.div className="mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
                   <p className="heading-lg font-semibold text-white "><span className="body-lg font-bold text-white/70">1.</span> {topGenre}</p>
-                  <p className="body-sm text-white/70 font-medium">{stats.topGenres[0][1]} series</p>
+                  <p className="body-sm text-white/70 font-medium">{stats.topGenres[0][1]} entries</p>
                 </motion.div>
                 {genreAnime.length > 0 && <div className="relative z-10"><ImageCarousel items={genreAnime} maxItems={10} showHover={true} showNames={false} /></div>}
                 {otherGenres.length > 0 && (
@@ -2452,7 +2452,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                           <span className="body-sm font-bold text-white/50 mr-1.5">{idx + 2}.</span> 
                           {genreName}
                         </p>
-                        <p className="text-xs text-white/60 font-medium tracking-wide">{count} series</p>
+                        <p className="text-sm text-white/60 font-medium tracking-wide">{count} entries</p>
                       </motion.div>
                     ))}
                   </div>
@@ -2626,8 +2626,8 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                               transition={{ duration: 0.5, delay: 0.2 }}
                             >
                               <h3 className="title-md mt-1.5 sm:mt-2 truncate font-semibold text-white text-left">{featured.title}</h3>
-                              {featured.studio && <p className="body-sm text-white/70 truncate font-medium text-left">{featured.studio}</p>}
-                              {featured.author && <p className="body-sm text-white/70 truncate font-medium text-left">{featured.author}</p>}
+                              {featured.studio && <p className="mt-1 body-sm text-white/70 truncate font-medium text-left">{featured.studio}</p>}
+                              {featured.author && <p className="mt-1 body-sm text-white/70 truncate font-medium text-left">{featured.author}</p>}
                               <div className="flex items-left justify-left mono text-yellow-300 mt-1 font-semibold">
                                 <span className="mr-0.5 sm:mr-1">★</span>
                                 <span>{Math.round(featured.userRating)}</span>
@@ -3196,7 +3196,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
               <>
                 <motion.div className="mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
                   <p className="heading-lg font-semibold text-white "><span className="body-lg font-body text-white/70">1.</span> {topMangaGenre[0]}</p>
-                  <p className="body-sm text-white/70 font-regular">{topMangaGenre[1]} manga</p>
+                  <p className="body-sm text-white/70 font-regular">{topMangaGenre[1]} entries</p>
                 </motion.div>
                 {mangaGenreItems.length > 0 && <div className="relative z-10"><ImageCarousel items={mangaGenreItems} maxItems={10} showHover={true} showNames={false} /></div>}
                 {otherMangaGenres.length > 0 && (
@@ -3213,7 +3213,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                           <span className="body-sm font-bold text-white/50 mr-1.5">{idx + 2}.</span> 
                           {genreName}
                         </p>
-                        <p className="text-xs text-white/60 font-medium tracking-wide">{count} manga</p>
+                        <p className="text-sm text-white/60 font-medium tracking-wide">{count} entries</p>
                       </motion.div>
                     ))}
                   </div>
@@ -3389,8 +3389,8 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                               transition={{ duration: 0.5, delay: 0.2 }}
                             >
                               <h3 className="title-md mt-1.5 sm:mt-2 truncate font-semibold text-white text-left">{featured.title}</h3>
-                              {featured.studio && <p className="body-sm text-white/70 truncate font-medium text-left">{featured.studio}</p>}
-                              {featured.author && <p className="body-sm text-white/70 truncate font-medium text-left">{featured.author}</p>}
+                              {featured.studio && <p className="mt-1 body-sm text-white/70 truncate font-medium text-left">{featured.studio}</p>}
+                              {featured.author && <p className="mt-1 body-sm text-white/70 truncate font-medium text-left">{featured.author}</p>}
                               <div className="flex items-left justify-left mono text-yellow-300 mt-1 font-semibold">
                                 <span className="mr-0.5 sm:mr-1">★</span>
                                 <span>{Math.round(featured.userRating)}</span>
@@ -3536,7 +3536,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
               <>
                 <motion.div className="mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
                   <p className="heading-lg font-semibold text-white "><span className="body-lg font-bold text-white/70">1.</span> {topAuthor}</p>
-                  <p className="body-sm text-white/70 font-regular">{stats.topAuthors[0][1]} manga</p>
+                  <p className="body-sm text-white/70 font-regular">{stats.topAuthors[0][1]} entries</p>
                 </motion.div>
                 {authorManga.length > 0 && (
                   <div className="relative z-10"><ImageCarousel items={authorManga} maxItems={10} showHover={true} showNames={false} /></div>
@@ -3555,7 +3555,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                           <span className="body-sm font-bold text-white/50 mr-1.5">{idx + 2}.</span> 
                           {authorName}
                         </p>
-                        <p className="text-xs text-white/60 font-medium tracking-wide">{count} manga</p>
+                        <p className="text-sm text-white/60 font-medium tracking-wide">{count} entries</p>
                       </motion.div>
                     ))}
                   </div>
