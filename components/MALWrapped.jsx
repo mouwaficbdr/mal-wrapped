@@ -2083,12 +2083,10 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
               const content = (
                 <motion.div 
                   className="flex flex-col flex-shrink-0 items-center w-full"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
+                  {...fadeSlideUp}
                   transition={{ 
-                    duration: 0.4,
-                    delay: (idx % visibleItems.length) * 0.05,
-                    ease: smoothEase
+                    ...fadeSlideUp.transition,
+                    delay: (idx % visibleItems.length) * 0.05
                   }}
                 >
                   <motion.div 
@@ -2280,9 +2278,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                     target="_blank"
                     rel="noopener noreferrer"
                 className="relative z-20 w-full h-full rounded-xl overflow-hidden block"
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.6, ease: smoothEase }}
+                    {...fadeSlideUp}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
@@ -2502,9 +2498,8 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                   <motion.div 
                     className="w-32 md:w-48 aspect-[2/3] bg-transparent rounded-lg overflow-hidden relative z-10" 
                     style={{ boxSizing: 'border-box' }}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.3, delay: 0, ease: smoothEase }}
+                    {...fadeSlideUp}
+                    transition={{ ...fadeSlideUp.transition, delay: 0 }}
                     whileHover={{ borderColor: '#ffffff' }}
                   >
                     {topItem.node?.main_picture?.large && (
@@ -2637,9 +2632,8 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                                     <motion.span 
                                       key={g} 
                                       className="mono text-white px-2 py-0.5 rounded-lg font-regular border border-white/20" 
-                                      initial={{ opacity: 0, scale: 0.8 }}
-                                      animate={{ opacity: 1, scale: 1 }}
-                                      transition={{ duration: 0.3, delay: 0.3 }}
+                                      {...fadeSlideUp}
+                                      transition={{ ...fadeSlideUp.transition, delay: 0.3 }}
                                     >
                                       {g}
                                     </motion.span>
@@ -3264,9 +3258,8 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                     <motion.div 
                       className="w-32 md:w-48 aspect-[2/3] bg-transparent rounded-lg overflow-hidden relative z-10" 
                       style={{ boxSizing: 'border-box' }}
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.3, delay: 0, ease: smoothEase }}
+                      {...fadeSlideUp}
+                      transition={{ ...fadeSlideUp.transition, delay: 0 }}
                       whileHover={{ borderColor: '#ffffff' }}
                     >
                       {topItem.node?.main_picture?.large && (
@@ -3401,9 +3394,8 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                                     <motion.span 
                                       key={g} 
                                       className="mono text-white px-2 py-0.5 rounded-lg font-regular border border-white/20" 
-                                      initial={{ opacity: 0, scale: 0.8 }}
-                                      animate={{ opacity: 1, scale: 1 }}
-                                      transition={{ duration: 0.3, delay: 0.3 }}
+                                      {...fadeSlideUp}
+                                      transition={{ ...fadeSlideUp.transition, delay: 0.3 }}
                                     >
                                       {g}
                                     </motion.span>
@@ -3754,9 +3746,8 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                   key={badge.type}
                   className={`rounded-xl overflow-hidden ${idx >= 3 ? 'hidden md:block' : ''}`}
                   style={{ padding: '2px' }}
-                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: idx * 0.1, ease: smoothEase }}
+                  {...fadeSlideUp}
+                  transition={{ ...fadeSlideUp.transition, delay: idx * 0.1 }}
                 >
                   <motion.div
                     className="bg-black/60 rounded-xl p-2 md:p-4 h-full"
@@ -3808,9 +3799,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
               <div className="relative w-36 h-36 flex items-center justify-center flex-shrink-0 mb-4">
                 <motion.div
                   className="relative z-20 w-full h-full rounded-xl overflow-hidden block"
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.6, ease: smoothEase }}
+                  {...fadeSlideUp}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -3948,9 +3937,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                     target="_blank"
                     rel="noopener noreferrer"
                     className="relative z-20 w-full h-full rounded-xl overflow-hidden block"
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.6, ease: smoothEase }}
+                    {...fadeSlideUp}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
