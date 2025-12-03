@@ -202,7 +202,6 @@ export default function MALWrapped() {
   const [selectedYear, setSelectedYear] = useState(2025);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [emailCopied, setEmailCopied] = useState(false);
-  const [authorPhotos, setAuthorPhotos] = useState({});
   const shareMenuRef = useRef(null);
   const slideRef = useRef(null);
 
@@ -700,8 +699,6 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
     };
     
     const authorCounts = {};
-    const authorIds = {}; // Store author IDs
-    
     filteredManga.forEach(item => {
       item.node?.authors?.forEach(author => {
         const name = normalizeAuthorName(
@@ -710,18 +707,13 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
         );
         if (name) {
           authorCounts[name] = (authorCounts[name] || 0) + 1;
-          // Store the first author ID we encounter for each name
-          if (!authorIds[name] && author.node?.id) {
-            authorIds[name] = author.node.id;
-          }
         }
       });
     });
 
     const topAuthors = Object.entries(authorCounts)
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
-      .map(([name, count]) => [name, count, authorIds[name]]); // Include author ID
+      .slice(0, 5);
 
     // ========== NEW UNIQUE FEATURES ==========
     
@@ -1850,38 +1842,6 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
 
     return () => clearInterval(interval);
   }, [stats, isAuthenticated, slides]);
-
-  // Fetch author photos from jikanjs
-  useEffect(() => {
-    if (!stats?.topAuthors) return;
-    
-    const fetchAuthorPhotos = async () => {
-      const photos = {};
-      
-      for (const authorEntry of stats.topAuthors) {
-        const authorName = authorEntry[0];
-        const authorId = authorEntry[2]; // Third element is the author ID
-        
-        if (authorId) {
-          try {
-            const response = await fetch(`/api/jikan/person?personId=${authorId}`);
-            if (response.ok) {
-              const data = await response.json();
-              if (data.picture) {
-                photos[authorName] = data.picture;
-              }
-            }
-          } catch (error) {
-            console.warn(`Failed to fetch photo for ${authorName}:`, error);
-          }
-        }
-      }
-      
-      setAuthorPhotos(photos);
-    };
-    
-    fetchAuthorPhotos();
-  }, [stats?.topAuthors]);
 
   // Instagram story-style tap handlers for mobile navigation
   const handleSlideTap = (e) => {
@@ -3665,21 +3625,8 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
             {topAuthor ? (
               <>
                 <motion.div className="mt-4 text-center relative z-10" {...fadeSlideUp} data-framer-motion>
-                  <div className="flex items-center justify-center gap-3 mb-2">
-                    {authorPhotos[topAuthor] && (
-                      <img 
-                        src={authorPhotos[topAuthor]} 
-                        alt={topAuthor}
-                        className="w-16 h-16 rounded-full object-cover border-2 border-white/20"
-                      />
-                    )}
-                    <div>
-                      <p className="heading-lg font-semibold text-white">
-                        <span className="body-lg font-bold text-white/70">1.</span> {topAuthor}
-                      </p>
-                      <p className="body-sm text-white/70 font-regular">{stats.topAuthors[0][1]} entries</p>
-                    </div>
-                  </div>
+                  <p className="heading-lg font-semibold text-white "><span className="body-lg font-bold text-white/70">1.</span> {topAuthor}</p>
+                  <p className="body-sm text-white/70 font-regular">{stats.topAuthors[0][1]} entries</p>
                 </motion.div>
                 {authorManga.length > 0 && (
                   <div className="relative z-10"><ImageCarousel items={authorManga} maxItems={10} showHover={true} showNames={false} /></div>
@@ -3694,13 +3641,6 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                         whileHover={{ scale: 1.05 }}
                         transition={{ duration: 0.2, ease: smoothEase }}
                       >
-                        {authorPhotos[authorName] && (
-                          <img 
-                            src={authorPhotos[authorName]} 
-                            alt={authorName}
-                            className="w-12 h-12 rounded-full object-cover border-2 border-white/20 mx-auto mb-2"
-                          />
-                        )}
                         <p className="heading-sm font-semibold text-white truncate mb-1">
                           <span className="body-sm font-bold text-white/50 mr-1.5">{idx + 2}.</span> 
                           {authorName}
