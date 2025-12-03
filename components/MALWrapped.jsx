@@ -3678,12 +3678,12 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                   if (authorManga.length === 0) {
                     worksText = '';
                   } else if (authorManga.length === 1) {
-                    worksText = `${authorManga[0]}`;
+                    worksText = `You read ${authorManga[0]}`;
                   } else if (authorManga.length === 2) {
-                    worksText = `${authorManga[0]}, ${authorManga[1]}`;
+                    worksText = `You read ${authorManga[0]} and ${authorManga[1]}`;
                   } else {
                     const remaining = authorManga.length - 2;
-                    worksText = `${authorManga[0]}, ${authorManga[1]}, and ${remaining} more work${remaining !== 1 ? 's' : ''} read`;
+                    worksText = `You read ${authorManga[0]}, ${authorManga[1]}, and ${remaining} more work${remaining !== 1 ? 's' : ''}`;
                   }
                   
                   return (
@@ -3692,17 +3692,22 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                       className="flex items-center gap-4"
                       variants={staggerItem}
                     >
-                      <img 
-                        src={authorPhoto} 
-                        alt={authorName}
-                        className="w-16 h-16 rounded-full object-cover border-2 border-white/20 flex-shrink-0"
-                        onError={(e) => {
-                          e.target.src = '/Mascot.webp';
-                        }}
-                      />
+                      <div className="relative w-16 h-16 flex-shrink-0">
+                        <img 
+                          src={authorPhoto} 
+                          alt={authorName}
+                          className="w-full h-full rounded-xl object-cover"
+                          onError={(e) => {
+                            e.target.src = '/Mascot.webp';
+                          }}
+                        />
+                        <div className="absolute top-0.5 right-0.5 z-10 w-5 h-5 bg-black/70 text-white rounded-full flex items-center justify-center font-semibold text-xs">
+                          {idx + 1}
+                        </div>
+                      </div>
                       <div className="flex-1 min-w-0">
-                        <p className="heading-md font-semibold text-white">
-                          <span className="body-md font-bold text-white/70">{idx + 1}.</span> {authorName}
+                        <p className="title-md font-semibold text-white">
+                          {authorName}
                         </p>
                         {worksText && (
                           <p className="body-sm text-white/70 font-regular mt-1">{worksText}</p>
