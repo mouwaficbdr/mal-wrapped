@@ -1829,28 +1829,6 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedYear]);
 
-  // Auto-advance slides every 15 seconds
-  useEffect(() => {
-    // Only auto-advance when wrapped is loaded and user is authenticated
-    if (!stats || !isAuthenticated || !slides || slides.length === 0) {
-      return;
-    }
-
-    const interval = setInterval(() => {
-      setCurrentSlide((prevSlide) => {
-        // Skip welcome slide (index 0) - start from slide 1
-        const nextSlide = prevSlide + 1;
-        // Loop back to slide 1 (skip welcome) when reaching the end
-        if (nextSlide >= slides.length) {
-          return 1;
-        }
-        return nextSlide;
-      });
-    }, 10000); // 15 seconds
-
-    return () => clearInterval(interval);
-  }, [stats, isAuthenticated, slides]);
-
   // Fetch author photos from MAL API
   useEffect(() => {
     if (!stats?.topAuthors || !isAuthenticated) return;
@@ -2981,7 +2959,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                               <p className="title-md truncate font-semibold text-white">{highlight.node?.title}</p>
                               <p className="body-sm text-white/70 truncate font-medium">{highlight.node?.studios?.[0]?.name || ''}</p>
                               <p className="mono text-yellow-300 mt-1 sm:mt-2 font-semibold mt-1">★ {highlight.list_status?.score ? Math.round(highlight.list_status.score) : 'Not Rated Yet'}</p>
-                              <p className="text-sm md:text-md text-white/70 truncate mt-1 sm:mt-2 font-regular">{seasonData.totalAnime} anime this season</p>
+                               <p className="text-sm md:text-base text-white/70 truncate mt-1 sm:mt-2 font-regular">{seasonData.totalAnime} anime this season</p>
                           </div>
                         </div>
                       </>
@@ -3058,7 +3036,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                           <span className="mono text-yellow-300 font-semibold">★ {Math.round(item.userRating)}</span>
                         </div>
                       )}
-                      <p className="text-sm md:text-md  text-white/70 mt-1 font-regular">
+                       <p className="text-sm md:text-base text-white/70 mt-1 font-regular">
                         Only {item.popularity.toLocaleString()} people watched this!
                       </p>
                     </div>
@@ -3675,15 +3653,27 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                   
                   // Format works text: "Work 1, Work 2, and X more works read"
                   let worksText = '';
+                  const firstWork = authorManga[0] || '';
+                  const secondWork = authorManga[1] || '';
+                  const isFirstWorkLong = firstWork.length > 24;
+                  
                   if (authorManga.length === 0) {
                     worksText = '';
                   } else if (authorManga.length === 1) {
-                    worksText = `You read ${authorManga[0]}`;
+                    worksText = `You read ${firstWork}`;
                   } else if (authorManga.length === 2) {
-                    worksText = `You read ${authorManga[0]} and ${authorManga[1]}`;
+                    if (isFirstWorkLong) {
+                      worksText = `You read ${firstWork} and 1 more work`;
+                    } else {
+                      worksText = `You read ${firstWork} and ${secondWork}`;
+                    }
                   } else {
                     const remaining = authorManga.length - 2;
-                    worksText = `You read ${authorManga[0]}, ${authorManga[1]}, and ${remaining} more work${remaining !== 1 ? 's' : ''}`;
+                    if (isFirstWorkLong) {
+                      worksText = `You read ${firstWork} and ${authorManga.length - 1} more work${authorManga.length - 1 !== 1 ? 's' : ''}`;
+                    } else {
+                      worksText = `You read ${firstWork}, ${secondWork}, and ${remaining} more work${remaining !== 1 ? 's' : ''}`;
+                    }
                   }
                   
                   return (
@@ -3717,7 +3707,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                               {authorName}
                             </p>
                             {worksText && (
-                              <p className="text-sm md:text-md text-white/70 font-regular mt-1">{worksText}</p>
+                              <p className="text-sm md:text-base text-white/70 font-regular mt-1">{worksText}</p>
                             )}
                           </div>
                         </div>
