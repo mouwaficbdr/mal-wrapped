@@ -3642,7 +3642,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
             </motion.h2>
             {topAuthors.length > 0 ? (
               <motion.div 
-                className="mt-6 space-y-2 relative z-10 max-w-3xl mx-auto"
+                className="mt-4 space-y-1.5 md:space-y-2 relative z-10 max-w-3xl mx-auto"
                 variants={staggerContainer}
                 initial="initial"
                 animate="animate"
@@ -3721,7 +3721,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                 No author took the spotlight
               </motion.h3>
             )}
-            <motion.h3 className="body-sm font-regular text-white/70 text-center text-container relative z-10 mt-6" {...fadeSlideUp} data-framer-motion>
+            <motion.h3 className="body-sm font-regular text-white/70 text-center text-container relative z-10 mt-4" {...fadeSlideUp} data-framer-motion>
               You know who delivers
             </motion.h3>
           </SlideLayout>
