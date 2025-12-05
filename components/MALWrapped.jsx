@@ -2700,10 +2700,6 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                           transition={{ duration: 0.3, delay: 0.1, ease: smoothEase }}
                         >
                           <div className="relative">
-                            {/* Large number badge */}
-                            <div className="absolute -top-1 -left-1 sm:-top-2 sm:-left-2 z-20 w-10 h-10 sm:w-12 sm:h-12 bg-pink-500 text-white rounded-full flex items-center justify-center font-bold text-xl sm:text-2xl md:text-3xl">
-                              1
-                            </div>
                             {/* Image */}
                             {(() => {
                               const featuredUrl = featured.malId ? `https://myanimelist.net/anime/${featured.malId}` : (featured.mangaId ? `https://myanimelist.net/manga/${featured.mangaId}` : null);
@@ -2721,6 +2717,10 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                                       className="w-full h-full object-cover rounded-xl"
                                     />
                                   )}
+                                  {/* Number badge inside image */}
+                                  <div className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 z-20 w-6 h-6 sm:w-7 sm:h-7 bg-purple-800/70 text-white rounded-full flex items-center justify-center font-semibold text-xs sm:text-sm">
+                                    1
+                                  </div>
                                 </motion.div>
                               );
                               return featuredUrl ? (
@@ -2775,7 +2775,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                                       />
                                     )}
                                     {/* Number badge inside image */}
-                                    <div className="absolute top-0.5 right-0.5 z-10 w-5 h-5 bg-black/70 text-white rounded-full flex items-center justify-center font-semibold text-xs">
+                                    <div className="absolute top-0.5 right-0.5 z-10 w-5 h-5 bg-purple-800/70 text-white rounded-full flex items-center justify-center font-semibold text-xs">
                                       {index + 2}
                                     </div>
                                   </div>
@@ -3454,10 +3454,6 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                           transition={{ duration: 0.3, delay: 0.1, ease: smoothEase }}
                         >
                           <div className="relative">
-                            {/* Large number badge */}
-                            <div className="absolute -top-1 -left-1 sm:-top-2 sm:-left-2 z-20 w-10 h-10 sm:w-12 sm:h-12 bg-pink-500 text-white rounded-full flex items-center justify-center font-bold text-xl sm:text-2xl md:text-3xl">
-                              1
-                            </div>
                             {/* Image */}
                             {(() => {
                               const featuredUrl = featured.malId ? `https://myanimelist.net/anime/${featured.malId}` : (featured.mangaId ? `https://myanimelist.net/manga/${featured.mangaId}` : null);
@@ -3475,6 +3471,10 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                                       className="w-full h-full object-cover rounded-xl"
                                     />
                                   )}
+                                  {/* Number badge inside image */}
+                                  <div className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 z-20 w-6 h-6 sm:w-7 sm:h-7 bg-purple-800/70 text-white rounded-full flex items-center justify-center font-semibold text-xs sm:text-sm">
+                                    1
+                                  </div>
                                 </motion.div>
                               );
                               return featuredUrl ? (
@@ -3529,7 +3529,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                                       />
                                     )}
                                     {/* Number badge inside image */}
-                                    <div className="absolute top-0.5 right-0.5 z-10 w-5 h-5 bg-black/70 text-white rounded-full flex items-center justify-center font-semibold text-xs">
+                                    <div className="absolute top-0.5 right-0.5 z-10 w-5 h-5 bg-purple-800/70 text-white rounded-full flex items-center justify-center font-semibold text-xs">
                                       {index + 2}
                                     </div>
                                   </div>
@@ -3662,10 +3662,6 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                         transition={{ duration: 0.3, delay: 0.1, ease: smoothEase }}
                       >
                         <div className="relative">
-                          {/* Large number badge */}
-                          <div className="absolute -top-1 -left-1 sm:-top-2 sm:-left-2 z-20 w-10 h-10 sm:w-12 sm:h-12 bg-pink-500 text-white rounded-full flex items-center justify-center font-bold text-xl sm:text-2xl md:text-3xl">
-                            1
-                          </div>
                           {/* Image */}
                           <div className="relative">
                             <motion.div 
@@ -3681,6 +3677,10 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                                   e.target.src = '/Mascot.webp';
                                 }}
                               />
+                              {/* Number badge inside image */}
+                              <div className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 z-20 w-6 h-6 sm:w-7 sm:h-7 bg-pink-700/70 text-white rounded-full flex items-center justify-center font-semibold text-xs sm:text-sm">
+                                1
+                              </div>
                             </motion.div>
                           </div>
                           {/* Title and details below image */}
@@ -3750,7 +3750,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                                       e.target.src = '/Mascot.webp';
                                     }}
                                   />
-                                  <div className="absolute top-0.5 right-0.5 z-10 w-5 h-5 bg-black/70 text-white rounded-full flex items-center justify-center font-semibold text-xs">
+                                  <div className="absolute top-0.5 right-0.5 z-10 w-5 h-5 bg-pink-700/70 text-white rounded-full flex items-center justify-center font-semibold text-xs">
                                     {idx + 2}
                                   </div>
                                 </div>
