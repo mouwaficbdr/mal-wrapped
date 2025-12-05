@@ -2694,52 +2694,56 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                       <>
                         {/* Featured #1 Item */}
                         <motion.div 
-                          className="relative w-full max-w-xs mx-auto z-10"
+                          className="relative w-full max-w-2xl mx-auto z-10"
                           initial={{ opacity: 0, y: 30 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.3, delay: 0.1, ease: smoothEase }}
                         >
-                          <div className="relative">
-                            {/* Image */}
-                            {(() => {
-                              const featuredUrl = featured.malId ? `https://myanimelist.net/anime/${featured.malId}` : (featured.mangaId ? `https://myanimelist.net/manga/${featured.mangaId}` : null);
-                              const featuredImage = (
-                                <motion.div 
-                                  className="rounded-xl overflow-hidden relative z-10 aspect-[2/3] w-full max-w-[120px] sm:max-w-[140px] mx-auto" 
-                                  whileHover={{ scale: 1.02 }}
-                                  transition={{ duration: 0.3, ease: smoothEase}}
-                                >
-                                  {featured.coverImage && (
-                                    <motion.img 
-                                      src={featured.coverImage} 
-                                      crossOrigin="anonymous" 
-                                      alt={featured.title} 
-                                      className="w-full h-full object-cover rounded-xl"
-                                    />
-                                  )}
-                                  {/* Number badge inside image */}
-                                  <div className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 z-20 w-6 h-6 sm:w-7 sm:h-7 bg-purple-800/70 text-white rounded-full flex items-center justify-center font-semibold text-xs sm:text-sm">
-                                    1
+                          <div className="flex items-center gap-4 sm:gap-6">
+                            {/* Image on left in white container */}
+                            <div className="flex-shrink-0">
+                              {(() => {
+                                const featuredUrl = featured.malId ? `https://myanimelist.net/anime/${featured.malId}` : (featured.mangaId ? `https://myanimelist.net/manga/${featured.mangaId}` : null);
+                                const featuredImage = (
+                                  <div className="bg-white rounded-xl p-2 relative">
+                                    {/* Number badge outside on left */}
+                                    <div className="absolute -left-2 sm:-left-3 top-2 sm:top-3 z-20 text-pink-500 font-bold text-2xl sm:text-3xl md:text-4xl" style={{ WebkitTextStroke: '3px white', textStroke: '3px white' }}>
+                                      1
+                                    </div>
+                                    <motion.div 
+                                      className="rounded-lg overflow-hidden relative aspect-[2/3] w-24 h-36 sm:w-28 sm:h-42" 
+                                      whileHover={{ scale: 1.02 }}
+                                      transition={{ duration: 0.3, ease: smoothEase}}
+                                    >
+                                      {featured.coverImage && (
+                                        <motion.img 
+                                          src={featured.coverImage} 
+                                          crossOrigin="anonymous" 
+                                          alt={featured.title} 
+                                          className="w-full h-full object-cover rounded-lg"
+                                        />
+                                      )}
+                                    </motion.div>
                                   </div>
-                                </motion.div>
-                              );
-                              return featuredUrl ? (
-                                <a href={featuredUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="relative z-10">
-                                  {featuredImage}
-                                </a>
-                              ) : featuredImage;
-                            })()}
-                            {/* Title and details below image */}
+                                );
+                                return featuredUrl ? (
+                                  <a href={featuredUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="relative z-10">
+                                    {featuredImage}
+                                  </a>
+                                ) : featuredImage;
+                              })()}
+                            </div>
+                            {/* Title and details on right */}
                             <motion.div 
-                              className="mt-2 text-center"
+                              className="flex-1 min-w-0"
                               initial={{ opacity: 0 }}
                               animate={{ opacity: 1 }}
                               transition={{ duration: 0.5, delay: 0.2 }}
                             >
-                              <h3 className="title-md sm:title-lg font-semibold text-white mb-0.5">{featured.title}</h3>
-                              {featured.studio && <p className="text-xs sm:text-sm text-white/70 font-medium">{featured.studio}</p>}
-                              {featured.author && <p className="text-xs sm:text-sm text-white/70 font-medium">{featured.author}</p>}
-                              <div className="flex items-center justify-center mono text-yellow-300 mt-1 font-semibold text-sm">
+                              <h3 className="title-lg sm:title-xl font-semibold text-white mb-1">{featured.title}</h3>
+                              {featured.studio && <p className="text-sm sm:text-base text-white/70 font-medium mb-0.5">{featured.studio}</p>}
+                              {featured.author && <p className="text-sm sm:text-base text-white/70 font-medium mb-0.5">{featured.author}</p>}
+                              <div className="flex items-center mono text-yellow-300 mt-1 font-semibold text-sm sm:text-base">
                                 <span className="mr-1">★</span>
                                 <span>{Math.round(featured.userRating)}</span>
                               </div>
@@ -3448,52 +3452,56 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                       <>
                         {/* Featured #1 Item */}
                         <motion.div 
-                          className="relative w-full max-w-xs mx-auto z-10"
+                          className="relative w-full max-w-2xl mx-auto z-10"
                           initial={{ opacity: 0, y: 30 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.3, delay: 0.1, ease: smoothEase }}
                         >
-                          <div className="relative">
-                            {/* Image */}
-                            {(() => {
-                              const featuredUrl = featured.malId ? `https://myanimelist.net/anime/${featured.malId}` : (featured.mangaId ? `https://myanimelist.net/manga/${featured.mangaId}` : null);
-                              const featuredImage = (
-                                <motion.div 
-                                  className="rounded-xl overflow-hidden relative z-10 aspect-[2/3] w-full max-w-[120px] sm:max-w-[140px] mx-auto" 
-                                  whileHover={{ scale: 1.02 }}
-                                  transition={{ duration: 0.3, ease: smoothEase}}
-                                >
-                                  {featured.coverImage && (
-                                    <motion.img 
-                                      src={featured.coverImage} 
-                                      crossOrigin="anonymous" 
-                                      alt={featured.title} 
-                                      className="w-full h-full object-cover rounded-xl"
-                                    />
-                                  )}
-                                  {/* Number badge inside image */}
-                                  <div className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 z-20 w-6 h-6 sm:w-7 sm:h-7 bg-purple-800/70 text-white rounded-full flex items-center justify-center font-semibold text-xs sm:text-sm">
-                                    1
+                          <div className="flex items-center gap-4 sm:gap-6">
+                            {/* Image on left in white container */}
+                            <div className="flex-shrink-0">
+                              {(() => {
+                                const featuredUrl = featured.malId ? `https://myanimelist.net/anime/${featured.malId}` : (featured.mangaId ? `https://myanimelist.net/manga/${featured.mangaId}` : null);
+                                const featuredImage = (
+                                  <div className="bg-white rounded-xl p-2 relative">
+                                    {/* Number badge outside on left */}
+                                    <div className="absolute -left-2 sm:-left-3 top-2 sm:top-3 z-20 text-pink-500 font-bold text-2xl sm:text-3xl md:text-4xl" style={{ WebkitTextStroke: '3px white', textStroke: '3px white' }}>
+                                      1
+                                    </div>
+                                    <motion.div 
+                                      className="rounded-lg overflow-hidden relative aspect-[2/3] w-24 h-36 sm:w-28 sm:h-42" 
+                                      whileHover={{ scale: 1.02 }}
+                                      transition={{ duration: 0.3, ease: smoothEase}}
+                                    >
+                                      {featured.coverImage && (
+                                        <motion.img 
+                                          src={featured.coverImage} 
+                                          crossOrigin="anonymous" 
+                                          alt={featured.title} 
+                                          className="w-full h-full object-cover rounded-lg"
+                                        />
+                                      )}
+                                    </motion.div>
                                   </div>
-                                </motion.div>
-                              );
-                              return featuredUrl ? (
-                                <a href={featuredUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="relative z-10">
-                                  {featuredImage}
-                                </a>
-                              ) : featuredImage;
-                            })()}
-                            {/* Title and details below image */}
+                                );
+                                return featuredUrl ? (
+                                  <a href={featuredUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="relative z-10">
+                                    {featuredImage}
+                                  </a>
+                                ) : featuredImage;
+                              })()}
+                            </div>
+                            {/* Title and details on right */}
                             <motion.div 
-                              className="mt-2 text-center"
+                              className="flex-1 min-w-0"
                               initial={{ opacity: 0 }}
                               animate={{ opacity: 1 }}
                               transition={{ duration: 0.5, delay: 0.2 }}
                             >
-                              <h3 className="title-md sm:title-lg font-semibold text-white mb-0.5">{featured.title}</h3>
-                              {featured.studio && <p className="text-xs sm:text-sm text-white/70 font-medium">{featured.studio}</p>}
-                              {featured.author && <p className="text-xs sm:text-sm text-white/70 font-medium">{featured.author}</p>}
-                              <div className="flex items-center justify-center mono text-yellow-300 mt-1 font-semibold text-sm">
+                              <h3 className="title-lg sm:title-xl font-semibold text-white mb-1">{featured.title}</h3>
+                              {featured.studio && <p className="text-sm sm:text-base text-white/70 font-medium mb-0.5">{featured.studio}</p>}
+                              {featured.author && <p className="text-sm sm:text-base text-white/70 font-medium mb-0.5">{featured.author}</p>}
+                              <div className="flex items-center mono text-yellow-300 mt-1 font-semibold text-sm sm:text-base">
                                 <span className="mr-1">★</span>
                                 <span>{Math.round(featured.userRating)}</span>
                               </div>
@@ -3656,41 +3664,43 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                     <>
                       {/* Featured #1 Author */}
                       <motion.div 
-                        className="relative w-full max-w-xs mx-auto z-10"
+                        className="relative w-full max-w-2xl mx-auto z-10"
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3, delay: 0.1, ease: smoothEase }}
                       >
-                        <div className="relative">
-                          {/* Image */}
-                          <div className="relative">
-                            <motion.div 
-                              className="rounded-xl overflow-hidden relative z-10 aspect-square w-full max-w-[120px] sm:max-w-[140px] mx-auto" 
-                              whileHover={{ scale: 1.02 }}
-                              transition={{ duration: 0.3, ease: smoothEase}}
-                            >
-                              <img 
-                                src={featuredAuthorPhoto} 
-                                alt={featured[0]}
-                                className="w-full h-full object-cover rounded-xl"
-                                onError={(e) => {
-                                  e.target.src = '/Mascot.webp';
-                                }}
-                              />
-                              {/* Number badge inside image */}
-                              <div className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 z-20 w-6 h-6 sm:w-7 sm:h-7 bg-pink-700/70 text-white rounded-full flex items-center justify-center font-semibold text-xs sm:text-sm">
+                        <div className="flex items-center gap-4 sm:gap-6">
+                          {/* Image on left in white container */}
+                          <div className="flex-shrink-0">
+                            <div className="bg-white rounded-xl p-2 relative">
+                              {/* Number badge outside on left */}
+                              <div className="absolute -left-2 sm:-left-3 top-2 sm:top-3 z-20 text-pink-500 font-bold text-2xl sm:text-3xl md:text-4xl" style={{ WebkitTextStroke: '3px white', textStroke: '3px white' }}>
                                 1
                               </div>
-                            </motion.div>
+                              <motion.div 
+                                className="rounded-lg overflow-hidden relative aspect-square w-24 h-24 sm:w-28 sm:h-28" 
+                                whileHover={{ scale: 1.02 }}
+                                transition={{ duration: 0.3, ease: smoothEase}}
+                              >
+                                <img 
+                                  src={featuredAuthorPhoto} 
+                                  alt={featured[0]}
+                                  className="w-full h-full object-cover rounded-lg"
+                                  onError={(e) => {
+                                    e.target.src = '/Mascot.webp';
+                                  }}
+                                />
+                              </motion.div>
+                            </div>
                           </div>
-                          {/* Title and details below image */}
+                          {/* Title and details on right */}
                           <motion.div 
-                            className="mt-2 text-center"
+                            className="flex-1 min-w-0"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ duration: 0.5, delay: 0.2 }}
                           >
-                            <h3 className="title-md sm:title-lg font-semibold text-white mb-0.5">{featured[0]}</h3>
+                            <h3 className="title-lg sm:title-xl font-semibold text-white mb-1">{featured[0]}</h3>
                             {featuredWorksText && (
                               <p className="text-sm md:text-base text-white/70 font-medium mt-1">{featuredWorksText}</p>
                             )}
