@@ -3738,39 +3738,30 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                             return (
                               <motion.div
                                 key={idx}
-                                className="rounded-xl overflow-hidden"
-                                style={{ padding: '2px' }}
+                                className="flex items-center gap-4"
                                 variants={staggerItem}
                               >
-                                <motion.div
-                                  className="bg-black/60 rounded-xl p-2 md:p-4"
-                                  whileHover={{ scale: 1.02, backgroundColor: 'rgba(0, 0, 0, 0.45)'}}
-                                  transition={{ duration: 0.3, ease: smoothEase }}
-                                >
-                                  <div className="flex items-center gap-4">
-                                    <div className="relative w-16 h-16 flex-shrink-0">
-                                      <img 
-                                        src={authorPhoto} 
-                                        alt={authorName}
-                                        className="w-full h-full rounded-xl object-cover"
-                                        onError={(e) => {
-                                          e.target.src = '/Mascot.webp';
-                                        }}
-                                      />
-                                      <div className="absolute top-0.5 right-0.5 z-10 w-5 h-5 bg-black/70 text-white rounded-full flex items-center justify-center font-semibold text-xs">
-                                        {idx + 2}
-                                      </div>
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                      <p className="title-md font-semibold text-white">
-                                        {authorName}
-                                      </p>
-                                      {worksText && (
-                                        <p className="text-sm md:text-base text-white/70 font-regular mt-1">{worksText}</p>
-                                      )}
-                                    </div>
+                                <div className="relative w-16 h-16 flex-shrink-0">
+                                  <img 
+                                    src={authorPhoto} 
+                                    alt={authorName}
+                                    className="w-full h-full rounded-xl object-cover"
+                                    onError={(e) => {
+                                      e.target.src = '/Mascot.webp';
+                                    }}
+                                  />
+                                  <div className="absolute top-0.5 right-0.5 z-10 w-5 h-5 bg-black/70 text-white rounded-full flex items-center justify-center font-semibold text-xs">
+                                    {idx + 2}
                                   </div>
-                                </motion.div>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="title-md font-semibold text-white">
+                                    {authorName}
+                                  </p>
+                                  {worksText && (
+                                    <p className="text-sm md:text-base text-white/70 font-regular mt-1">{worksText}</p>
+                                  )}
+                                </div>
                               </motion.div>
                             );
                           })}
