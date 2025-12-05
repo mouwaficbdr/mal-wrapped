@@ -2762,12 +2762,8 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                                   className="flex items-center gap-2.5 sm:gap-3 w-full"
                                   variants={staggerItem}
                                 >
-                                  {/* Number badge */}
-                                  <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-pink-500 text-white rounded-full flex items-center justify-center font-bold text-base sm:text-lg">
-                                    {index + 2}
-                                  </div>
                                   {/* Thumbnail */}
-                                  <div className="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden">
+                                  <div className="relative flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden">
                                     {item.coverImage && (
                                       <motion.img 
                                         src={item.coverImage} 
@@ -2778,6 +2774,10 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                                         transition={{ duration: 0.2 }}
                                       />
                                     )}
+                                    {/* Number badge inside image */}
+                                    <div className="absolute top-0.5 right-0.5 z-10 w-5 h-5 bg-black/70 text-white rounded-full flex items-center justify-center font-semibold text-xs">
+                                      {index + 2}
+                                    </div>
                                   </div>
                                   {/* Title and details */}
                                   <div className="flex-1 min-w-0">
@@ -3516,12 +3516,8 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                                   className="flex items-center gap-2.5 sm:gap-3 w-full"
                                   variants={staggerItem}
                                 >
-                                  {/* Number badge */}
-                                  <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-pink-500 text-white rounded-full flex items-center justify-center font-bold text-base sm:text-lg">
-                                    {index + 2}
-                                  </div>
                                   {/* Thumbnail */}
-                                  <div className="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden">
+                                  <div className="relative flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden">
                                     {item.coverImage && (
                                       <motion.img 
                                         src={item.coverImage} 
@@ -3532,6 +3528,10 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                                         transition={{ duration: 0.2 }}
                                       />
                                     )}
+                                    {/* Number badge inside image */}
+                                    <div className="absolute top-0.5 right-0.5 z-10 w-5 h-5 bg-black/70 text-white rounded-full flex items-center justify-center font-semibold text-xs">
+                                      {index + 2}
+                                    </div>
                                   </div>
                                   {/* Title and details */}
                                   <div className="flex-1 min-w-0">
@@ -3692,7 +3692,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                           >
                             <h3 className="title-md sm:title-lg font-semibold text-white mb-0.5">{featured[0]}</h3>
                             {featuredWorksText && (
-                              <p className="text-xs sm:text-sm text-white/70 font-medium mt-1">{featuredWorksText}</p>
+                              <p className="text-sm md:text-base text-white/70 font-medium mt-1">{featuredWorksText}</p>
                             )}
                           </motion.div>
                         </div>
