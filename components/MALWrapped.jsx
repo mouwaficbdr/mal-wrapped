@@ -2709,7 +2709,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                               const featuredUrl = featured.malId ? `https://myanimelist.net/anime/${featured.malId}` : (featured.mangaId ? `https://myanimelist.net/manga/${featured.mangaId}` : null);
                               const featuredImage = (
                                 <motion.div 
-                                  className="rounded-xl overflow-hidden relative z-10 aspect-[2/3] w-full max-w-[160px] sm:max-w-[180px] mx-auto" 
+                                  className="rounded-xl overflow-hidden relative z-10 aspect-[2/3] w-full max-w-[120px] sm:max-w-[140px] mx-auto" 
                                   whileHover={{ scale: 1.02 }}
                                   transition={{ duration: 0.3, ease: smoothEase}}
                                 >
@@ -2747,10 +2747,10 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                           </div>
                         </motion.div>
                         
-                        {/* Items #2-5 as vertical list */}
+                        {/* Items #2-5 - vertical list on mobile, 2x2 grid on desktop */}
                         {others.length > 0 && (
                           <motion.div 
-                            className="space-y-2.5 sm:space-y-3 relative z-10 max-w-2xl mx-auto"
+                            className="space-y-2.5 md:grid md:grid-cols-2 md:gap-3 md:space-y-0 relative z-10 max-w-2xl mx-auto"
                             variants={staggerContainer}
                             initial="initial"
                             animate="animate"
@@ -3463,7 +3463,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                               const featuredUrl = featured.malId ? `https://myanimelist.net/anime/${featured.malId}` : (featured.mangaId ? `https://myanimelist.net/manga/${featured.mangaId}` : null);
                               const featuredImage = (
                                 <motion.div 
-                                  className="rounded-xl overflow-hidden relative z-10 aspect-[2/3] w-full max-w-[160px] sm:max-w-[180px] mx-auto" 
+                                  className="rounded-xl overflow-hidden relative z-10 aspect-[2/3] w-full max-w-[120px] sm:max-w-[140px] mx-auto" 
                                   whileHover={{ scale: 1.02 }}
                                   transition={{ duration: 0.3, ease: smoothEase}}
                                 >
@@ -3501,10 +3501,10 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                           </div>
                         </motion.div>
                         
-                        {/* Items #2-5 as vertical list */}
+                        {/* Items #2-5 - vertical list on mobile, 2x2 grid on desktop */}
                         {others.length > 0 && (
                           <motion.div 
-                            className="space-y-2.5 sm:space-y-3 relative z-10 max-w-2xl mx-auto"
+                            className="space-y-2.5 md:grid md:grid-cols-2 md:gap-3 md:space-y-0 relative z-10 max-w-2xl mx-auto"
                             variants={staggerContainer}
                             initial="initial"
                             animate="animate"
@@ -3621,81 +3621,165 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
             Your go-to authors
             </motion.h2>
             {topAuthors.length > 0 ? (
-              <motion.div 
-                className="mt-4 space-y-1.5 md:space-y-2 relative z-10 max-w-3xl mx-auto"
-                variants={staggerContainer}
-                initial="initial"
-                animate="animate"
-              >
-                {topAuthors.map(([authorName, count], idx) => {
-                  const authorManga = getAuthorManga(authorName);
-                  const authorPhoto = authorPhotos[authorName] || '/Mascot.webp';
+              <div className="mt-4 sm:mt-6 flex flex-col gap-4 sm:gap-6 w-full max-w-3xl mx-auto relative z-10">
+                {(() => {
+                  const [featured, ...others] = topAuthors;
+                  const featuredAuthorManga = getAuthorManga(featured[0]);
+                  const featuredAuthorPhoto = authorPhotos[featured[0]] || '/Mascot.webp';
                   
-                  // Format works text: "Work 1, Work 2, and X more works read"
-                  let worksText = '';
-                  const firstWork = authorManga[0] || '';
-                  const secondWork = authorManga[1] || '';
+                  // Format works text for featured author
+                  let featuredWorksText = '';
+                  const firstWork = featuredAuthorManga[0] || '';
+                  const secondWork = featuredAuthorManga[1] || '';
                   const isFirstWorkLong = firstWork.length > 24;
                   
-                  if (authorManga.length === 0) {
-                    worksText = '';
-                  } else if (authorManga.length === 1) {
-                    worksText = `You read ${firstWork}`;
-                  } else if (authorManga.length === 2) {
+                  if (featuredAuthorManga.length === 0) {
+                    featuredWorksText = '';
+                  } else if (featuredAuthorManga.length === 1) {
+                    featuredWorksText = `You read ${firstWork}`;
+                  } else if (featuredAuthorManga.length === 2) {
                     if (isFirstWorkLong) {
-                      worksText = `You read ${firstWork} and 1 more work`;
+                      featuredWorksText = `You read ${firstWork} and 1 more work`;
                     } else {
-                      worksText = `You read ${firstWork} and ${secondWork}`;
+                      featuredWorksText = `You read ${firstWork} and ${secondWork}`;
                     }
                   } else {
-                    const remaining = authorManga.length - 2;
+                    const remaining = featuredAuthorManga.length - 2;
                     if (isFirstWorkLong) {
-                      worksText = `You read ${firstWork} and ${authorManga.length - 1} more work${authorManga.length - 1 !== 1 ? 's' : ''}`;
+                      featuredWorksText = `You read ${firstWork} and ${featuredAuthorManga.length - 1} more work${featuredAuthorManga.length - 1 !== 1 ? 's' : ''}`;
                     } else {
-                      worksText = `You read ${firstWork}, ${secondWork}, and ${remaining} more work${remaining !== 1 ? 's' : ''}`;
+                      featuredWorksText = `You read ${firstWork}, ${secondWork}, and ${remaining} more work${remaining !== 1 ? 's' : ''}`;
                     }
                   }
                   
                   return (
-                    <motion.div
-                      key={idx}
-                      className="rounded-xl overflow-hidden"
-                      style={{ padding: '2px' }}
-                      variants={staggerItem}
-                    >
-                      <motion.div
-                        className="bg-black/60 rounded-xl p-2 md:p-4"
-                        whileHover={{ scale: 1.02, backgroundColor: 'rgba(0, 0, 0, 0.45)'}}
-                        transition={{ duration: 0.3, ease: smoothEase }}
+                    <>
+                      {/* Featured #1 Author */}
+                      <motion.div 
+                        className="relative w-full max-w-xs mx-auto z-10"
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: 0.1, ease: smoothEase }}
                       >
-                        <div className="flex items-center gap-4">
-                          <div className="relative w-16 h-16 flex-shrink-0">
-                            <img 
-                              src={authorPhoto} 
-                              alt={authorName}
-                              className="w-full h-full rounded-xl object-cover"
-                              onError={(e) => {
-                                e.target.src = '/Mascot.webp';
-                              }}
-                            />
-                            <div className="absolute top-0.5 right-0.5 z-10 w-5 h-5 bg-black/70 text-white rounded-full flex items-center justify-center font-semibold text-xs">
-                              {idx + 1}
-                            </div>
+                        <div className="relative">
+                          {/* Large number badge */}
+                          <div className="absolute -top-1 -left-1 sm:-top-2 sm:-left-2 z-20 w-10 h-10 sm:w-12 sm:h-12 bg-pink-500 text-white rounded-full flex items-center justify-center font-bold text-xl sm:text-2xl md:text-3xl">
+                            1
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="title-md font-semibold text-white">
-                              {authorName}
-                            </p>
-                            {worksText && (
-                              <p className="text-sm md:text-base text-white/70 font-regular mt-1">{worksText}</p>
+                          {/* Image */}
+                          <div className="relative">
+                            <motion.div 
+                              className="rounded-xl overflow-hidden relative z-10 aspect-square w-full max-w-[120px] sm:max-w-[140px] mx-auto" 
+                              whileHover={{ scale: 1.02 }}
+                              transition={{ duration: 0.3, ease: smoothEase}}
+                            >
+                              <img 
+                                src={featuredAuthorPhoto} 
+                                alt={featured[0]}
+                                className="w-full h-full object-cover rounded-xl"
+                                onError={(e) => {
+                                  e.target.src = '/Mascot.webp';
+                                }}
+                              />
+                            </motion.div>
+                          </div>
+                          {/* Title and details below image */}
+                          <motion.div 
+                            className="mt-2 text-center"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.5, delay: 0.2 }}
+                          >
+                            <h3 className="title-md sm:title-lg font-semibold text-white mb-0.5">{featured[0]}</h3>
+                            {featuredWorksText && (
+                              <p className="text-xs sm:text-sm text-white/70 font-medium mt-1">{featuredWorksText}</p>
                             )}
-                          </div>
+                          </motion.div>
                         </div>
                       </motion.div>
-                    </motion.div>
+                      
+                      {/* Other Authors #2-5 */}
+                      {others.length > 0 && (
+                        <motion.div 
+                          className="space-y-2.5 md:grid md:grid-cols-2 md:gap-3 md:space-y-0 relative z-10"
+                          variants={staggerContainer}
+                          initial="initial"
+                          animate="animate"
+                        >
+                          {others.map(([authorName, count], idx) => {
+                            const authorManga = getAuthorManga(authorName);
+                            const authorPhoto = authorPhotos[authorName] || '/Mascot.webp';
+                            
+                            // Format works text
+                            let worksText = '';
+                            const firstWork = authorManga[0] || '';
+                            const secondWork = authorManga[1] || '';
+                            const isFirstWorkLong = firstWork.length > 24;
+                            
+                            if (authorManga.length === 0) {
+                              worksText = '';
+                            } else if (authorManga.length === 1) {
+                              worksText = `You read ${firstWork}`;
+                            } else if (authorManga.length === 2) {
+                              if (isFirstWorkLong) {
+                                worksText = `You read ${firstWork} and 1 more work`;
+                              } else {
+                                worksText = `You read ${firstWork} and ${secondWork}`;
+                              }
+                            } else {
+                              const remaining = authorManga.length - 2;
+                              if (isFirstWorkLong) {
+                                worksText = `You read ${firstWork} and ${authorManga.length - 1} more work${authorManga.length - 1 !== 1 ? 's' : ''}`;
+                              } else {
+                                worksText = `You read ${firstWork}, ${secondWork}, and ${remaining} more work${remaining !== 1 ? 's' : ''}`;
+                              }
+                            }
+                            
+                            return (
+                              <motion.div
+                                key={idx}
+                                className="rounded-xl overflow-hidden"
+                                style={{ padding: '2px' }}
+                                variants={staggerItem}
+                              >
+                                <motion.div
+                                  className="bg-black/60 rounded-xl p-2 md:p-4"
+                                  whileHover={{ scale: 1.02, backgroundColor: 'rgba(0, 0, 0, 0.45)'}}
+                                  transition={{ duration: 0.3, ease: smoothEase }}
+                                >
+                                  <div className="flex items-center gap-4">
+                                    <div className="relative w-16 h-16 flex-shrink-0">
+                                      <img 
+                                        src={authorPhoto} 
+                                        alt={authorName}
+                                        className="w-full h-full rounded-xl object-cover"
+                                        onError={(e) => {
+                                          e.target.src = '/Mascot.webp';
+                                        }}
+                                      />
+                                      <div className="absolute top-0.5 right-0.5 z-10 w-5 h-5 bg-black/70 text-white rounded-full flex items-center justify-center font-semibold text-xs">
+                                        {idx + 2}
+                                      </div>
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <p className="title-md font-semibold text-white">
+                                        {authorName}
+                                      </p>
+                                      {worksText && (
+                                        <p className="text-sm md:text-base text-white/70 font-regular mt-1">{worksText}</p>
+                                      )}
+                                    </div>
+                                  </div>
+                                </motion.div>
+                              </motion.div>
+                            );
+                          })}
+                        </motion.div>
+                      )}
+                    </>
                   );
-                })}
-              </motion.div>
+                })()}
+              </div>
             ) : (
               <motion.h3 className="body-sm font-regular text-white/70 text-center text-container relative z-10 mt-4" {...fadeSlideUp} data-framer-motion>
                 No author took the spotlight
