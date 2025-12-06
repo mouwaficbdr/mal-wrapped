@@ -2131,7 +2131,6 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
     const ImageCarousel = ({ items, maxItems = 10, showHover = true, showNames = false }) => {
       const [isHovered, setIsHovered] = useState(false);
       const [hoveredItem, setHoveredItem] = useState(null);
-      const [scrollPosition, setScrollPosition] = useState(0);
       const [gapSize, setGapSize] = useState('2px');
       const [itemsPerView, setItemsPerView] = useState(3);
       
@@ -2176,30 +2175,8 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
       // Center items when there are fewer than itemsPerView
       const shouldCenter = !shouldScroll && visibleItems.length < itemsPerView;
       
-      useEffect(() => {
-        // Only animate if we have more items than viewport and not hovered
-        if (visibleItems.length <= itemsPerView || isHovered) {
-          return;
-        }
-        
-        const scrollSpeed = 0.15;
-        let animationFrame;
-        
-        const animate = () => {
-          setScrollPosition((prev) => {
-            const maxScroll = (visibleItems.length * itemWidth);
-            const next = prev + scrollSpeed;
-            if (next >= maxScroll) {
-              return 0;
-            }
-            return next;
-          });
-          animationFrame = requestAnimationFrame(animate);
-        };
-        
-        animationFrame = requestAnimationFrame(animate);
-        return () => cancelAnimationFrame(animationFrame);
-      }, [visibleItems.length, itemsPerView, isHovered, itemWidth]);
+      // Calculate animation duration based on number of items for smooth infinite scroll
+      const animationDuration = visibleItems.length * 2; // 2 seconds per item
 
       const getMALUrl = (item) => {
         if (item.malId) {
@@ -2226,16 +2203,23 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
             setHoveredItem(null);
           }}
         >
-          <div 
+          <motion.div 
             className="flex"
             style={{ 
-              transform: shouldScroll ? `translateX(-${scrollPosition}%)` : 'translateX(0)',
-              willChange: shouldScroll ? 'transform' : 'auto',
               gap: gapSize,
               justifyContent: shouldCenter ? 'center' : 'flex-start',
               width: shouldCenter ? 'auto' : '100%',
               overflow: 'visible'
             }}
+            animate={shouldScroll && !isHovered ? {
+              x: [`0%`, `-${visibleItems.length * itemWidth}%`]
+            } : {}}
+            transition={shouldScroll && !isHovered ? {
+              duration: animationDuration,
+              repeat: Infinity,
+              ease: 'linear',
+              repeatType: 'loop'
+            } : {}}
           >
             {duplicatedItems.map((item, idx) => {
               const malUrl = getMALUrl(item);
@@ -2315,7 +2299,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                 </div>
               );
             })}
-          </div>
+          </motion.div>
         </div>
       );
     };
@@ -2947,7 +2931,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
             </motion.h2>
             </div>
             <motion.div 
-              className="mt-2 sm:mt-4 flex flex-col md:grid md:grid-cols-2 gap-1.5 sm:gap-2 relative z-10"
+              className="mt-2 sm:mt-4 flex flex-col md:grid md:grid-cols-2 gap-1.5 sm:gap-2 relative z-10 max-w-2xl mx-auto"
               variants={staggerContainer}
               initial="initial"
               animate="animate"
@@ -2973,10 +2957,10 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                       whileHover={{ scale: 1.02 }}
                       transition={{ duration: 0.3, ease: smoothEase }}
                     >
-                      <h3 className="body-sm font-medium text-white mb-1 sm:mb-2 ">{season}{seasonYear}</h3>
+                      <h3 className="body-sm font-medium text-white mb-1 sm:mb-2 text-center">{season}{seasonYear}</h3>
                     {highlight && (
                       <>
-                          <div className="flex gap-1.5 sm:gap-2">
+                          <div className="flex flex-col items-center gap-1.5 sm:gap-2">
                             <motion.div 
                               className="bg-transparent aspect-[2/3] rounded-lg overflow-hidden relative w-16 md:w-20" 
                               style={{ boxSizing: 'border-box' }}
@@ -2994,7 +2978,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                             )}
                               </div>  
                             </motion.div>
-                          <div className="flex-1 min-w-0">
+                          <div className="flex-1 min-w-0 text-center">
                               <p className="title-sm truncate font-semibold text-white">{highlight.node?.title}</p>
                               <p className="mono text-yellow-300 mt-1 font-semibold text-sm sm:text-base">★ {highlight.list_status?.score ? Math.round(highlight.list_status.score) : 'Not Rated Yet'}</p>
                                <p className="text-sm md:text-base text-white/70 truncate mt-1 font-regular">{seasonData.totalAnime} anime this season</p>
@@ -3034,7 +3018,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
             <motion.h2 className="body-md font-medium text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
             You saw something others missed
             </motion.h2>
-            <motion.div className="mt-4 relative z-10" {...fadeSlideUp} data-framer-motion>
+            <motion.div className="mt-4 relative z-10 max-w-2xl mx-auto" {...fadeSlideUp} data-framer-motion>
               {rareAnimeItems.map((item, idx) => (
                 <motion.div
                   key={idx}
@@ -3046,8 +3030,6 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                 >
                   <motion.div
                     className="flex items-center gap-4"
-                    whileHover={{ scale: 1.02 }}
-                    transition={{ duration: 0.3, ease: smoothEase }}
                   >
                     {item.coverImage && (
                       <a 
@@ -3067,7 +3049,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                       </a>
                     )}
                     <div className="flex-1">
-                      <h3 className="title-md font-semibold text-white">{item.title}</h3>
+                      <h3 className="title-sm font-semibold text-white truncate">{item.title}</h3>
                       
                       {item.userRating && (
                         <div className="flex items-center gap-2 mt-1">
@@ -3890,7 +3872,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
             <motion.h2 className="body-md font-medium text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
               These low-profile reads turned out surprisingly strong
             </motion.h2>
-            <motion.div className="mt-4 relative z-10" {...fadeSlideUp} data-framer-motion>
+            <motion.div className="mt-4 relative z-10 max-w-2xl mx-auto" {...fadeSlideUp} data-framer-motion>
               {rareMangaItems.map((item, idx) => (
                 <motion.div
                   key={idx}
