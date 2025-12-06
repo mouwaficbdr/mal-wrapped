@@ -603,6 +603,12 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
     };
 
     thisYearAnime.forEach(item => {
+      // Only include anime that user has watched or is watching (not planned)
+      const status = item.list_status?.status;
+      if (status !== 'completed' && status !== 'watching') {
+        return;
+      }
+      
       const startSeason = item.node?.start_season;
       if (startSeason && startSeason.season && startSeason.year) {
         // If a specific year is selected, only include anime that released in that year
@@ -768,19 +774,19 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
       }
     });
 
-    // 2. Rarity Features - Hidden gems: least members (below threshold), sorted by user rating descending
+    // 2. Rarity Features - Hidden gems: least members (below threshold), sorted by MAL mean score descending
     const HIDDEN_GEM_THRESHOLD = 70000;
     const allRareAnime = completedAnime
       .map(item => ({
         ...item,
         popularity: item.node?.num_list_users ?? Number.MAX_SAFE_INTEGER,
-        score: item.list_status.score
+        malScore: item.node?.mean ?? 0
       }))
-      .filter(item => item.popularity <= HIDDEN_GEM_THRESHOLD) // Only members below threshold
+      .filter(item => item.malScore > 7.5 && item.popularity <= HIDDEN_GEM_THRESHOLD) // MAL score > 7.5 and members below threshold
       .sort((a, b) => {
-        // Sort by user rating descending, then by popularity (least members first)
-        if (b.score !== a.score) {
-          return b.score - a.score;
+        // Sort by MAL score descending, then by popularity (least members first)
+        if (b.malScore !== a.malScore) {
+          return b.malScore - a.malScore;
         }
         return a.popularity - b.popularity;
       });
@@ -791,13 +797,13 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
       .map(item => ({
         ...item,
         popularity: item.node?.num_list_users ?? Number.MAX_SAFE_INTEGER,
-        score: item.list_status.score
+        malScore: item.node?.mean ?? 0
       }))
-      .filter(item => item.popularity <= HIDDEN_GEM_THRESHOLD)
+      .filter(item => item.malScore > 7.5 && item.popularity <= HIDDEN_GEM_THRESHOLD) // MAL score > 7.5 and members below threshold
       .sort((a, b) => {
-        // Sort by user rating descending, then by popularity (least members first)
-        if (b.score !== a.score) {
-          return b.score - a.score;
+        // Sort by MAL score descending, then by popularity (least members first)
+        if (b.malScore !== a.malScore) {
+          return b.malScore - a.malScore;
         }
         return a.popularity - b.popularity;
       });
@@ -3010,7 +3016,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
           title: item.node?.title || '',
           coverImage: item.node?.main_picture?.large || item.node?.main_picture?.medium || '',
           popularity: item.popularity,
-          userRating: item.score,
+          malScore: item.malScore,
           malId: item.node?.id
         }));
         return (
@@ -3051,9 +3057,9 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                     <div className="flex-1">
                       <h3 className="title-sm font-semibold text-white truncate">{item.title}</h3>
                       
-                      {item.userRating && (
+                      {item.malScore && (
                         <div className="flex items-center gap-2 mt-1">
-                          <span className="mono text-yellow-300 font-semibold">★ {Math.round(item.userRating)}</span>
+                          <span className="mono text-yellow-300 font-semibold">★ {Math.round(item.malScore * 10) / 10}</span>
                         </div>
                       )}
                        <p className="text-sm md:text-base text-white/70 mt-1 font-regular">
@@ -3864,7 +3870,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
           title: item.node?.title || '',
           coverImage: item.node?.main_picture?.large || item.node?.main_picture?.medium || '',
           popularity: item.popularity,
-          userRating: item.score,
+          malScore: item.malScore,
           mangaId: item.node?.id
         }));
         return (
@@ -3907,9 +3913,9 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                     <div className="flex-1">
                       <h3 className="title-md font-semibold text-white">{item.title}</h3>
                       
-                      {item.userRating && (
+                      {item.malScore && (
                         <div className="flex items-center gap-2 mt-1">
-                          <span className="mono text-yellow-300 font-semibold">★ {Math.round(item.userRating)}</span>
+                          <span className="mono text-yellow-300 font-semibold">★ {Math.round(item.malScore * 10) / 10}</span>
                         </div>
                       )}
                       <p className="text-sm md:text-base text-white/70 mt-1 font-regular">
