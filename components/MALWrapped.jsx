@@ -2742,7 +2742,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.3, delay: 0.1, ease: smoothEase }}
                         >
-                          <div className="flex items-center gap-4 md:flex-col md:items-center md:gap-3">
+                          <div className="flex items-center gap-2.5 sm:gap-3 md:flex-col md:items-center">
                             {/* Image - square on mobile, larger 2/3 aspect on desktop */}
                             <div className="flex-shrink-0">
                               {(() => {
@@ -2754,7 +2754,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                                       1
                                     </div>
                                     <motion.div 
-                                      className="rounded-lg overflow-hidden relative aspect-square md:aspect-[2/3] w-16 h-16 sm:w-20 sm:h-20 md:w-32 md:h-48" 
+                                      className="rounded-lg overflow-hidden relative aspect-square md:aspect-[2/3] w-20 h-20 md:w-32 md:h-48" 
                                       whileHover={{ scale: 1.02 }}
                                       transition={{ duration: 0.3, ease: smoothEase}}
                                     >
@@ -2815,7 +2815,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                                     <div className={`absolute -top-1.5 -left-1.5 sm:-top-2 sm:-left-2 z-10 w-5 h-5 sm:w-6 sm:h-6 rounded-full ${currentSlideColor} flex items-center justify-center text-white font-bold text-xs sm:text-sm`}>
                                       {index + 2}
                                     </div>
-                                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden">
+                                    <div className="w-20 h-20 rounded-lg overflow-hidden">
                                       {item.coverImage && (
                                         <motion.img 
                                           src={item.coverImage} 
@@ -2833,7 +2833,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                                     <h3 className="title-sm font-semibold text-white truncate">{item.title}</h3>
                                     {item.studio && <p className="text-sm md:text-base text-white/70 truncate mt-0.5">{item.studio}</p>}
                                     {item.author && <p className="text-sm md:text-base text-white/70 truncate mt-0.5">{item.author}</p>}
-                                    <div className="flex items-center mono text-yellow-300 mt-0.5 font-semibold text-xs">
+                                    <div className="flex items-center mono text-yellow-300 mt-0.5 font-semibold text-sm sm:text-base">
                                       <span className="mr-0.5">★</span>
                                       <span>{Math.round(item.userRating)}</span>
                                     </div>
@@ -3489,7 +3489,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                 <motion.h2 className="body-md font-medium text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
                   These ruled your shelves
                 </motion.h2>
-                <div className="mt-4 sm:mt-6 flex flex-col gap-4 sm:gap-6 w-full max-w-3xl mx-auto relative z-10">
+                <div className="mt-4 sm:mt-6 flex flex-col gap-2.5 sm:gap-3 w-full max-w-3xl mx-auto relative z-10">
                   {(() => {
                     const [featured, ...others] = top5Formatted;
                     return (
@@ -3513,7 +3513,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                                       1
                                     </div>
                                     <motion.div 
-                                      className="rounded-lg overflow-hidden relative aspect-square md:aspect-[2/3] w-16 h-16 sm:w-20 sm:h-20 md:w-32 md:h-48" 
+                                      className="rounded-lg overflow-hidden relative aspect-square md:aspect-[2/3] w-20 h-20 md:w-32 md:h-48" 
                                       whileHover={{ scale: 1.02 }}
                                       transition={{ duration: 0.3, ease: smoothEase}}
                                     >
@@ -3574,7 +3574,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                                     <div className={`absolute -top-1.5 -left-1.5 sm:-top-2 sm:-left-2 z-10 w-5 h-5 sm:w-6 sm:h-6 rounded-full ${currentSlideColor} flex items-center justify-center text-white font-bold text-xs sm:text-sm`}>
                                       {index + 2}
                                     </div>
-                                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden">
+                                    <div className="w-20 h-20 rounded-lg overflow-hidden">
                                       {item.coverImage && (
                                         <motion.img 
                                           src={item.coverImage} 
@@ -3811,50 +3811,49 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                             }
                             
                             const authorContent = (
-                              <motion.div
-                                className="flex items-center gap-4"
+                              <motion.div 
+                                className="flex items-center gap-2.5 sm:gap-3 w-full"
                                 variants={staggerItem}
                               >
-                                <div className="relative w-20 h-20 flex-shrink-0">
-                                  {/* Number badge in circle at top left */}
+                                {/* Thumbnail */}
+                                <div className="relative flex-shrink-0">
+                                  {/* Number badge in circle at top left - outside overflow container */}
                                   <div className={`absolute -top-1.5 -left-1.5 sm:-top-2 sm:-left-2 z-10 w-5 h-5 sm:w-6 sm:h-6 rounded-full ${currentSlideColor} flex items-center justify-center text-white font-bold text-xs sm:text-sm`}>
                                     {idx + 2}
                                   </div>
-                                  <img 
-                                    src={authorPhoto} 
-                                    alt={authorName}
-                                    className="w-full h-full rounded-xl object-cover"
-                                    onError={(e) => {
-                                      e.target.src = '/Mascot.webp';
-                                    }}
-                                  />
+                                  <div className="w-20 h-20 rounded-lg overflow-hidden">
+                                    <img 
+                                      src={authorPhoto} 
+                                      alt={authorName}
+                                      className="w-full h-full object-cover"
+                                      onError={(e) => {
+                                        e.target.src = '/Mascot.webp';
+                                      }}
+                                    />
+                                  </div>
                                 </div>
+                                {/* Title and details */}
                                 <div className="flex-1 min-w-0">
-                                  <p className="title-sm font-semibold text-white">
+                                  <p className="title-sm font-semibold text-white truncate">
                                     {authorName}
                                   </p>
                                   {worksText && (
-                                    <p className="text-sm md:text-base text-white/70 font-regular mt-1">{worksText}</p>
+                                    <p className="text-sm md:text-base text-white/70 truncate mt-0.5">{worksText}</p>
                                   )}
                                 </div>
                               </motion.div>
                             );
                             
-                            return authorUrl ? (
-                              <a
-                                key={idx}
-                                href={authorUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={(e) => e.stopPropagation()}
-                                className="relative z-10 block mb-2.5 md:mb-0"
-                              >
-                                {authorContent}
-                              </a>
-                            ) : (
-                              <div key={idx} className="mb-2.5 md:mb-0">
-                                {authorContent}
-                              </div>
+                            return (
+                              <motion.div key={idx} className="w-full">
+                                {authorUrl ? (
+                                  <a href={authorUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+                                    {authorContent}
+                                  </a>
+                                ) : (
+                                  authorContent
+                                )}
+                              </motion.div>
                             );
                           })}
                         </motion.div>
