@@ -2668,6 +2668,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
             userRating: item.list_status.score,
             studio: type === 'anime' ? (item.node.studios?.[0]?.name || '') : '',
             author: type === 'manga' ? (`${item.node.authors?.[0]?.node?.first_name || ''} ${item.node.authors?.[0]?.node?.last_name || ''}`.trim()) : '',
+            authorId: type === 'manga' ? (item.node.authors?.[0]?.node?.id || null) : null,
             genres: item.node.genres?.map(g => g.name) || [],
             malId: type === 'anime' ? item.node.id : null,
             mangaId: type === 'manga' ? item.node.id : null
@@ -2705,10 +2706,10 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                               {(() => {
                                 const featuredUrl = featured.malId ? `https://myanimelist.net/anime/${featured.malId}` : (featured.mangaId ? `https://myanimelist.net/manga/${featured.mangaId}` : null);
                                 const featuredImage = (
-                                  <div className="bg-white rounded-xl p-2 relative">
-                                    {/* Number badge outside on left */}
-                                    <div className="absolute -left-2 sm:-left-3 top-2 sm:top-3 z-20 text-pink-500 font-bold text-2xl sm:text-3xl md:text-4xl" style={{ WebkitTextStroke: '3px white', textStroke: '3px white' }}>
-                                      1
+                                  <div className="bg-white rounded-xl p-2 relative border-0">
+                                    {/* Number badge in circle, absolute top-left */}
+                                    <div className="absolute left-0 top-0 z-20 flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-pink-500 rounded-full">
+                                      <span className="text-white font-bold text-lg sm:text-xl md:text-2xl">1</span>
                                     </div>
                                     <motion.div 
                                       className="rounded-lg overflow-hidden relative aspect-[2/3] w-22 h-34 sm:w-26 sm:h-40" 
@@ -2742,7 +2743,21 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                             >
                               <h3 className="title-md font-semibold text-white mb-1">{featured.title}</h3>
                               {featured.studio && <p className="text-sm sm:text-base text-white/70 font-medium mb-0.5">{featured.studio}</p>}
-                              {featured.author && <p className="text-sm sm:text-base text-white/70 font-medium mb-0.5">{featured.author}</p>}
+                              {featured.author && (
+                                featured.authorId ? (
+                                  <a 
+                                    href={`https://myanimelist.net/people/${featured.authorId}`} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer" 
+                                    className="text-sm sm:text-base text-white/70 hover:text-pink-400 transition-colors cursor-pointer font-medium mb-0.5 block"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    {featured.author}
+                                  </a>
+                                ) : (
+                                  <p className="text-sm sm:text-base text-white/70 font-medium mb-0.5">{featured.author}</p>
+                                )
+                              )}
                               <div className="flex items-center mono text-yellow-300 mt-1 font-semibold text-sm sm:text-base">
                                 <span className="mr-1">★</span>
                                 <span>{Math.round(featured.userRating)}</span>
@@ -2766,14 +2781,9 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                                   className="flex items-center gap-2.5 sm:gap-3 w-full relative pl-6 sm:pl-8"
                                   variants={staggerItem}
                                 >
-                                  {/* Number badge outside on left */}
-                                  <div className="absolute left-0 top-0 z-10 font-bold text-xl sm:text-2xl" style={{ 
-                                    WebkitTextStroke: '3px white',
-                                    WebkitTextFillColor: '#ec4899',
-                                    color: '#ec4899',
-                                    textShadow: '0 0 0 white'
-                                  }}>
-                                    {index + 2}
+                                  {/* Number badge in circle, absolute top-left */}
+                                  <div className="absolute left-0 top-0 z-10 flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 bg-pink-500 rounded-full">
+                                    <span className="text-white font-bold text-sm sm:text-base">{index + 2}</span>
                                   </div>
                                   {/* Thumbnail */}
                                   <div className="relative flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden">
@@ -2792,7 +2802,21 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                                   <div className="flex-1 min-w-0">
                                     <h3 className="title-sm font-semibold text-white truncate">{item.title}</h3>
                                     {item.studio && <p className="text-sm md:text-base text-white/70 truncate mt-0.5">{item.studio}</p>}
-                                    {item.author && <p className="text-sm md:text-base text-white/70 truncate mt-0.5">{item.author}</p>}
+                                    {item.author && (
+                                      item.authorId ? (
+                                        <a 
+                                          href={`https://myanimelist.net/people/${item.authorId}`} 
+                                          target="_blank" 
+                                          rel="noopener noreferrer" 
+                                          className="text-sm md:text-base text-white/70 hover:text-pink-400 transition-colors cursor-pointer truncate mt-0.5 block"
+                                          onClick={(e) => e.stopPropagation()}
+                                        >
+                                          {item.author}
+                                        </a>
+                                      ) : (
+                                        <p className="text-sm md:text-base text-white/70 truncate mt-0.5">{item.author}</p>
+                                      )
+                                    )}
                                     <div className="flex items-center mono text-yellow-300 mt-0.5 font-semibold text-xs">
                                       <span className="mr-0.5">★</span>
                                       <span>{Math.round(item.userRating)}</span>
@@ -3431,6 +3455,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
             userRating: item.list_status.score,
             studio: type === 'anime' ? (item.node.studios?.[0]?.name || '') : '',
             author: type === 'manga' ? (`${item.node.authors?.[0]?.node?.first_name || ''} ${item.node.authors?.[0]?.node?.last_name || ''}`.trim()) : '',
+            authorId: type === 'manga' ? (item.node.authors?.[0]?.node?.id || null) : null,
             genres: item.node.genres?.map(g => g.name) || [],
             malId: type === 'anime' ? item.node.id : null,
             mangaId: type === 'manga' ? item.node.id : null
@@ -3468,10 +3493,10 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                               {(() => {
                                 const featuredUrl = featured.malId ? `https://myanimelist.net/anime/${featured.malId}` : (featured.mangaId ? `https://myanimelist.net/manga/${featured.mangaId}` : null);
                                 const featuredImage = (
-                                  <div className="bg-white rounded-xl p-2 relative">
-                                    {/* Number badge outside on left */}
-                                    <div className="absolute -left-2 sm:-left-3 top-2 sm:top-3 z-20 text-pink-500 font-bold text-2xl sm:text-3xl md:text-4xl" style={{ WebkitTextStroke: '3px white', textStroke: '3px white' }}>
-                                      1
+                                  <div className="bg-white rounded-xl p-2 relative border-0">
+                                    {/* Number badge in circle, absolute top-left */}
+                                    <div className="absolute left-0 top-0 z-20 flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-pink-500 rounded-full">
+                                      <span className="text-white font-bold text-lg sm:text-xl md:text-2xl">1</span>
                                     </div>
                                     <motion.div 
                                       className="rounded-lg overflow-hidden relative aspect-[2/3] w-22 h-34 sm:w-26 sm:h-40" 
@@ -3505,7 +3530,21 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                             >
                               <h3 className="title-md font-semibold text-white mb-1">{featured.title}</h3>
                               {featured.studio && <p className="text-sm md:text-base text-white/70 font-medium mb-0.5">{featured.studio}</p>}
-                              {featured.author && <p className="text-sm md:text-base text-white/70 font-medium mb-0.5">{featured.author}</p>}
+                              {featured.author && (
+                                featured.authorId ? (
+                                  <a 
+                                    href={`https://myanimelist.net/people/${featured.authorId}`} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer" 
+                                    className="text-sm md:text-base text-white/70 hover:text-pink-400 transition-colors cursor-pointer font-medium mb-0.5 block"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    {featured.author}
+                                  </a>
+                                ) : (
+                                  <p className="text-sm md:text-base text-white/70 font-medium mb-0.5">{featured.author}</p>
+                                )
+                              )}
                               <div className="flex items-center mono text-yellow-300 mt-1 font-semibold text-sm sm:text-base">
                                 <span className="mr-1">★</span>
                                 <span>{Math.round(featured.userRating)}</span>
@@ -3529,14 +3568,9 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                                   className="flex items-center gap-2.5 sm:gap-3 w-full relative pl-6 sm:pl-8"
                                   variants={staggerItem}
                                 >
-                                  {/* Number badge outside on left */}
-                                  <div className="absolute left-0 top-0 z-10 font-bold text-xl sm:text-2xl" style={{ 
-                                    WebkitTextStroke: '3px white',
-                                    WebkitTextFillColor: '#ec4899',
-                                    color: '#ec4899',
-                                    textShadow: '0 0 0 white'
-                                  }}>
-                                    {index + 2}
+                                  {/* Number badge in circle, absolute top-left */}
+                                  <div className="absolute left-0 top-0 z-10 flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 bg-pink-500 rounded-full">
+                                    <span className="text-white font-bold text-sm sm:text-base">{index + 2}</span>
                                   </div>
                                   {/* Thumbnail */}
                                   <div className="relative flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden">
@@ -3555,7 +3589,21 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                                   <div className="flex-1 min-w-0">
                                     <h3 className="title-sm font-semibold text-white truncate">{item.title}</h3>
                                     {item.studio && <p className="text-sm md:text-base text-white/70 truncate mt-0.5">{item.studio}</p>}
-                                    {item.author && <p className="text-sm md:text-base text-white/70 truncate mt-0.5">{item.author}</p>}
+                                    {item.author && (
+                                      item.authorId ? (
+                                        <a 
+                                          href={`https://myanimelist.net/people/${item.authorId}`} 
+                                          target="_blank" 
+                                          rel="noopener noreferrer" 
+                                          className="text-sm md:text-base text-white/70 hover:text-pink-400 transition-colors cursor-pointer truncate mt-0.5 block"
+                                          onClick={(e) => e.stopPropagation()}
+                                        >
+                                          {item.author}
+                                        </a>
+                                      ) : (
+                                        <p className="text-sm md:text-base text-white/70 truncate mt-0.5">{item.author}</p>
+                                      )
+                                    )}
                                     <div className="flex items-center mono text-yellow-300 mt-0.5 font-semibold text-xs">
                                       <span className="mr-0.5">★</span>
                                       <span>{Math.round(item.userRating)}</span>
@@ -3682,10 +3730,10 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                         <div className="flex items-center gap-4 sm:gap-6">
                           {/* Image on left in white container */}
                           <div className="flex-shrink-0">
-                            <div className="bg-white rounded-xl p-2 relative">
-                              {/* Number badge outside on left */}
-                              <div className="absolute -left-2 sm:-left-3 top-2 sm:top-3 z-20 text-pink-500 font-bold text-2xl sm:text-3xl md:text-4xl" style={{ WebkitTextStroke: '3px white', textStroke: '3px white' }}>
-                                1
+                            <div className="bg-white rounded-xl p-2 relative border-0">
+                              {/* Number badge in circle, absolute top-left */}
+                              <div className="absolute left-0 top-0 z-20 flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-pink-500 rounded-full">
+                                <span className="text-white font-bold text-lg sm:text-xl md:text-2xl">1</span>
                               </div>
                               <motion.div 
                                 className="rounded-lg overflow-hidden relative aspect-square w-22 h-22 sm:w-26 sm:h-26" 
@@ -3695,7 +3743,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                                 <img 
                                   src={featuredAuthorPhoto} 
                                   alt={featured[0]}
-                                  className="w-full h-full object-cover rounded-lg"
+                                  className="w-full h-full object-cover rounded-lg max-w-full max-h-full"
                                   onError={(e) => {
                                     e.target.src = '/Mascot.webp';
                                   }}
@@ -3710,7 +3758,23 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                             animate={{ opacity: 1 }}
                             transition={{ duration: 0.5, delay: 0.2 }}
                           >
-                            <h3 className="title-lg font-semibold text-white mb-1">{featured[0]}</h3>
+                            {(() => {
+                              const authorId = featured[2]; // Get author ID from featured (third element)
+                              const authorUrl = authorId ? `https://myanimelist.net/people/${authorId}` : null;
+                              return authorUrl ? (
+                                <a 
+                                  href={authorUrl} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer" 
+                                  className="title-lg font-semibold text-white hover:text-pink-400 transition-colors cursor-pointer mb-1 block"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  {featured[0]}
+                                </a>
+                              ) : (
+                                <h3 className="title-lg font-semibold text-white mb-1">{featured[0]}</h3>
+                              );
+                            })()}
                             {featuredWorksText && (
                               <p className="text-sm md:text-base text-white/70 font-medium mt-1">{featuredWorksText}</p>
                             )}
@@ -3726,7 +3790,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                           initial="initial"
                           animate="animate"
                         >
-                          {others.map(([authorName, count], idx) => {
+                          {others.map(([authorName, count, authorId], idx) => {
                             const authorManga = getAuthorManga(authorName);
                             const authorPhoto = authorPhotos[authorName] || '/Mascot.webp';
                             
@@ -3762,23 +3826,38 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                                 variants={staggerItem}
                               >
                                 <div className="relative w-20 h-20 flex-shrink-0">
-                                  {/* Number badge outside on left */}
-                                  <div className="absolute -left-3 sm:-left-4 top-0 z-10 text-pink-500 font-bold text-xl sm:text-2xl" style={{ WebkitTextStroke: '2px white', textStroke: '2px white' }}>
-                                    {idx + 2}
+                                  {/* Number badge in circle, absolute top-left */}
+                                  <div className="absolute left-0 top-0 z-10 flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 bg-pink-500 rounded-full">
+                                    <span className="text-white font-bold text-sm sm:text-base">{idx + 2}</span>
                                   </div>
                                   <img 
                                     src={authorPhoto} 
                                     alt={authorName}
-                                    className="w-full h-full rounded-xl object-cover"
+                                    className="w-full h-full rounded-xl object-cover max-w-full max-h-full"
                                     onError={(e) => {
                                       e.target.src = '/Mascot.webp';
                                     }}
                                   />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <p className="title-sm font-semibold text-white">
-                                    {authorName}
-                                  </p>
+                                  {(() => {
+                                    const authorUrl = authorId ? `https://myanimelist.net/people/${authorId}` : null;
+                                    return authorUrl ? (
+                                      <a 
+                                        href={authorUrl} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer" 
+                                        className="title-sm font-semibold text-white hover:text-pink-400 transition-colors cursor-pointer"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        {authorName}
+                                      </a>
+                                    ) : (
+                                      <p className="title-sm font-semibold text-white">
+                                        {authorName}
+                                      </p>
+                                    );
+                                  })()}
                                   {worksText && (
                                     <p className="text-sm md:text-base text-white/70 font-regular mt-1">{worksText}</p>
                                   )}
