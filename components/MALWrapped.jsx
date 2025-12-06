@@ -2740,7 +2740,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                               animate={{ opacity: 1 }}
                               transition={{ duration: 0.5, delay: 0.2 }}
                             >
-                              <h3 className="title-lg font-semibold text-white mb-1">{featured.title}</h3>
+                              <h3 className="title-md font-semibold text-white mb-1">{featured.title}</h3>
                               {featured.studio && <p className="text-sm sm:text-base text-white/70 font-medium mb-0.5">{featured.studio}</p>}
                               {featured.author && <p className="text-sm sm:text-base text-white/70 font-medium mb-0.5">{featured.author}</p>}
                               <div className="flex items-center mono text-yellow-300 mt-1 font-semibold text-sm sm:text-base">
@@ -2763,15 +2763,20 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                               const malUrl = item.malId ? `https://myanimelist.net/anime/${item.malId}` : (item.mangaId ? `https://myanimelist.net/manga/${item.mangaId}` : null);
                               const itemContent = (
                                 <motion.div 
-                                  className="flex items-center gap-2.5 sm:gap-3 w-full"
+                                  className="flex items-center gap-2.5 sm:gap-3 w-full relative pl-6 sm:pl-8"
                                   variants={staggerItem}
                                 >
+                                  {/* Number badge outside on left */}
+                                  <div className="absolute left-0 top-0 z-10 font-bold text-xl sm:text-2xl" style={{ 
+                                    WebkitTextStroke: '3px white',
+                                    WebkitTextFillColor: '#ec4899',
+                                    color: '#ec4899',
+                                    textShadow: '0 0 0 white'
+                                  }}>
+                                    {index + 2}
+                                  </div>
                                   {/* Thumbnail */}
                                   <div className="relative flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden">
-                                    {/* Number badge outside on left */}
-                                    <div className="absolute -left-3 sm:-left-4 top-0 z-10 text-pink-500 font-bold text-xl sm:text-2xl" style={{ WebkitTextStroke: '2px white', textStroke: '2px white' }}>
-                                      {index + 2}
-                                    </div>
                                     {item.coverImage && (
                                       <motion.img 
                                         src={item.coverImage} 
@@ -3452,7 +3457,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                       <>
                         {/* Featured #1 Item */}
                         <motion.div 
-                          className="relative w-full max-w-2xl mx-auto z-10"
+                          className="relative w-full max-w-2xl z-10"
                           initial={{ opacity: 0, y: 30 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.3, delay: 0.1, ease: smoothEase }}
@@ -3498,7 +3503,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                               animate={{ opacity: 1 }}
                               transition={{ duration: 0.5, delay: 0.2 }}
                             >
-                              <h3 className="title-lg font-semibold text-white mb-1">{featured.title}</h3>
+                              <h3 className="title-md font-semibold text-white mb-1">{featured.title}</h3>
                               {featured.studio && <p className="text-sm md:text-base text-white/70 font-medium mb-0.5">{featured.studio}</p>}
                               {featured.author && <p className="text-sm md:text-base text-white/70 font-medium mb-0.5">{featured.author}</p>}
                               <div className="flex items-center mono text-yellow-300 mt-1 font-semibold text-sm sm:text-base">
@@ -3521,15 +3526,20 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                               const malUrl = item.malId ? `https://myanimelist.net/anime/${item.malId}` : (item.mangaId ? `https://myanimelist.net/manga/${item.mangaId}` : null);
                               const itemContent = (
                                 <motion.div 
-                                  className="flex items-center gap-2.5 sm:gap-3 w-full"
+                                  className="flex items-center gap-2.5 sm:gap-3 w-full relative pl-6 sm:pl-8"
                                   variants={staggerItem}
                                 >
+                                  {/* Number badge outside on left */}
+                                  <div className="absolute left-0 top-0 z-10 font-bold text-xl sm:text-2xl" style={{ 
+                                    WebkitTextStroke: '3px white',
+                                    WebkitTextFillColor: '#ec4899',
+                                    color: '#ec4899',
+                                    textShadow: '0 0 0 white'
+                                  }}>
+                                    {index + 2}
+                                  </div>
                                   {/* Thumbnail */}
                                   <div className="relative flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden">
-                                    {/* Number badge outside on left */}
-                                    <div className="absolute -left-3 sm:-left-4 top-0 z-10 text-pink-500 font-bold text-xl sm:text-2xl" style={{ WebkitTextStroke: '2px white', textStroke: '2px white' }}>
-                                      {index + 2}
-                                    </div>
                                     {item.coverImage && (
                                       <motion.img 
                                         src={item.coverImage} 
