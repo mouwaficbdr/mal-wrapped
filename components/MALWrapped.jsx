@@ -2740,7 +2740,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                               animate={{ opacity: 1 }}
                               transition={{ duration: 0.5, delay: 0.2 }}
                             >
-                              <h3 className="title-md font-semibold text-white mb-1">{featured.title}</h3>
+                              <h3 className="title-sm md:title-md font-semibold text-white mb-1">{featured.title}</h3>
                               {featured.studio && <p className="text-sm sm:text-base text-white/70 font-medium mb-0.5">{featured.studio}</p>}
                               {featured.author && <p className="text-sm sm:text-base text-white/70 font-medium mb-0.5">{featured.author}</p>}
                               <div className="flex items-center mono text-yellow-300 mt-1 font-semibold text-sm sm:text-base md:justify-center">
@@ -3458,8 +3458,8 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.3, delay: 0.1, ease: smoothEase }}
                         >
-                          <div className="flex items-center gap-4 sm:gap-6">
-                            {/* Image on left in white container */}
+                          <div className="flex items-center gap-4 md:flex-col md:items-center md:gap-3">
+                            {/* Image - square on mobile, larger 2/3 aspect on desktop */}
                             <div className="flex-shrink-0">
                               {(() => {
                                 const featuredUrl = featured.malId ? `https://myanimelist.net/anime/${featured.malId}` : (featured.mangaId ? `https://myanimelist.net/manga/${featured.mangaId}` : null);
@@ -3470,7 +3470,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                                       1
                                     </div>
                                     <motion.div 
-                                      className="rounded-lg overflow-hidden relative aspect-[2/3] w-20 sm:w-24 md:w-28 max-w-[80px] sm:max-w-[96px] md:max-w-[112px]" 
+                                      className="rounded-lg overflow-hidden relative aspect-square md:aspect-[2/3] w-16 h-16 sm:w-20 sm:h-20 md:w-32 md:h-48" 
                                       whileHover={{ scale: 1.02 }}
                                       transition={{ duration: 0.3, ease: smoothEase}}
                                     >
@@ -3492,17 +3492,17 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                                 ) : featuredImage;
                               })()}
                             </div>
-                            {/* Title and details on right */}
+                            {/* Title and details - beside on mobile, below on desktop */}
                             <motion.div 
-                              className="flex-1 min-w-0"
+                              className="flex-1 min-w-0 md:text-center md:flex-1"
                               initial={{ opacity: 0 }}
                               animate={{ opacity: 1 }}
                               transition={{ duration: 0.5, delay: 0.2 }}
                             >
                               <h3 className="title-sm md:title-md font-semibold text-white mb-1">{featured.title}</h3>
-                              {featured.studio && <p className="text-sm md:text-base text-white/70 font-medium mb-0.5">{featured.studio}</p>}
-                              {featured.author && <p className="text-sm md:text-base text-white/70 font-medium mb-0.5">{featured.author}</p>}
-                              <div className="flex items-center mono text-yellow-300 mt-1 font-semibold text-sm sm:text-base">
+                              {featured.studio && <p className="text-sm sm:text-base text-white/70 font-medium mb-0.5">{featured.studio}</p>}
+                              {featured.author && <p className="text-sm sm:text-base text-white/70 font-medium mb-0.5">{featured.author}</p>}
+                              <div className="flex items-center mono text-yellow-300 mt-1 font-semibold text-sm sm:text-base md:justify-center">
                                 <span className="mr-1">★</span>
                                 <span>{Math.round(featured.userRating)}</span>
                               </div>
@@ -3704,7 +3704,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                           animate={{ opacity: 1 }}
                           transition={{ duration: 0.5, delay: 0.2 }}
                         >
-                          <h3 className="title-lg font-semibold text-white mb-1">{featuredAuthorName}</h3>
+                          <h3 className="title-sm md:title-md font-semibold text-white mb-1">{featuredAuthorName}</h3>
                           {featuredWorksText && (
                             <p className="text-sm md:text-base text-white/70 font-medium mt-1">{featuredWorksText}</p>
                           )}
