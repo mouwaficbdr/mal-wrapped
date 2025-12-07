@@ -668,23 +668,8 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
     ).slice(0, 5);
     
     // Hidden gems manga (high community score, low popularity) - 3 items, deduplicate by title
-    const hiddenGemsMangaRaw = completedManga
-      .filter(item => {
-        const malScore = item.node?.mean ?? 0;
-        const popularity = item.node?.num_list_users ?? Number.MAX_SAFE_INTEGER;
-        return malScore >= 7.0 && popularity < 50000;
-      })
-      .sort((a, b) => {
-        const malScoreA = a.node?.mean ?? 0;
-        const malScoreB = b.node?.mean ?? 0;
-        if (malScoreB !== malScoreA) {
-          return malScoreB - malScoreA;
-        }
-        const popularityA = a.node?.num_list_users ?? Number.MAX_SAFE_INTEGER;
-        const popularityB = b.node?.num_list_users ?? Number.MAX_SAFE_INTEGER;
-        return popularityA - popularityB;
-      });
-    const hiddenGemsManga = deduplicateByTitle(hiddenGemsMangaRaw).slice(0, 3);
+    // This will be set later to match rareMangaGems structure
+    let hiddenGemsManga = [];
     
     // Planned to read - deduplicate by title
     const plannedManga = deduplicateByTitle(
@@ -816,6 +801,9 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
       });
     
     const rareMangaGems = deduplicateByTitle(allRareManga).slice(0, 3);
+    
+    // Set hiddenGemsManga to match rareMangaGems (they use the same criteria)
+    hiddenGemsManga = rareMangaGems;
     
     // Count hidden gems (with score and popularity requirements)
     const hiddenGemsAnimeCount = completedAnime.filter(item => {
@@ -3910,7 +3898,12 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
         );
 
       case 'hidden_gems_manga':
-        if (!stats.rareMangaGems || stats.rareMangaGems.length === 0) {
+        // Use rareMangaGems if available, otherwise fall back to hiddenGemsManga
+        const mangaGemsToDisplay = stats.rareMangaGems && stats.rareMangaGems.length > 0 
+          ? stats.rareMangaGems 
+          : (stats.hiddenGemsManga || []);
+        
+        if (!mangaGemsToDisplay || mangaGemsToDisplay.length === 0) {
           return (
             <SlideLayout bgColor="blue">
               <motion.h3 className="body-sm font-regular text-white/70 mt-4 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
@@ -3919,11 +3912,12 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
             </SlideLayout>
           );
         }
-        const rareMangaItems = stats.rareMangaGems.map(item => ({
+        const rareMangaItems = mangaGemsToDisplay.map(item => ({
+          // Ensure we have the required properties
           title: item.node?.title || '',
           coverImage: item.node?.main_picture?.large || item.node?.main_picture?.medium || '',
-          popularity: item.popularity,
-          malScore: item.malScore,
+          popularity: item.popularity ?? item.node?.num_list_users ?? Number.MAX_SAFE_INTEGER,
+          malScore: item.malScore ?? item.node?.mean ?? 0,
           mangaId: item.node?.id
         }));
         return (
