@@ -1381,7 +1381,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
       topStudios: topStudios.length > 0 ? topStudios : [],
       topRated: topRated.length > 0 ? topRated : [],
       hiddenGems: hiddenGems.length > 0 ? hiddenGems : [],
-      hiddenGemsManga: hiddenGemsManga.length > 0 ? hiddenGemsManga : [],
+      hiddenGemsManga: hiddenGemsManga && hiddenGemsManga.length > 0 ? hiddenGemsManga : [],
       watchTime: totalHours,
       watchDays: Math.floor(totalHours / 24),
       completedCount: completedAnime.length,
@@ -2166,9 +2166,12 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
             setItemsPerView(3);
           }
         };
-        updateResponsive();
-        window.addEventListener('resize', updateResponsive);
-        return () => window.removeEventListener('resize', updateResponsive);
+        // Set initial value immediately
+        if (typeof window !== 'undefined') {
+          updateResponsive();
+          window.addEventListener('resize', updateResponsive);
+          return () => window.removeEventListener('resize', updateResponsive);
+        }
       }, []);
       
       const itemWidth = 100 / itemsPerView;
@@ -2251,7 +2254,9 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
       if (visibleItems.length === 0) return null;
 
       // Simple mobile carousel - CSS-based, no complex animations
-      if (isMobile) {
+      // Check if mobile on client side (after initial render)
+      const isMobileClient = typeof window !== 'undefined' && window.innerWidth < 768;
+      if (isMobileClient || isMobile) {
         const getMALUrlForMobile = (item) => {
           if (item.malId) {
             return `https://myanimelist.net/anime/${item.malId}`;
@@ -4049,10 +4054,14 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
         );
 
       case 'hidden_gems_manga':
-        // Use rareMangaGems if available, otherwise fall back to hiddenGemsManga
-        const mangaGemsToDisplay = stats.rareMangaGems && stats.rareMangaGems.length > 0 
-          ? stats.rareMangaGems 
-          : (stats.hiddenGemsManga || []);
+        // Use rareMangaGems (preferred) or hiddenGemsManga as fallback
+        // Check both possible sources
+        let mangaGemsToDisplay = [];
+        if (stats.rareMangaGems && Array.isArray(stats.rareMangaGems) && stats.rareMangaGems.length > 0) {
+          mangaGemsToDisplay = stats.rareMangaGems;
+        } else if (stats.hiddenGemsManga && Array.isArray(stats.hiddenGemsManga) && stats.hiddenGemsManga.length > 0) {
+          mangaGemsToDisplay = stats.hiddenGemsManga;
+        }
         
         if (!mangaGemsToDisplay || mangaGemsToDisplay.length === 0) {
           return (
@@ -4063,14 +4072,22 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
             </SlideLayout>
           );
         }
-        const rareMangaItems = mangaGemsToDisplay.map(item => ({
-          // Ensure we have the required properties
-          title: item.node?.title || '',
-          coverImage: item.node?.main_picture?.large || item.node?.main_picture?.medium || '',
-          popularity: item.popularity ?? item.node?.num_list_users ?? Number.MAX_SAFE_INTEGER,
-          malScore: item.malScore ?? item.node?.mean ?? 0,
-          mangaId: item.node?.id
-        }));
+        const rareMangaItems = mangaGemsToDisplay.map(item => {
+          // Handle both mapped structure (with popularity/malScore) and raw structure
+          const title = item.node?.title || item.title || '';
+          const coverImage = item.node?.main_picture?.large || item.node?.main_picture?.medium || item.coverImage || '';
+          const popularity = item.popularity !== undefined ? item.popularity : (item.node?.num_list_users ?? Number.MAX_SAFE_INTEGER);
+          const malScore = item.malScore !== undefined ? item.malScore : (item.node?.mean ?? 0);
+          const mangaId = item.node?.id || item.mangaId;
+          
+          return {
+            title,
+            coverImage,
+            popularity,
+            malScore,
+            mangaId
+          };
+        });
         return (
           <SlideLayout bgColor="blue">
             <motion.h2 className="body-md font-medium text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
