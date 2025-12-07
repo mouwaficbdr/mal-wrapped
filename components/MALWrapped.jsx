@@ -790,7 +790,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
         popularity: item.node?.num_list_users ?? Number.MAX_SAFE_INTEGER,
         malScore: item.node?.mean ?? 0
       }))
-      .filter(item => item.malScore >= HIDDEN_GEM_SCORE_THRESHOLD && item.popularity < HIDDEN_GEM_ANIME_THRESHOLD) // MAL score >= 7.0 and members below threshold
+      .filter(item => item.malScore >= HIDDEN_GEM_SCORE_THRESHOLD && item.popularity <= HIDDEN_GEM_ANIME_THRESHOLD) // MAL score >= 7.0 and members below threshold
       .sort((a, b) => {
         // Sort by MAL score descending, then by popularity (least members first)
         if (b.malScore !== a.malScore) {
@@ -807,7 +807,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
         popularity: item.node?.num_list_users ?? Number.MAX_SAFE_INTEGER,
         malScore: item.node?.mean ?? 0
       }))
-      .filter(item => item.malScore >= HIDDEN_GEM_SCORE_THRESHOLD && item.popularity < HIDDEN_GEM_MANGA_THRESHOLD) // MAL score >= 7.0 and members below threshold
+      .filter(item => item.malScore >= 1 && item.popularity <= 200000) // MAL score >= 7.0 and members below threshold
       .sort((a, b) => {
         // Sort by MAL score descending, then by popularity (least members first)
         if (b.malScore !== a.malScore) {
