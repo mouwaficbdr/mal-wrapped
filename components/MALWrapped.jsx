@@ -818,9 +818,6 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
     
     const rareMangaGems = deduplicateByTitle(allRareManga).slice(0, 3);
     
-    // Set hiddenGemsManga to match rareMangaGems (they use the same criteria)
-    hiddenGemsManga = rareMangaGems;
-    
     // Count hidden gems (with score and popularity requirements)
     const hiddenGemsAnimeCount = completedAnime.filter(item => {
       const malScore = item.node?.mean ?? 0;
