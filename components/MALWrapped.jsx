@@ -2288,6 +2288,9 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
 
         if (shouldScroll) {
           const scrollDuration = visibleItems.length * 3; // 3 seconds per item for mobile
+          // On mobile, make items larger - use 2 items per view instead of 3
+          const mobileItemsPerView = 2;
+          const mobileItemWidth = 100 / mobileItemsPerView;
           return (
             <div 
               className="mt-2 sm:mt-3 overflow-hidden relative flex justify-center"
@@ -2297,11 +2300,12 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
               }}
             >
               <div 
-                className="flex"
+                className="flex flex-row"
                 style={{ 
                   gap: gapSize,
                   justifyContent: 'flex-start',
                   width: '100%',
+                  flexWrap: 'nowrap',
                   animation: `scrollMobile ${scrollDuration}s linear infinite`
                 }}
               >
@@ -2309,8 +2313,9 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                   const malUrl = getMALUrlForMobile(item);
                   const uniqueKey = `${item.title || ''}-${item.malId || item.mangaId || idx}`;
                   const itemStyle = {
-                    width: `${itemWidth}%`,
-                    flexShrink: 0
+                    width: `${mobileItemWidth}%`,
+                    flexShrink: 0,
+                    minWidth: '150px'
                   };
                   const content = (
                     <div className="flex flex-col items-center" style={itemStyle}>
@@ -2357,6 +2362,8 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
           );
         } else {
           // Mobile non-scrolling (centered items)
+          const mobileItemsPerView = 2;
+          const mobileItemWidth = 100 / mobileItemsPerView;
           return (
             <div 
               className="mt-2 sm:mt-3 overflow-hidden relative flex justify-center"
@@ -2366,21 +2373,22 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
               }}
             >
               <div 
-                className="flex"
+                className="flex flex-row"
                 style={{ 
                   gap: gapSize,
                   justifyContent: shouldCenter ? 'center' : 'flex-start',
-                  width: shouldCenter ? 'auto' : '100%'
+                  width: shouldCenter ? 'auto' : '100%',
+                  flexWrap: 'nowrap'
                 }}
               >
                 {visibleItems.map((item, idx) => {
                   const malUrl = getMALUrlForMobile(item);
                   const uniqueKey = `${item.title || ''}-${item.malId || item.mangaId || idx}`;
                   const itemStyle = {
-                    width: shouldCenter ? `${100 / itemsPerView}%` : `${itemWidth}%`,
+                    width: shouldCenter ? `${100 / mobileItemsPerView}%` : `${mobileItemWidth}%`,
                     flexShrink: 0,
-                    minWidth: shouldCenter ? '120px' : 'auto',
-                    maxWidth: shouldCenter ? '183px' : 'none'
+                    minWidth: shouldCenter ? '150px' : '150px',
+                    maxWidth: shouldCenter ? '200px' : 'none'
                   };
                   const content = (
                     <div className="flex flex-col items-center" style={itemStyle}>
