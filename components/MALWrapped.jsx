@@ -808,12 +808,23 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
     });
     
     const allRareManga = completedMangaForGems
-      .map(item => ({
-        ...item,
-        popularity: item.node?.num_list_users ?? Number.MAX_SAFE_INTEGER,
-        malScore: item.node?.mean ?? 0
-      }))
-      .filter(item => item.malScore >= 1 && item.popularity <= 200000) // MAL score >= 7.0 and members below threshold
+      .map(item => {
+        const popularity = item.node?.num_list_users;
+        const malScore = item.node?.mean;
+        return {
+          ...item,
+          popularity: popularity !== undefined && popularity !== null ? popularity : Number.MAX_SAFE_INTEGER,
+          malScore: malScore !== undefined && malScore !== null ? malScore : 0
+        };
+      })
+      .filter(item => {
+        // Very permissive filter for debugging
+        const passes = item.malScore >= HIDDEN_GEM_SCORE_THRESHOLD && item.popularity <= HIDDEN_GEM_MANGA_THRESHOLD;
+        if (item.node?.title) {
+          console.log('Manga check:', item.node.title, 'malScore:', item.malScore, 'popularity:', item.popularity, 'passes:', passes);
+        }
+        return passes;
+      })
       .sort((a, b) => {
         // Sort by MAL score descending, then by popularity (least members first)
         if (b.malScore !== a.malScore) {
@@ -822,7 +833,10 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
         return a.popularity - b.popularity;
       });
     
+    console.log('completedMangaForGems count:', completedMangaForGems.length);
+    console.log('allRareManga count:', allRareManga.length);
     const rareMangaGems = deduplicateByTitle(allRareManga).slice(0, 3);
+    console.log('rareMangaGems count:', rareMangaGems.length);
     
     // Count hidden gems (with score and popularity requirements)
     const hiddenGemsAnimeCount = completedAnime.filter(item => {
@@ -4073,7 +4087,14 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
         );
 
       case 'hidden_gems_manga':
-        if (!stats.rareMangaGems || stats.rareMangaGems.length === 0) {
+        // Try rareMangaGems first, then fall back to hiddenGemsManga
+        const mangaGemsToShow = (stats.rareMangaGems && Array.isArray(stats.rareMangaGems) && stats.rareMangaGems.length > 0)
+          ? stats.rareMangaGems
+          : (stats.hiddenGemsManga && Array.isArray(stats.hiddenGemsManga) && stats.hiddenGemsManga.length > 0)
+          ? stats.hiddenGemsManga
+          : [];
+        
+        if (!mangaGemsToShow || mangaGemsToShow.length === 0) {
           return (
             <SlideLayout bgColor="blue">
               <motion.h3 className="body-sm font-regular text-white/70 mt-4 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
@@ -4082,11 +4103,11 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
             </SlideLayout>
           );
         }
-        const rareMangaItems = stats.rareMangaGems.map(item => ({
+        const rareMangaItems = mangaGemsToShow.map(item => ({
           title: item.node?.title || '',
           coverImage: item.node?.main_picture?.large || item.node?.main_picture?.medium || '',
-          popularity: item.popularity,
-          malScore: item.malScore,
+          popularity: item.popularity ?? item.node?.num_list_users ?? Number.MAX_SAFE_INTEGER,
+          malScore: item.malScore ?? item.node?.mean ?? 0,
           mangaId: item.node?.id
         }));
         return (
