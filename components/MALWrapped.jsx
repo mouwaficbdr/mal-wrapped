@@ -2432,14 +2432,18 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
         }
       }
 
-      // Desktop Framer Motion ticker - smooth and interactive
+      // Desktop Framer Motion ticker - simplified
       return (
         <div 
           ref={containerRef}
           className="mt-2 sm:mt-3 overflow-hidden relative flex justify-center"
           style={{ 
-            maskImage: shouldScroll ? 'none' : 'linear-gradient(to right, black 0%, black 100%)',
-            WebkitMaskImage: shouldScroll ? 'none' : 'linear-gradient(to right, black 0%, black 100%)'
+            maskImage: shouldScroll 
+              ? 'linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)'
+              : 'linear-gradient(to right, black 0%, black 100%)',
+            WebkitMaskImage: shouldScroll 
+              ? 'linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)'
+              : 'linear-gradient(to right, black 0%, black 100%)'
           }}
           onMouseEnter={() => showHover && setIsHovered(true)}
           onMouseLeave={() => {
@@ -2462,46 +2466,30 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
               const actualIndex = idx % visibleItems.length;
               const uniqueKey = `${item.title || ''}-${item.malId || item.mangaId || idx}-${actualIndex}`;
               const content = (
-                <motion.div 
-                  className="flex flex-col flex-shrink-0 items-center w-full"
-                  {...fadeSlideUp}
-                  transition={{ 
-                    ...fadeSlideUp.transition,
-                    delay: (idx % visibleItems.length) * 0.05
-                  }}
-                >
-                  <motion.div 
+                <div className="flex flex-col flex-shrink-0 items-center w-full">
+                  <div 
                     className="aspect-[2/3] w-full bg-transparent rounded-lg relative" 
                     style={{ maxHeight: '275px', maxWidth: '100%', boxSizing: 'border-box', overflow: 'hidden' }}
-                    whileHover={{ borderColor: '#ffffff' }}
-                    transition={{ duration: 0.3, ease: smoothEase }}
                   >
                     {item.coverImage && (
-                      <motion.img 
+                      <img 
                         src={item.coverImage} 
                         alt={item.title || ''} 
                         crossOrigin="anonymous" 
                         className="w-full h-full object-cover rounded-lg"
-                        whileHover={hoverImage}
                       />
                     )}
                     {showHover && hoveredItem === actualIndex && item.title && (
-                      <motion.div 
-                        className="absolute inset-0 bg-black/80 flex items-center justify-center p-2 z-10 rounded-lg pointer-events-none"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                      >
+                      <div className="absolute inset-0 bg-black/80 flex items-center justify-center p-2 z-10 rounded-lg pointer-events-none">
                         <p className="title-sm text-center">{item.title}</p>
                         {item.userRating && (
                           <div className="absolute bottom-2 right-2 text-yellow-300 mono font-semibold mt-1">
                             ★ {Math.round(item.userRating)}
                           </div>
                         )}
-                      </motion.div>
+                      </div>
                     )}
-                  </motion.div>
+                  </div>
                   {showNames && item.title && (
                     <div className="mt-2 text-center">
                       <p className="title-sm truncate">{item.title}</p>
@@ -2510,7 +2498,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                       )}
                     </div>
                   )}
-                </motion.div>
+                </div>
               );
               
               return (
@@ -3284,8 +3272,8 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                         />
                       </a>
                     )}
-                    <div className="flex-1">
-                      <h3 className="title-sm font-semibold text-white truncate">{item.title}</h3>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="title-sm font-semibold text-white line-clamp-2">{item.title}</h3>
                       
                       {item.malScore && (
                         <div className="flex items-center gap-2 mt-1">
@@ -4140,8 +4128,8 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
                         />
                       </a>
                     )}
-                    <div className="flex-1">
-                      <h3 className="title-md font-semibold text-white">{item.title}</h3>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="title-md font-semibold text-white line-clamp-2">{item.title}</h3>
                       
                       {item.malScore && (
                         <div className="flex items-center gap-2 mt-1">
