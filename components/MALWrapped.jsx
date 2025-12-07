@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, Download, LogOut, Share2, Github, Youtube, Linkedin, Instagram, ExternalLink, Copy } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, useMotionValue } from 'framer-motion';
 
 // MyAnimeList Icon Component
 const MyAnimeListIcon = ({ size = 20, className = '' }) => (
@@ -242,7 +242,7 @@ export default function MALWrapped() {
   ] : [];
 
   
-const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, .6) 25%, rgba(0, 0, 0, 0.4) 60%, rgba(0, 0, 0, .6) 80%, rgba(0, 0, 0, 1) 100%)';
+const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, .5) 25%, rgba(0, 0, 0, 0.25) 60%, rgba(0, 0, 0, .5) 80%, rgba(0, 0, 0, 1) 100%)';
   // Get website URL for watermark
   const websiteUrl = typeof window !== 'undefined' 
     ? window.location.origin.replace(/^https?:\/\//, '').toUpperCase()
@@ -555,16 +555,18 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
       thisYearAnime.filter(item => item.list_status?.status === 'plan_to_watch')
     ).slice(0, 5);
 
-    // Hidden gems (high rating, low popularity) - combine with rarest for merged slide
+    // Hidden gems (high community score, low popularity) - combine with rarest for merged slide
     const hiddenGemsRaw = completedAnime
       .filter(item => {
-        const score = item.list_status.score;
+        const malScore = item.node?.mean ?? 0;
         const popularity = item.node?.num_list_users ?? Number.MAX_SAFE_INTEGER;
-        return score >= 7.5 && popularity < 75000;
+        return malScore >= 7.0 && popularity < 70000;
       })
       .sort((a, b) => {
-        if (b.list_status.score !== a.list_status.score) {
-          return b.list_status.score - a.list_status.score;
+        const malScoreA = a.node?.mean ?? 0;
+        const malScoreB = b.node?.mean ?? 0;
+        if (malScoreB !== malScoreA) {
+          return malScoreB - malScoreA;
         }
         const popularityA = a.node?.num_list_users ?? Number.MAX_SAFE_INTEGER;
         const popularityB = b.node?.num_list_users ?? Number.MAX_SAFE_INTEGER;
@@ -665,16 +667,18 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
         .sort((a, b) => a.list_status.score - b.list_status.score)
     ).slice(0, 5);
     
-    // Hidden gems manga (high rating, low popularity) - 3 items, deduplicate by title
+    // Hidden gems manga (high community score, low popularity) - 3 items, deduplicate by title
     const hiddenGemsMangaRaw = completedManga
       .filter(item => {
-        const score = item.list_status.score;
+        const malScore = item.node?.mean ?? 0;
         const popularity = item.node?.num_list_users ?? Number.MAX_SAFE_INTEGER;
-        return score >= 8 && popularity < 50000;
+        return malScore >= 7.0 && popularity < 50000;
       })
       .sort((a, b) => {
-        if (b.list_status.score !== a.list_status.score) {
-          return b.list_status.score - a.list_status.score;
+        const malScoreA = a.node?.mean ?? 0;
+        const malScoreB = b.node?.mean ?? 0;
+        if (malScoreB !== malScoreA) {
+          return malScoreB - malScoreA;
         }
         const popularityA = a.node?.num_list_users ?? Number.MAX_SAFE_INTEGER;
         const popularityB = b.node?.num_list_users ?? Number.MAX_SAFE_INTEGER;
@@ -775,14 +779,17 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
     });
 
     // 2. Rarity Features - Hidden gems: least members (below threshold), sorted by MAL mean score descending
-    const HIDDEN_GEM_THRESHOLD = 70000;
+    const HIDDEN_GEM_ANIME_THRESHOLD = 70000;
+    const HIDDEN_GEM_MANGA_THRESHOLD = 50000;
+    const HIDDEN_GEM_SCORE_THRESHOLD = 7.0;
+    
     const allRareAnime = completedAnime
       .map(item => ({
         ...item,
         popularity: item.node?.num_list_users ?? Number.MAX_SAFE_INTEGER,
         malScore: item.node?.mean ?? 0
       }))
-      .filter(item => item.malScore > 7.5 && item.popularity <= HIDDEN_GEM_THRESHOLD) // MAL score > 7.5 and members below threshold
+      .filter(item => item.malScore >= HIDDEN_GEM_SCORE_THRESHOLD && item.popularity < HIDDEN_GEM_ANIME_THRESHOLD) // MAL score >= 7.0 and members below threshold
       .sort((a, b) => {
         // Sort by MAL score descending, then by popularity (least members first)
         if (b.malScore !== a.malScore) {
@@ -799,7 +806,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
         popularity: item.node?.num_list_users ?? Number.MAX_SAFE_INTEGER,
         malScore: item.node?.mean ?? 0
       }))
-      .filter(item => item.malScore > 7.5 && item.popularity <= HIDDEN_GEM_THRESHOLD) // MAL score > 7.5 and members below threshold
+      .filter(item => item.malScore >= HIDDEN_GEM_SCORE_THRESHOLD && item.popularity < HIDDEN_GEM_MANGA_THRESHOLD) // MAL score >= 7.0 and members below threshold
       .sort((a, b) => {
         // Sort by MAL score descending, then by popularity (least members first)
         if (b.malScore !== a.malScore) {
@@ -810,21 +817,20 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
     
     const rareMangaGems = deduplicateByTitle(allRareManga).slice(0, 3);
     
-    // Count hidden gems (rarer than threshold across anime + manga)
-    const hiddenGemsCount = [...completedAnime, ...completedManga].filter(item => {
+    // Count hidden gems (with score and popularity requirements)
+    const hiddenGemsAnimeCount = completedAnime.filter(item => {
+      const malScore = item.node?.mean ?? 0;
       const popularity = item.node?.num_list_users ?? Number.MAX_SAFE_INTEGER;
-      return popularity <= HIDDEN_GEM_THRESHOLD;
+      return malScore >= HIDDEN_GEM_SCORE_THRESHOLD && popularity < HIDDEN_GEM_ANIME_THRESHOLD;
     }).length;
 
-    const hiddenGemsAnimeCount = [...completedAnime].filter(item => {
+    const hiddenGemsMangaCount = completedManga.filter(item => {
+      const malScore = item.node?.mean ?? 0;
       const popularity = item.node?.num_list_users ?? Number.MAX_SAFE_INTEGER;
-      return popularity <= HIDDEN_GEM_THRESHOLD;
+      return malScore >= HIDDEN_GEM_SCORE_THRESHOLD && popularity < HIDDEN_GEM_MANGA_THRESHOLD;
     }).length;
 
-    const hiddenGemsMangaCount = [...completedManga].filter(item => {
-      const popularity = item.node?.num_list_users ?? Number.MAX_SAFE_INTEGER;
-      return popularity <= HIDDEN_GEM_THRESHOLD;
-    }).length;
+    const hiddenGemsCount = hiddenGemsAnimeCount + hiddenGemsMangaCount;
 
 
 
@@ -2139,6 +2145,10 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
       const [hoveredItem, setHoveredItem] = useState(null);
       const [gapSize, setGapSize] = useState('2px');
       const [itemsPerView, setItemsPerView] = useState(3);
+      const x = useMotionValue(0);
+      const startTimeRef = useRef(Date.now());
+      const pausedPositionRef = useRef(0);
+      const containerRef = useRef(null);
       
       // Deduplicate items by title AND ID to prevent repeats
       const uniqueItemsMap = new Map();
@@ -2183,6 +2193,56 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
       
       // Calculate animation duration based on number of items for smooth infinite scroll
       const animationDuration = visibleItems.length * 2; // 2 seconds per item
+      const maxScroll = visibleItems.length * itemWidth; // Maximum scroll in percentage
+
+      // Handle animation with position preservation
+      useEffect(() => {
+        if (!shouldScroll) return;
+
+        let animationFrameId;
+
+        const animate = () => {
+          if (!isHovered && containerRef.current && containerRef.current.offsetWidth > 0) {
+            // Calculate progress (0 to 1) based on elapsed time
+            const elapsed = (Date.now() - startTimeRef.current) / 1000;
+            const progress = (elapsed % animationDuration) / animationDuration;
+            
+            // Get container width to calculate pixel offset
+            const containerWidth = containerRef.current.offsetWidth;
+            // Calculate x position in pixels based on percentage
+            const currentX = -(progress * maxScroll * containerWidth) / 100;
+            x.set(currentX);
+          }
+
+          animationFrameId = requestAnimationFrame(animate);
+        };
+
+        animate();
+
+        return () => {
+          if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
+          }
+        };
+      }, [shouldScroll, isHovered, maxScroll, animationDuration, x]);
+
+      // Handle hover state changes to preserve position
+      useEffect(() => {
+        if (isHovered) {
+          // Pause: save current position
+          pausedPositionRef.current = x.get();
+        } else if (containerRef.current && containerRef.current.offsetWidth > 0) {
+          // Resume: adjust start time to continue from paused position
+          const currentX = pausedPositionRef.current;
+          const containerWidth = containerRef.current.offsetWidth;
+          const maxScrollPixels = (maxScroll * containerWidth) / 100;
+          if (maxScrollPixels > 0) {
+            const progress = Math.abs(currentX) / maxScrollPixels;
+            const adjustedElapsed = progress * animationDuration;
+            startTimeRef.current = Date.now() - (adjustedElapsed * 1000);
+          }
+        }
+      }, [isHovered, maxScroll, animationDuration, x]);
 
       const getMALUrl = (item) => {
         if (item.malId) {
@@ -2198,6 +2258,7 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
 
       return (
         <div 
+          ref={containerRef}
           className="mt-2 sm:mt-3 overflow-hidden relative flex justify-center"
           style={{ 
             maskImage: shouldScroll ? 'none' : 'linear-gradient(to right, black 0%, black 100%)',
@@ -2215,17 +2276,9 @@ const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, r
               gap: gapSize,
               justifyContent: shouldCenter ? 'center' : 'flex-start',
               width: shouldCenter ? 'auto' : '100%',
-              overflow: 'visible'
+              overflow: 'visible',
+              x: shouldScroll ? x : 0
             }}
-            animate={shouldScroll && !isHovered ? {
-              x: [`0%`, `-${visibleItems.length * itemWidth}%`]
-            } : {}}
-            transition={shouldScroll && !isHovered ? {
-              duration: animationDuration,
-              repeat: Infinity,
-              ease: 'linear',
-              repeatType: 'loop'
-            } : {}}
           >
             {duplicatedItems.map((item, idx) => {
               const malUrl = getMALUrl(item);
