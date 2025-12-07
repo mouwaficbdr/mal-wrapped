@@ -32,7 +32,8 @@ export default async function handler(req, res) {
         'title',
         'main_picture',
         'id',
-        'num_list_users'
+        'num_list_users',
+        'mean'
       ].join(',');
       
       const response = await fetch(
