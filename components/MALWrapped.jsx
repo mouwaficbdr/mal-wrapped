@@ -117,6 +117,8 @@ const hoverImage = {
   transition: { duration: 0.3, ease: smoothEase }
 };
 
+const bottomGradientBackground = 'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, .5) 25%, rgba(0, 0, 0, 0.25) 60%, rgba(0, 0, 0, .5) 80%, rgba(0, 0, 0, 1) 100%)';
+
 // Animated Number Component using Framer Motion
 function AnimatedNumber({ value, duration = 1.5, className = '' }) {
   const numValue = Number(value) || 0;
