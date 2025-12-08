@@ -4731,7 +4731,7 @@ export default function MALWrapped() {
                     transition={{ duration: 0.6, ease: smoothEase }}
                   >
                     <img 
-                      src="/preview.webp" 
+                      src="/logo.webp" 
                       alt="MAL Wrapped Logo" 
                       className="h-28 sm:h-32 md:h-36 w-auto mx-auto rounded-xl"
                     />
