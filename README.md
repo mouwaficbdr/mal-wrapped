@@ -1,107 +1,72 @@
 # MAL Wrapped 🎌
 
-MyAnimeList Wrapped - Your year in anime. A Spotify Wrapped-style experience for your MAL data.
+Your year in anime, wrapped up nice and pretty. Think Spotify Wrapped, but for your MyAnimeList account.
 
-## Features
+## What is this?
 
-- ✨ Beautiful, animated slides showcasing your anime statistics
-- 📊 Real-time data from your MyAnimeList account
-- 🎨 Stunning gradient UI with smooth animations
-- 📈 Comprehensive stats including:
-  - Total anime watched
-  - Favorite genres and studios
-  - Top-rated anime
-  - Hidden gems discovery
-  - Seasonal highlights
-  - Watch time statistics
-  - Manga statistics
-- 🔐 Secure OAuth authentication
-- 📱 Responsive design
+Connect your MyAnimeList account and get a beautiful, animated slideshow of your anime and manga stats. See your top shows, hidden gems, favorite genres, watch time, and more—all wrapped up in a gorgeous interface.
 
-## Setup
+## Getting Started
 
-1. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+### 1. Install stuff
+```bash
+npm install
+```
 
-2. **Get your MyAnimeList API Client ID:**
-   - Go to [MyAnimeList API](https://myanimelist.net/apiconfig)
-   - Create a new application
-   - Copy your Client ID
+### 2. Get your MyAnimeList API key
+- Head over to [MyAnimeList API settings](https://myanimelist.net/apiconfig)
+- Create a new app
+- Copy your Client ID
 
-3. **Configure the Client ID and Redirect URI:**
-   - Open `components/MALWrapped.jsx`
-   - Replace `<your_client_id_here>` with your actual Client ID on line 38
-   - **IMPORTANT:** In your MAL app settings (https://myanimelist.net/apiconfig), set the redirect URI to match your app URL:
-     - For local development: `http://localhost:3000` (or `http://localhost:3000/` - both should work)
-     - For production: Your actual domain (e.g., `https://yourdomain.com`)
-   - The redirect URI must match **exactly** (including http/https, port, and trailing slash if present)
-   - You can see the redirect URI your app is using on the main page - it's displayed below the connect button
+### 3. Add your Client ID
+- Set `NEXT_PUBLIC_MAL_CLIENT_ID` in your environment variables (or `.env.local`)
+- Set `MAL_CLIENT_SECRET` in your environment variables (for production)
 
-4. **Run the development server:**
-   ```bash
-   npm run dev
-   ```
+### 4. Set up your redirect URI
+In your MAL app settings, add your redirect URI:
+- **Local:** `http://localhost:3000`
+- **Production:** Your actual domain (e.g., `https://yourdomain.com`)
 
-5. **Open your browser:**
-   - Navigate to `http://localhost:3000`
-   - Click "Connect with MyAnimeList"
-   - Authorize the application
-   - Enjoy your personalized anime wrapped!
+The redirect URI must match exactly—check what's shown on the login page if you're not sure.
 
-## Tech Stack
+### 5. Run it
+```bash
+npm run dev
+```
 
-- Next.js 14
-- React 18
-- Tailwind CSS
-- MyAnimeList API v2
-- Lucide React Icons
+Open `http://localhost:3000`, click "Connect with MAL", and enjoy your wrapped!
 
-## Troubleshooting
+## What You'll See
 
-### "Authorization failed" or "Login not working"
+- Your total anime and manga counts
+- Watch time and reading stats
+- Top genres and studios
+- Your highest rated shows
+- Hidden gems you discovered
+- Seasonal highlights
+- Badges you've earned
+- Your anime character twin
 
-1. **Check your Client ID:**
-   - Make sure you've replaced `<your_client_id_here>` with your actual Client ID
-   - Verify the Client ID is correct in your MAL app settings
+## Tech Stuff
 
-2. **Check your Redirect URI:**
-   - The redirect URI in your MAL app settings must match **exactly** what's shown on the app page
-   - Common issues:
-     - Missing `http://` or `https://`
-     - Wrong port number (e.g., `:3000`)
-     - Trailing slash mismatch (`/` vs no `/`)
-     - Using `localhost` in production (use your actual domain)
+Built with Next.js, React, Tailwind CSS, and the MyAnimeList API. Uses OAuth 2.0 for secure login—your data stays private and is processed in your browser.
 
-3. **Clear browser data:**
-   - Clear localStorage for the site
-   - Clear cookies
-   - Try in an incognito/private window
+## Having Issues?
 
-4. **Check browser console:**
-   - Open browser developer tools (F12)
-   - Check the Console tab for error messages
-   - Check the Network tab to see if API calls are failing
+**Login not working?**
+- Make sure your Client ID is set correctly
+- Check that your redirect URI matches exactly (including `http://` or `https://`)
+- Try clearing your browser's localStorage and cookies
+- Check the browser console for error messages
 
-5. **Common error messages:**
-   - `redirect_uri_mismatch`: The redirect URI doesn't match what's in your MAL app settings
-   - `invalid_client`: Your Client ID is incorrect
-   - `access_denied`: You denied authorization (try again and click "Allow")
+**Still stuck?**
+- The redirect URI is shown on the login page—copy that exact URL into your MAL app settings
+- Make sure you're using the right environment (local vs production)
 
-### "Failed to exchange code for token"
+## Privacy
 
-- This usually means the redirect URI doesn't match
-- Check the error message for the exact redirect URI your app is using
-- Make sure this exact URI is set in your MAL app settings
+Your data is processed in your browser and never stored on any server. All API calls go directly from your browser to MyAnimeList.
 
-## Notes
+---
 
-- Your data is processed locally and never stored on any server
-- The app uses OAuth 2.0 with PKCE for secure authentication
-- All API calls are made directly from your browser to MyAnimeList
-- The redirect URI is automatically detected and displayed on the app page
-
-## License
-
-MIT
+Made with ❤️ by [XAvishkar](https://myanimelist.net/profile/XAvishkar)
