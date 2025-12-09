@@ -1460,10 +1460,18 @@ export default function MALWrapped() {
       const largeDifferences = malDifferences.filter(d => d >= 2).length / malDifferences.length;
       const closeMatches = malDifferences.filter(d => d <= 0.5).length / malDifferences.length;
       
-      // Completion rate
+      // Completion rate (for Completionist archetype - needs to be very strict)
       const totalItems = thisYearAnime.length + filteredManga.length;
       const completedItems = completedAnime.length + completedManga.length;
       const completionRate = totalItems > 0 ? completedItems / totalItems : 0;
+      
+      // Calculate all-time completion rate for stricter criteria
+      const allTimeAnime = anime.filter(item => item.list_status?.status !== 'plan_to_watch');
+      const allTimeManga = (manga || []).filter(item => item.list_status?.status !== 'plan_to_read');
+      const allTimeTotal = allTimeAnime.length + allTimeManga.length;
+      const allTimeCompleted = allTimeAnime.filter(item => item.list_status?.status === 'completed').length +
+                               allTimeManga.filter(item => item.list_status?.status === 'completed').length;
+      const allTimeCompletionRate = allTimeTotal > 0 ? allTimeCompleted / allTimeTotal : 0;
       
       // Determine archetype (check in priority order)
       if (averageRating >= 8.0 && lowRatings < 0.1) {
@@ -1484,42 +1492,43 @@ export default function MALWrapped() {
         ratingStyle = {
           type: 'perfectionist',
           name: 'The Perfectionist',
-          footer: `It's either masterpiece or miss — no in-between`,
+          footer: `Average score: ${averageRating.toFixed(1)} — It's either masterpiece or miss. No in-between`,
           image: '/rating-styles/perfectionist.webp'
         };
-      } else if (completionRate >= 0.8) {
+      } else if (completionRate >= 0.95 && allTimeCompletionRate >= 0.90 && totalItems >= 20) {
+        // Very strict: 95%+ completion rate this year, 90%+ all-time, and at least 20 items
         ratingStyle = {
           type: 'completionist',
           name: 'The Completionist',
-          footer: `You finish everything, even the rough ones`,
+          footer: `Average score: ${averageRating.toFixed(1)} — You finish everything, even the rough ones`,
           image: '/rating-styles/completionist.webp'
         };
       } else if (closeMatches > 0.6) {
         ratingStyle = {
           type: 'hype_rider',
           name: 'The Hype Rider',
-          footer: `If everyone loves it, so do you`,
+          footer: `Average score: ${averageRating.toFixed(1)} — Your taste lines up with the community, and that's perfectly fine`,
           image: '/rating-styles/hype-rider.webp'
         };
       } else if (largeDifferences > 0.4) {
         ratingStyle = {
           type: 'contrarian',
           name: 'The Contrarian',
-          footer: `You march to your own beat`,
+          footer: `Average score: ${averageRating.toFixed(1)} — You trust your own judgment over popular opinions`,
           image: '/rating-styles/contrarian.webp'
         };
       } else if (midRatings > 0.5 && Math.abs(averageRating - 7.0) < 1.0) {
         ratingStyle = {
           type: 'middle_ground',
           name: 'The Balanced Reviewer',
-          footer: `Average score: ${averageRating.toFixed(1)} — Fair and measured`,
+          footer: `Average score: ${averageRating.toFixed(1)} — Fair and measured in every rating you give`,
           image: '/rating-styles/balanced-reviewer.webp'
         };
       } else {
         ratingStyle = {
           type: 'wild_card',
           name: 'The Wild Card',
-          footer: `Unpredictable and impossible to pin down`,
+          footer: `Average score: ${averageRating.toFixed(1)} — Unpredictable and impossible to pin down`,
           image: '/rating-styles/wild-card.webp'
         };
       }
