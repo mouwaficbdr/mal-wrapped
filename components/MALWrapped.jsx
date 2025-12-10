@@ -181,12 +181,18 @@ function AnimatedNumber({ value, duration = 1.5, className = '' }) {
 function getComparisonCopy(percentage, nounPlural) {
   if (!percentage || percentage <= 0) return null;
   const isAboveAverage = percentage >= 100;
+  if (isAboveAverage) {
+    const aboveBy = percentage - 100;
   return {
-    prefix: isAboveAverage ? "That's " : "That's only ",
-    suffix: isAboveAverage
-      ? ` more ${nounPlural} compared to other MAL users. You’re leaving the crowd behind!`
-      : ` ${nounPlural} compared to other MAL users. Don’t worry, every hero has a slow arc!`
-  };
+      prefix: "You're ",
+      suffix: `% above the average MAL user!`
+    };
+  } else {
+    return {
+      prefix: "You're at ",
+      suffix: `% of the average MAL user.`
+    };
+  }
 }
 
 function getCompletionDays(startDate, finishDate) {
@@ -227,30 +233,28 @@ export default function MALWrapped() {
     ...(hasAnime ? [
       { id: 'anime_time' },
       { id: 'top_genre' },
-      ...(stats?.demographicDistribution && stats.demographicDistribution.length > 0 ? [{ id: 'demographic' }] : []),
+      ...(stats?.animeDemographicDistribution && stats.animeDemographicDistribution.length > 0 ? [{ id: 'demographic_anime' }] : []),
       { id: 'drumroll_anime' },
       { id: 'top_5_anime' },
-      // { id: 'top_studio' },
       { id: 'seasonal_highlights' },
       { id: 'hidden_gems_anime' },
       { id: 'planned_anime' },
-      ...(stats.milestones && stats.milestones.length > 0 && stats.thisYearMilestone ? [{ id: 'milestones' }] : []),
     ] : []),
     { id: 'anime_to_manga_transition' },
     { id: 'manga_count' },
     ...(hasManga ? [
       { id: 'manga_time' },
       { id: 'top_manga_genre' },
+      ...(stats?.mangaDemographicDistribution && stats.mangaDemographicDistribution.length > 0 ? [{ id: 'demographic_manga' }] : []),
       { id: 'drumroll_manga' },
       { id: 'top_5_manga' },
       { id: 'top_author' },
-      { id: 'hidden_gems_manga' },
       { id: 'longest_manga' },
+      { id: 'hidden_gems_manga' },
       { id: 'planned_manga' },
     ] : []),
-    ...(stats.badges && stats.badges.length > 0 ? [{ id: 'badges' }] : []),
-    ...(stats.characterTwin ? [{ id: 'character_twin' }] : []),
     ...(stats.ratingStyle ? [{ id: 'rating_style' }] : []),
+    ...(stats.characterTwin ? [{ id: 'character_twin' }] : []),
     { id: 'finale' },
   ] : [], [stats, hasAnime, hasManga]);
 
@@ -269,7 +273,8 @@ export default function MALWrapped() {
       'anime_count': 'My Anime Journey',
       'anime_time': 'My Anime Watchtime',
       'top_genre': 'My Most Watched Genres',
-      'demographic': 'My Demographic Distribution',
+      'demographic_anime': 'My Anime Demographics',
+      'demographic_manga': 'My Manga Demographics',
       'drumroll_anime': 'My Top Anime',
       'top_5_anime': 'My Top 5 Anime',
       'top_studio': 'My Favorite Studios',
@@ -288,7 +293,7 @@ export default function MALWrapped() {
       'longest_manga': 'My Longest Manga Journey',
       'planned_manga': 'My Planned-to-Read Manga',
       'badges': 'My Badges',
-      'character_twin': 'My Anime Twin',
+      'character_twin': 'My Character Match',
       'rating_style': 'My Rating Style',
       'finale': 'MAL-WRAPPED.VERCEL.APP'
     };
@@ -656,7 +661,6 @@ export default function MALWrapped() {
     );
 
     // Calculate demographic distribution (Shounen, Seinen, Shoujo, Josei)
-    const demographicCounts = { Shounen: 0, Seinen: 0, Shoujo: 0, Josei: 0 };
     const normalizeDemographic = (name) => {
       if (!name) return null;
       const normalized = name.toLowerCase().trim();
@@ -668,27 +672,39 @@ export default function MALWrapped() {
     };
     
     // Count demographics from anime
+    const animeDemographicCounts = { Shounen: 0, Seinen: 0, Shoujo: 0, Josei: 0 };
     thisYearAnime.forEach(item => {
       item.node?.genres?.forEach(genre => {
         const demo = normalizeDemographic(genre.name);
-        if (demo) demographicCounts[demo]++;
+        if (demo) animeDemographicCounts[demo]++;
       });
     });
     
-    // Count demographics from manga
-    filteredManga.forEach(item => {
-      item.node?.genres?.forEach(genre => {
-        const demo = normalizeDemographic(genre.name);
-        if (demo) demographicCounts[demo]++;
-      });
-    });
-    
-    const totalDemographicItems = Object.values(demographicCounts).reduce((sum, count) => sum + count, 0);
-    const demographicDistribution = Object.entries(demographicCounts)
+    const totalAnimeDemographicItems = Object.values(animeDemographicCounts).reduce((sum, count) => sum + count, 0);
+    const animeDemographicDistribution = Object.entries(animeDemographicCounts)
       .map(([name, count]) => ({
         name,
         count,
-        percentage: totalDemographicItems > 0 ? Math.round((count / totalDemographicItems) * 100) : 0
+        percentage: totalAnimeDemographicItems > 0 ? Math.round((count / totalAnimeDemographicItems) * 100) : 0
+      }))
+      .filter(demo => demo.count > 0)
+      .sort((a, b) => b.count - a.count);
+    
+    // Count demographics from manga
+    const mangaDemographicCounts = { Shounen: 0, Seinen: 0, Shoujo: 0, Josei: 0 };
+    filteredManga.forEach(item => {
+      item.node?.genres?.forEach(genre => {
+        const demo = normalizeDemographic(genre.name);
+        if (demo) mangaDemographicCounts[demo]++;
+      });
+    });
+    
+    const totalMangaDemographicItems = Object.values(mangaDemographicCounts).reduce((sum, count) => sum + count, 0);
+    const mangaDemographicDistribution = Object.entries(mangaDemographicCounts)
+      .map(([name, count]) => ({
+        name,
+        count,
+        percentage: totalMangaDemographicItems > 0 ? Math.round((count / totalMangaDemographicItems) * 100) : 0
       }))
       .filter(demo => demo.count > 0)
       .sort((a, b) => b.count - a.count);
@@ -714,8 +730,11 @@ export default function MALWrapped() {
     const mangaChaptersMap = new Map();
     
     if (currentYear === 'all') {
-      // For all time: find manga with most total chapters
-      filteredManga.forEach(item => {
+      // For all time: find manga with most total chapters from all manga (excluding plan_to_read)
+      const allMangaExcludingPlanned = (manga || []).filter(item => 
+        item.list_status?.status !== 'plan_to_read'
+      );
+      allMangaExcludingPlanned.forEach(item => {
         const totalChapters = item.node?.num_chapters || 0;
         const title = item.node?.title || '';
         const mangaId = item.node?.id;
@@ -857,7 +876,15 @@ export default function MALWrapped() {
         return dateA - dateB;
       });
     
-    const thisYearMilestone = milestones.find(m => {
+    let thisYearMilestone = null;
+    if (currentYear === 'all') {
+      // For all time, show the highest milestone achieved
+      if (milestones.length > 0) {
+        thisYearMilestone = milestones[milestones.length - 1];
+      }
+    } else {
+      // For specific year, find milestone achieved in that year
+      thisYearMilestone = milestones.find(m => {
       // Check if the m.count-th completed anime was finished this year
       if (sortedCompletedAnime.length < m.count) return false;
       const milestoneItem = sortedCompletedAnime[m.count - 1];
@@ -871,6 +898,7 @@ export default function MALWrapped() {
         return false;
       }
     });
+    }
 
     // 2. Rarity Features - Hidden gems: least members (below threshold), sorted by MAL mean score descending
     const HIDDEN_GEM_ANIME_THRESHOLD = 80000;
@@ -1705,7 +1733,8 @@ export default function MALWrapped() {
       mangaComparison: mangaComparison,
       totalCompletedAnime: totalCompletedAnime,
       ratingStyle: ratingStyle,
-      demographicDistribution: demographicDistribution.length > 0 ? demographicDistribution : null,
+      animeDemographicDistribution: animeDemographicDistribution.length > 0 ? animeDemographicDistribution : null,
+      mangaDemographicDistribution: mangaDemographicDistribution.length > 0 ? mangaDemographicDistribution : null,
     };
     
     setStats(statsData);
@@ -3010,7 +3039,11 @@ export default function MALWrapped() {
                 <div className="text-center mt-4 w-full">
                   <p className="body-sm text-white/70 font-regular text-container">
                     {animeComparisonCopy.prefix}
-                    <span className="text-white font-semibold">{animeDisplayPercentage}%</span>
+                    <span className="text-white font-semibold">
+                      {animeDisplayPercentage >= 100 
+                        ? `${Math.round(animeDisplayPercentage - 100)}%` 
+                        : `${Math.round(animeDisplayPercentage)}%`}
+                    </span>
                     {animeComparisonCopy.suffix}
                   </p>
                 </div>
@@ -3075,9 +3108,22 @@ export default function MALWrapped() {
           </SlideLayout>
         );
 
-      case 'demographic': {
+      case 'demographic_anime':
+      case 'demographic_manga': {
         const DemographicContent = () => {
           const [showPercentages, setShowPercentages] = useState(false);
+          const [isMobile, setIsMobile] = useState(false);
+          const isAnime = slide.id === 'demographic_anime';
+          
+          useEffect(() => {
+            // Check if mobile on mount and resize
+            const checkMobile = () => {
+              setIsMobile(window.innerWidth < 768);
+            };
+            checkMobile();
+            window.addEventListener('resize', checkMobile);
+            return () => window.removeEventListener('resize', checkMobile);
+          }, []);
           
           useEffect(() => {
             // Show percentages after reveal completes (1.5s delay + 1.2s transition = ~2.7s)
@@ -3089,9 +3135,10 @@ export default function MALWrapped() {
             };
           }, []);
           
-          if (!stats.demographicDistribution || stats.demographicDistribution.length === 0) return null;
+          const demographicData = isAnime ? stats.animeDemographicDistribution : stats.mangaDemographicDistribution;
+          if (!demographicData || demographicData.length === 0) return null;
           
-          const demographics = stats.demographicDistribution;
+          const demographics = demographicData;
           const topDemographic = demographics[0];
           const allDemographics = demographics;
           const demographicCharacters = {
@@ -3142,12 +3189,14 @@ export default function MALWrapped() {
             return "Your taste spans multiple worlds";
           };
           
-          // 4 quadrants - evenly spaced, no overlap
+          // 4 quadrants - evenly spaced, no overlap (reduced on mobile)
+          const quadrantSpacing = isMobile ? 80 : 120;
+          const quadrantVertical = isMobile ? 60 : 80;
           const quadrantPositions = [
-            { x: -120, y: -80 },  // Top left quadrant
-            { x: 120, y: -80 },   // Top right quadrant
-            { x: -120, y: 80 },   // Bottom left quadrant
-            { x: 120, y: 80 }     // Bottom right quadrant
+            { x: -quadrantSpacing, y: -quadrantVertical },  // Top left quadrant
+            { x: quadrantSpacing, y: -quadrantVertical },   // Top right quadrant
+            { x: -quadrantSpacing, y: quadrantVertical },   // Bottom left quadrant
+            { x: quadrantSpacing, y: quadrantVertical }     // Bottom right quadrant
           ];
           
           // Final positions (top centered, others in row below)
@@ -3160,11 +3209,11 @@ export default function MALWrapped() {
           return (
             <SlideLayout bgColor="pink">
               <motion.h2 className="body-md font-medium text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
-                Your demographic preference
+                Though your {isAnime ? 'watching' : 'reading'} taste leans towards...
               </motion.h2>
-              <motion.div className="mt-4 flex flex-col items-center relative z-10 min-h-[50vh] justify-center" {...fadeSlideUp} data-framer-motion>
+              <motion.div className="mt-4 md:mt-4 flex flex-col items-center relative z-10 min-h-[50vh] justify-center" {...fadeSlideUp} data-framer-motion>
                 <motion.div
-                  className="relative w-full h-80 flex items-center justify-center"
+                  className="relative w-full h-64 md:h-80 flex items-center justify-center"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.5 }}
@@ -3172,10 +3221,13 @@ export default function MALWrapped() {
                   {allDemographics.map((demo, idx) => {
                     const isTop = demo.name === topDemographic.name;
                     const initialPos = quadrantPositions[idx] || { x: 0, y: 0 };
+                    // Reduce spacing on mobile
+                    const horizontalSpacing = isMobile ? 80 : 120;
+                    const verticalSpacing = isMobile ? 60 : 100;
                     const finalX = isTop 
                       ? 0 
-                      : (otherIndices.indexOf(idx) - (otherIndices.length - 1) / 2) * 120;
-                    const finalY = isTop ? -100 : 100;
+                      : (otherIndices.indexOf(idx) - (otherIndices.length - 1) / 2) * horizontalSpacing;
+                    const finalY = isTop ? -verticalSpacing : verticalSpacing;
                     
                     return (
                       <motion.div
@@ -3188,7 +3240,7 @@ export default function MALWrapped() {
                           y: initialPos.y
                         }}
                         animate={{
-                          scale: [0, 1, 0.8, 1, isTop ? 1.25 : 0.8],
+                          scale: [0, 0.9, 0.4, 0.9, isTop ? 1.25 : 0.8],
                           opacity: [0, 1, 1],
                           x: [initialPos.x, initialPos.x, finalX],
                           y: [initialPos.y, initialPos.y, finalY]
@@ -3217,7 +3269,7 @@ export default function MALWrapped() {
                         }}
                       >
                         <div
-                          className="relative rounded-full overflow-hidden mb-2 w-24 h-24 md:w-28 md:h-28"
+                          className="relative rounded-full overflow-hidden mb-1 md:mb-2 w-20 h-20 md:w-24 md:h-24 lg:w-28 lg:h-28"
                         >
                           <img
                             src={demographicCharacters[demo.name] || '/Mascot.webp'}
@@ -3229,7 +3281,7 @@ export default function MALWrapped() {
                             }}
                           />
                         </div>
-                        <motion.p className={`${isTop ? 'title-sm font-bold text-white' : 'body-sm font-medium text-white/80'} text-center`}
+                        <motion.p className={`${isTop ? 'title-sm text-white' : 'body-sm text-white/80'} font-semibold text-center`}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: showPercentages ? 1 : 0 }}
                         transition={{ duration: 0.5 }}>
@@ -3248,7 +3300,7 @@ export default function MALWrapped() {
                   })}
                 </motion.div>
                 <motion.p 
-                  className="body-sm text-white/70 text-center mt-8 max-w-md"
+                  className="body-sm text-white/70 text-center mt-4 md:mt-8 max-w-md"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 2.7, duration: 0.5 }}
@@ -3726,7 +3778,7 @@ export default function MALWrapped() {
 
 
       case 'planned_anime':
-        const plannedAnimeItems = stats.plannedAnime.slice(0, 5).map(item => ({
+        const plannedAnimeItems = stats.plannedAnime.map(item => ({
           title: item.node?.title || '',
           coverImage: item.node?.main_picture?.large || item.node?.main_picture?.medium || '',
           malId: item.node?.id
@@ -3740,11 +3792,16 @@ export default function MALWrapped() {
             )}
             {plannedAnimeItems.length > 0 ? (
               <motion.div className="relative z-10" {...fadeSlideUp} data-framer-motion>
-                <GridImages items={plannedAnimeItems} maxItems={3} />
-                <motion.h3 className="body-sm font-regular text-white/70 mt-4 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>One day you’ll get to them… probably</motion.h3>
+                <ImageCarousel items={plannedAnimeItems} maxItems={10} showHover={true} showNames={false} />
+                <motion.h3 className="body-sm font-regular text-white/70 mt-4 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+                  One day you'll get to them… probably
+                </motion.h3>
+                <motion.p className="body-sm font-regular text-white/70 mt-2 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+                  {plannedAnimeItems.length} anime planned
+                </motion.p>
               </motion.div>
             ) : (
-              <motion.h3 className="body-sm font-regular text-white/70 mt-4 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>You didn’t add anything to your plan-to-watch list</motion.h3>
+              <motion.h3 className="body-sm font-regular text-white/70 mt-4 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>You didn't add anything to your plan-to-watch list</motion.h3>
             )}
           </SlideLayout>
         );
@@ -3887,7 +3944,11 @@ export default function MALWrapped() {
                 <div className="text-center mt-4 w-full">
                   <p className="body-sm text-white/70 font-regular text-container">
                     {mangaComparisonCopy.prefix}
-                    <span className="text-white font-semibold">{mangaDisplayPercentage}%</span>
+                    <span className="text-white font-semibold">
+                      {mangaDisplayPercentage >= 100 
+                        ? `${Math.round(mangaDisplayPercentage - 100)}%` 
+                        : `${Math.round(mangaDisplayPercentage)}%`}
+                    </span>
                     {mangaComparisonCopy.suffix}
                   </p>
                 </div>
@@ -4564,7 +4625,7 @@ export default function MALWrapped() {
           <SlideLayout bgColor="blue">
             <motion.h2 className="body-md font-medium text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
               {stats.selectedYear === 'all' ? 'Your longest manga' : 'Your most read manga'}
-            </motion.h2>
+              </motion.h2>
             <motion.div className="mt-6 flex flex-col items-center relative z-10" {...fadeSlideUp} data-framer-motion>
               {journey.coverImage && (
                 <motion.img
@@ -4583,7 +4644,7 @@ export default function MALWrapped() {
               <p className="body-sm text-white/70 text-center text-container">
                 {chaptersText}
               </p>
-            </motion.div>
+              </motion.div>
             <motion.h3 className="body-sm font-regular text-white/70 mt-6 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
               That's dedication at its finest
             </motion.h3>
@@ -4591,7 +4652,7 @@ export default function MALWrapped() {
         );
 
       case 'planned_manga':
-        const plannedMangaItems = stats.plannedManga.slice(0, 5).map(item => ({
+        const plannedMangaItems = stats.plannedManga.map(item => ({
           title: item.node?.title || '',
           coverImage: item.node?.main_picture?.large || item.node?.main_picture?.medium || '',
           mangaId: item.node?.id
@@ -4605,10 +4666,13 @@ export default function MALWrapped() {
             )}
             {plannedMangaItems.length > 0 ? (
               <motion.div {...fadeSlideUp} data-framer-motion>
-                <GridImages items={plannedMangaItems} maxItems={3} />
+                <ImageCarousel items={plannedMangaItems} maxItems={10} showHover={true} showNames={false} />
                 <motion.h3 className="body-sm font-regular text-white/70 text-center text-container relative z-10 mt-4" {...fadeSlideUp} data-framer-motion>
-                Later just never quite arrived...
+                  Later just never quite arrived...
             </motion.h3>
+                <motion.p className="body-sm font-regular text-white/70 mt-2 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+                  {plannedMangaItems.length} manga planned
+                </motion.p>
               </motion.div>
             ) : (
               <motion.h3 className="body-sm font-regular text-white/70 text-center text-container relative z-10 mt-4" {...fadeSlideUp} data-framer-motion>
@@ -4813,7 +4877,7 @@ export default function MALWrapped() {
       case 'rating_style':
         if (!stats.ratingStyle) return null;
         return (
-          <SlideLayout bgColor="orange">
+          <SlideLayout bgColor="green">
             <motion.h2 className="body-md font-medium text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
               You rate like...
             </motion.h2>
