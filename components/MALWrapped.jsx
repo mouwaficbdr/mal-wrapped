@@ -253,6 +253,7 @@ export default function MALWrapped() {
       { id: 'hidden_gems_manga' },
       { id: 'planned_manga' },
     ] : []),
+    ...(stats.badges && stats.badges.length > 0 ? [{ id: 'badges' }] : []),
     ...(stats.ratingStyle ? [{ id: 'rating_style' }] : []),
     ...(stats.characterTwin ? [{ id: 'character_twin' }] : []),
     { id: 'finale' },
@@ -3264,7 +3265,7 @@ export default function MALWrapped() {
                           y: initialPos.y
                         }}
                         animate={{
-                          scale: [0, 0.9, 0.4, 0.9, isTop ? 1.25 : 0.8],
+                          scale: [0, 1, 0.6, 1, isTop ? 1.25 : 0.8],
                           opacity: [0, 1, 1],
                           x: [initialPos.x, initialPos.x, finalX],
                           y: [initialPos.y, initialPos.y, finalY]
@@ -3272,9 +3273,9 @@ export default function MALWrapped() {
                         transition={{
                           scale: {
                             duration: 3.5,
-                            delay: idx * 0.1,
+                            delay: idx * 0.3,
                             times: [0, 0.2, 0.4, 0.6, 0.8],
-                            ease: smoothEase,
+                            ease: "easeOut",
                           },
                           opacity: {
                             duration: 0.5,
@@ -3343,11 +3344,26 @@ export default function MALWrapped() {
         const DrumrollContent = () => {
           const [phase, setPhase] = useState(0);
           const topItem = stats.topRated.length > 0 ? stats.topRated[0] : null;
+          const audioRef = useRef(null);
           
           useEffect(() => {
-            const timer1 = setTimeout(() => setPhase(1), 2250);
+            // Play drumroll audio
+            audioRef.current = new Audio('/drumroll.mp3');
+            audioRef.current.volume = 0.5;
+            audioRef.current.play().catch(err => {
+              // Ignore autoplay errors
+              console.log('Audio play failed:', err);
+            });
+            
+            const timer1 = setTimeout(() => setPhase(1), 4000);
             return () => {
               clearTimeout(timer1);
+              // Stop and cleanup audio
+              if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current.currentTime = 0;
+                audioRef.current = null;
+              }
             };
           }, []);
 
@@ -4081,11 +4097,26 @@ export default function MALWrapped() {
         const DrumrollContent = () => {
           const [phase, setPhase] = useState(0);
           const topItem = stats.topManga.length > 0 ? stats.topManga[0] : null;
+          const audioRef = useRef(null);
           
           useEffect(() => {
-            const timer1 = setTimeout(() => setPhase(1), 2250);
+            // Play drumroll audio
+            audioRef.current = new Audio('/drumroll.mp3');
+            audioRef.current.volume = 0.5;
+            audioRef.current.play().catch(err => {
+              // Ignore autoplay errors
+              console.log('Audio play failed:', err);
+            });
+            
+            const timer1 = setTimeout(() => setPhase(1), 4000);
             return () => {
               clearTimeout(timer1);
+              // Stop and cleanup audio
+              if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current.currentTime = 0;
+                audioRef.current = null;
+              }
             };
           }, []);
 
@@ -4692,11 +4723,6 @@ export default function MALWrapped() {
               <p className="body-sm text-white/70 text-center text-container mb-1">
                 {chaptersText}
               </p>
-              {readingTimeText && (
-                <p className="body-sm text-white/70 text-center text-container mb-1">
-                  {readingTimeText} of reading
-                </p>
-              )}
               {startDateFormatted && (
                 <p className="body-sm text-white/70 text-center text-container mb-1">
                   Started: {startDateFormatted}
