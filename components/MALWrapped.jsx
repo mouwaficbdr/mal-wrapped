@@ -3248,7 +3248,7 @@ export default function MALWrapped() {
                           y: initialPos.y
                         }}
                         animate={{
-                          scale: [0, 1, 0.8, isTop ? 1.25 : 0.8],
+                          scale: [0, 1, 0.8, 1, 0.8, isTop ? 1.25 : 0.8],
                           opacity: [0, 1, 1],
                           x: [initialPos.x, initialPos.x, finalX],
                           y: [initialPos.y, initialPos.y, finalY]
@@ -3257,7 +3257,7 @@ export default function MALWrapped() {
                           scale: {
                             duration: 3.5,
                             delay: idx * 0.1,
-                            times: [0, 0.4, 0.8, 1],
+                            times: [0, 0.2, 0.4, 0.6, 0.8],
                             ease: smoothEase,
                           },
                           opacity: {
@@ -3289,12 +3289,12 @@ export default function MALWrapped() {
                             }}
                           />
                         </div>
-                        <p className={`${isTop ? 'title-sm font-bold text-white' : 'body-sm font-medium text-white/80'} text-center`}
+                        <motion.p className={`${isTop ? 'title-sm font-bold text-white' : 'body-sm font-medium text-white/80'} text-center`}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: showPercentages ? 1 : 0 }}
                         transition={{ duration: 0.5 }}>
                           {demo.name}
-                        </p>
+                        </motion.p>
                         <motion.p 
                           className={`body-sm text-white/70 font-medium text-center`}
                           initial={{ opacity: 0 }}
