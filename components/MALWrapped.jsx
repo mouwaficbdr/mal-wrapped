@@ -3138,13 +3138,21 @@ export default function MALWrapped() {
       case 'demographic': {
         const DemographicContent = () => {
           const [shouldStopAnimation, setShouldStopAnimation] = useState(false);
+          const [showPercentages, setShowPercentages] = useState(false);
           
           useEffect(() => {
             // Stop animation after reveal (2.8s + 1.2s transition = ~4s)
             const timer = setTimeout(() => {
               setShouldStopAnimation(true);
             }, 4000);
-            return () => clearTimeout(timer);
+            // Show percentages after reveal completes
+            const percentageTimer = setTimeout(() => {
+              setShowPercentages(true);
+            }, 4000);
+            return () => {
+              clearTimeout(timer);
+              clearTimeout(percentageTimer);
+            };
           }, []);
           
           if (!stats.demographicDistribution || stats.demographicDistribution.length === 0) return null;
@@ -3200,12 +3208,12 @@ export default function MALWrapped() {
             return "Your taste spans multiple worlds";
           };
           
-          // Initial grid positions (2x2 grid, evenly spaced, no overlap)
-          const gridPositions = [
-            { x: -100, y: -60 },  // Top left
-            { x: 100, y: -60 },   // Top right
-            { x: -100, y: 60 },   // Bottom left
-            { x: 100, y: 60 }     // Bottom right
+          // 4 quadrants - evenly spaced, no overlap
+          const quadrantPositions = [
+            { x: -120, y: -80 },  // Top left quadrant
+            { x: 120, y: -80 },   // Top right quadrant
+            { x: -120, y: 80 },   // Bottom left quadrant
+            { x: 120, y: 80 }     // Bottom right quadrant
           ];
           
           // Final positions (top centered, others in row below)
@@ -3229,16 +3237,22 @@ export default function MALWrapped() {
                 >
                   {allDemographics.map((demo, idx) => {
                     const isTop = demo.name === topDemographic.name;
-                    const initialPos = gridPositions[idx] || { x: 0, y: 0 };
+                    const initialPos = quadrantPositions[idx] || { x: 0, y: 0 };
                     const finalX = isTop 
                       ? 0 
                       : (otherIndices.indexOf(idx) - (otherIndices.length - 1) / 2) * 100;
                     const finalY = isTop ? -80 : 80;
                     
+                    // Other genres should be on top (higher z-index) and positioned to cover the top one initially
+                    const zIndex = isTop ? 1 : 10;
+                    // If not top, start closer to center to cover the top one
+                    const adjustedInitialPos = isTop ? initialPos : { x: initialPos.x * 0.6, y: initialPos.y * 0.6 };
+                    
                     return (
                       <motion.div
                         key={demo.name}
                         className="absolute flex flex-col items-center"
+                        style={{ zIndex }}
                         initial={{ 
                           scale: 0, 
                           opacity: 0,
@@ -3246,16 +3260,16 @@ export default function MALWrapped() {
                           y: 0
                         }}
                         animate={{
-                          scale: [0, 1, 1, 1, 1, 1, isTop ? 1.4 : 0.9],
-                          opacity: [0, 1, 1, 1, 1, 1, 1],
-                          x: [0, initialPos.x, initialPos.x, initialPos.x, initialPos.x, initialPos.x, finalX],
-                          y: [0, initialPos.y, initialPos.y, initialPos.y, initialPos.y, initialPos.y, finalY]
+                          scale: [0, 1, 1, 1, 1, 1, 1, isTop ? 1.25 : 0.9],
+                          opacity: [0, 1, 1, 1, 1, 1, 1, 1],
+                          x: [0, adjustedInitialPos.x, adjustedInitialPos.x, adjustedInitialPos.x, adjustedInitialPos.x, adjustedInitialPos.x, adjustedInitialPos.x, finalX],
+                          y: [0, adjustedInitialPos.y, adjustedInitialPos.y, adjustedInitialPos.y, adjustedInitialPos.y, adjustedInitialPos.y, adjustedInitialPos.y, finalY]
                         }}
                         transition={{
                           scale: {
-                            duration: 3,
+                            duration: 4,
                             delay: idx * 0.15,
-                            times: [0, 0.2, 0.4, 0.6, 0.8, 0.95, 1],
+                            times: [0, 0.15, 0.3, 0.45, 0.6, 0.7, 0.7, 1],
                             ease: "easeInOut"
                           },
                           opacity: {
@@ -3275,7 +3289,7 @@ export default function MALWrapped() {
                         }}
                       >
                         <motion.div
-                          className={`relative rounded-full overflow-hidden mb-2 ${isTop ? 'w-40 h-40 md:w-48 md:h-48' : 'w-24 h-24 md:w-28 md:h-28'}`}
+                          className={`relative rounded-full overflow-hidden mb-2 ${isTop ? 'w-36 h-36 md:w-44 md:h-44' : 'w-24 h-24 md:w-28 md:h-28'}`}
                           animate={shouldStopAnimation ? {} : {
                             scale: [1, 1.1, 0.95, 1.05, 1],
                             y: [0, -8, 4, -4, 0]
@@ -3302,9 +3316,14 @@ export default function MALWrapped() {
                         <p className={`${isTop ? 'heading-sm' : 'body-sm'} text-white/80 font-medium text-center mb-1`}>
                           {demo.name}
                         </p>
-                        <p className={`${isTop ? 'body-md' : 'body-sm'} text-white/70 text-center`}>
+                        <motion.p 
+                          className={`${isTop ? 'body-md' : 'body-sm'} text-white/70 text-center`}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: showPercentages ? 1 : 0 }}
+                          transition={{ duration: 0.5 }}
+                        >
                           {demo.percentage}%
-                        </p>
+                        </motion.p>
                       </motion.div>
                     );
                   })}
