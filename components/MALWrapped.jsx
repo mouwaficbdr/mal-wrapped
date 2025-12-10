@@ -227,12 +227,12 @@ export default function MALWrapped() {
     ...(hasAnime ? [
       { id: 'anime_time' },
       { id: 'top_genre' },
+      ...(stats?.demographicDistribution && stats.demographicDistribution.length > 0 ? [{ id: 'demographic' }] : []),
       { id: 'drumroll_anime' },
       { id: 'top_5_anime' },
       // { id: 'top_studio' },
       { id: 'seasonal_highlights' },
       { id: 'hidden_gems_anime' },
-      { id: 'binge_day' },
       { id: 'planned_anime' },
       ...(stats.milestones && stats.milestones.length > 0 && stats.thisYearMilestone ? [{ id: 'milestones' }] : []),
     ] : []),
@@ -269,12 +269,12 @@ export default function MALWrapped() {
       'anime_count': 'My Anime Journey',
       'anime_time': 'My Anime Watchtime',
       'top_genre': 'My Most Watched Genres',
+      'demographic': 'My Demographic Distribution',
       'drumroll_anime': 'My Top Anime',
       'top_5_anime': 'My Top 5 Anime',
       'top_studio': 'My Favorite Studios',
       'seasonal_highlights': 'My Seasonal Highlights',
       'hidden_gems_anime': 'My Hidden Anime Gems',
-      'binge_day': 'My Most Binge-Watched Day',
       'planned_anime': 'My Planned-to-Watch Anime',
       'milestones': 'My Milestones',
       'anime_to_manga_transition': 'MAL-WRAPPED.VERCEL.APP',
@@ -541,6 +541,52 @@ export default function MALWrapped() {
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5);
 
+    // Calculate demographic distribution (Shounen, Seinen, Shoujo, Josei)
+    const demographicCounts = { Shounen: 0, Seinen: 0, Shoujo: 0, Josei: 0 };
+    const normalizeDemographic = (name) => {
+      if (!name) return null;
+      const normalized = name.toLowerCase().trim();
+      if (normalized === 'shounen' || normalized === 'shonen') return 'Shounen';
+      if (normalized === 'seinen') return 'Seinen';
+      if (normalized === 'shoujo' || normalized === 'shojo') return 'Shoujo';
+      if (normalized === 'josei') return 'Josei';
+      return null;
+    };
+    
+    // Count demographics from anime
+    thisYearAnime.forEach(item => {
+      item.node?.genres?.forEach(genre => {
+        const demo = normalizeDemographic(genre.name);
+        if (demo) demographicCounts[demo]++;
+      });
+    });
+    
+    // Count demographics from manga
+    filteredManga.forEach(item => {
+      item.node?.genres?.forEach(genre => {
+        const demo = normalizeDemographic(genre.name);
+        if (demo) demographicCounts[demo]++;
+      });
+    });
+    
+    const totalDemographicItems = Object.values(demographicCounts).reduce((sum, count) => sum + count, 0);
+    const demographicDistribution = Object.entries(demographicCounts)
+      .map(([name, count]) => ({
+        name,
+        count,
+        percentage: totalDemographicItems > 0 ? Math.round((count / totalDemographicItems) * 100) : 0
+      }))
+      .filter(demo => demo.count > 0)
+      .sort((a, b) => b.count - a.count);
+    
+    // Character images for each demographic
+    const demographicCharacters = {
+      'Shounen': '/demographics/shounen.webp',
+      'Seinen': '/demographics/seinen.webp',
+      'Shoujo': '/demographics/shoujo.webp',
+      'Josei': '/demographics/josei.webp'
+    };
+
     // Calculate studios (from filtered anime)
     const studioCounts = {};
     thisYearAnime.forEach(item => {
@@ -557,57 +603,6 @@ export default function MALWrapped() {
     const topRated = ratedAnime
       .sort((a, b) => b.list_status.score - a.list_status.score)
       .slice(0, 5);
-    
-    // Most Binge-Watched Day - find the day with most episodes watched
-    const bingeDayData = { date: null, episodes: 0, hours: 0, anime: [] };
-    const dayEpisodeCounts = {};
-    const dayOfWeekCounts = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 }; // Sunday = 0, Monday = 1, etc.
-    
-    thisYearAnime.forEach(item => {
-      const updatedAt = item.list_status?.updated_at;
-      if (updatedAt) {
-        try {
-          const date = new Date(updatedAt);
-          if (!isNaN(date.getTime())) {
-            const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD
-            const dayOfWeek = date.getDay();
-            const episodes = item.list_status?.num_episodes_watched || 0;
-            
-            if (episodes > 0) {
-              if (!dayEpisodeCounts[dateStr]) {
-                dayEpisodeCounts[dateStr] = { episodes: 0, hours: 0, anime: [] };
-              }
-              dayEpisodeCounts[dateStr].episodes += episodes;
-              dayEpisodeCounts[dateStr].hours += (episodes * 24) / 60; // 24 minutes per episode
-              dayEpisodeCounts[dateStr].anime.push({
-                title: item.node?.title || '',
-                episodes: episodes
-              });
-              
-              dayOfWeekCounts[dayOfWeek] += episodes;
-            }
-          }
-        } catch (e) {
-          // Invalid date, skip
-        }
-      }
-    });
-    
-    // Find the day with most episodes
-    Object.entries(dayEpisodeCounts).forEach(([dateStr, data]) => {
-      if (data.episodes > bingeDayData.episodes) {
-        bingeDayData.date = dateStr;
-        bingeDayData.episodes = data.episodes;
-        bingeDayData.hours = data.hours;
-        bingeDayData.anime = data.anime;
-      }
-    });
-    
-    // Find most watched day of week
-    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const mostWatchedDayOfWeek = Object.entries(dayOfWeekCounts)
-      .sort((a, b) => b[1] - a[1])[0];
-    const mostWatchedDayName = mostWatchedDayOfWeek ? dayNames[parseInt(mostWatchedDayOfWeek[0])] : null;
     
     // Planned to watch (status: plan_to_watch) - get from original list before filtering
     const plannedAnime = deduplicateByTitle(
@@ -734,20 +729,31 @@ export default function MALWrapped() {
       if (chapters > 0 && title) {
         if (!mangaChaptersMap.has(title) || mangaChaptersMap.get(title).chapters < chapters) {
           const startDate = item.list_status?.start_date;
-          const finishDate = item.list_status?.finish_date;
           let monthsActive = 0;
           
-          if (startDate && finishDate) {
+          // Calculate months based on when it was added that year and how many chapters finished
+          if (startDate) {
             try {
               const start = new Date(startDate);
-              const finish = new Date(finishDate);
-              if (!isNaN(start.getTime()) && !isNaN(finish.getTime())) {
-                const months = (finish.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30);
+              if (!isNaN(start.getTime())) {
+                // If specific year selected, calculate from start of that year or start date (whichever is later)
+                const yearStart = currentYear === 'all' 
+                  ? new Date(start.getFullYear(), 0, 1)
+                  : new Date(currentYear, 0, 1);
+                const actualStart = start > yearStart ? start : yearStart;
+                const now = new Date();
+                const endDate = currentYear === 'all' ? now : new Date(currentYear, 11, 31);
+                const actualEnd = endDate > now ? now : endDate;
+                
+                const months = (actualEnd.getTime() - actualStart.getTime()) / (1000 * 60 * 60 * 24 * 30);
                 monthsActive = Math.max(1, Math.ceil(months));
               }
             } catch (e) {
               // Invalid date, skip
             }
+          } else {
+            // If no start date, assume 1 month minimum
+            monthsActive = 1;
           }
           
           mangaChaptersMap.set(title, {
@@ -1741,8 +1747,6 @@ export default function MALWrapped() {
       topAuthors: topAuthors.length > 0 ? topAuthors : [],
       seasonalHighlights: seasonalHighlights,
       selectedYear: currentYear,
-      bingeDay: bingeDayData.date ? bingeDayData : null,
-      mostWatchedDayOfWeek: mostWatchedDayName,
       plannedAnime: plannedAnime.length > 0 ? plannedAnime : [],
       longestMangaJourney: longestMangaJourney,
       plannedManga: plannedManga.length > 0 ? plannedManga : [],
@@ -2319,7 +2323,6 @@ export default function MALWrapped() {
         'top_studio': 'red',
         'seasonal_anime': 'pink',
         'hidden_gems_anime': 'blue',
-        'binge_day': 'purple',
         'planned_anime': 'green',
         'anime_to_manga_transition': 'black',
         'manga_count': 'yellow',
@@ -2523,9 +2526,9 @@ export default function MALWrapped() {
         };
         // Set initial value immediately
         if (typeof window !== 'undefined') {
-          updateResponsive();
-          window.addEventListener('resize', updateResponsive);
-          return () => window.removeEventListener('resize', updateResponsive);
+        updateResponsive();
+        window.addEventListener('resize', updateResponsive);
+        return () => window.removeEventListener('resize', updateResponsive);
         }
       }, []);
       
@@ -2606,7 +2609,7 @@ export default function MALWrapped() {
           // On mobile, make items larger - use 2 items per view instead of 3
           const mobileItemsPerView = 2;
           const mobileItemWidth = 100 / mobileItemsPerView;
-          return (
+      return (
             <motion.div 
               className="mt-2 sm:mt-3 overflow-hidden relative flex justify-center"
               style={{ 
@@ -2684,8 +2687,8 @@ export default function MALWrapped() {
           const mobileItemWidth = 100 / mobileItemsPerView;
           return (
             <motion.div 
-              className="mt-2 sm:mt-3 overflow-hidden relative flex justify-center"
-              style={{ 
+          className="mt-2 sm:mt-3 overflow-hidden relative flex justify-center"
+          style={{ 
                 maskImage: 'linear-gradient(to right, black 0%, black 100%)',
                 WebkitMaskImage: 'linear-gradient(to right, black 0%, black 100%)'
               }}
@@ -2783,7 +2786,7 @@ export default function MALWrapped() {
               const content = (
                 <div className="flex flex-col flex-shrink-0 items-center w-full">
                   <div 
-                    className="aspect-[2/3] w-full bg-transparent rounded-lg relative" 
+                className="aspect-[2/3] w-full bg-transparent rounded-lg relative" 
                     style={{ maxHeight: '275px', maxWidth: '100%', boxSizing: 'border-box', overflow: 'hidden' }}
                   >
                     {item.coverImage && (
@@ -3136,6 +3139,129 @@ export default function MALWrapped() {
             </motion.h3>
             )}
             
+          </SlideLayout>
+        );
+
+      case 'demographic':
+        if (!stats.demographicDistribution || stats.demographicDistribution.length === 0) return null;
+        
+        const demographics = stats.demographicDistribution;
+        const topDemographic = demographics[0];
+        const otherDemographics = demographics.slice(1);
+        const allDemographics = demographics;
+        const demographicCharacters = {
+          'Shounen': '/demographics/shounen.webp',
+          'Seinen': '/demographics/seinen.webp',
+          'Shoujo': '/demographics/shoujo.webp',
+          'Josei': '/demographics/josei.webp'
+        };
+        
+        return (
+          <SlideLayout bgColor="pink">
+            <motion.h2 className="body-md font-medium text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
+              Your demographic preference
+            </motion.h2>
+            <motion.div className="mt-8 flex flex-col items-center relative z-10 min-h-[50vh] justify-center" {...fadeSlideUp} data-framer-motion>
+              {/* Phase 1: All 4 circles floating and growing/shrinking asynchronously */}
+              <motion.div
+                className="relative w-full h-80 flex items-center justify-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5 }}
+              >
+                {allDemographics.map((demo, idx) => {
+                  const isTop = demo.name === topDemographic.name;
+                  // Initial floating positions (spread out)
+                  const initialPositions = [
+                    { x: -120, y: -50 },
+                    { x: 120, y: -50 },
+                    { x: -120, y: 50 },
+                    { x: 120, y: 50 }
+                  ];
+                  // Final positions (top centered, others in row below)
+                  const topIdx = allDemographics.findIndex(d => d.name === topDemographic.name);
+                  const otherIndices = allDemographics
+                    .map((d, i) => ({ d, i }))
+                    .filter(({ d }) => d.name !== topDemographic.name)
+                    .map(({ i }) => i);
+                  const finalX = isTop 
+                    ? 0 
+                    : (otherIndices.indexOf(idx) - (otherIndices.length - 1) / 2) * 100;
+                  const finalY = isTop ? -80 : 80;
+                  
+                  return (
+                    <motion.div
+                      key={demo.name}
+                      className="absolute flex flex-col items-center"
+                      initial={{ 
+                        scale: 0, 
+                        opacity: 0,
+                        x: 0,
+                        y: 0
+                      }}
+                      animate={{
+                        scale: [0, 1.2, 0.9, 1.1, 0.95, 1, isTop ? 1.4 : 0.9],
+                        opacity: [0, 1, 1, 1, 1, 1, 1],
+                        x: [0, initialPositions[idx]?.x || 0, initialPositions[idx]?.x || 0, initialPositions[idx]?.x || 0, initialPositions[idx]?.x || 0, initialPositions[idx]?.x || 0, finalX],
+                        y: [0, initialPositions[idx]?.y || 0, initialPositions[idx]?.y || 0, initialPositions[idx]?.y || 0, initialPositions[idx]?.y || 0, initialPositions[idx]?.y || 0, finalY]
+                      }}
+                      transition={{
+                        scale: {
+                          duration: 3,
+                          delay: idx * 0.15,
+                          times: [0, 0.15, 0.3, 0.45, 0.6, 0.75, 1],
+                          ease: "easeInOut"
+                        },
+                        opacity: {
+                          duration: 0.5,
+                          delay: idx * 0.15
+                        },
+                        x: {
+                          duration: 1.2,
+                          delay: 2.8,
+                          ease: smoothEase
+                        },
+                        y: {
+                          duration: 1.2,
+                          delay: 2.8,
+                          ease: smoothEase
+                        }
+                      }}
+                    >
+                      <motion.div
+                        className={`relative rounded-full overflow-hidden mb-2 ${isTop ? 'w-40 h-40 md:w-48 md:h-48' : 'w-24 h-24 md:w-28 md:h-28'}`}
+                        animate={{
+                          scale: [1, 1.15, 0.9, 1.1, 1],
+                          y: [0, -12, 6, -6, 0]
+                        }}
+                        transition={{
+                          duration: 2 + (idx * 0.3),
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                          delay: idx * 0.2
+                        }}
+                      >
+                        <img
+                          src={demographicCharacters[demo.name] || '/Mascot.webp'}
+                          alt={demo.name}
+                          className="w-full h-full object-cover"
+                          crossOrigin="anonymous"
+                          onError={(e) => {
+                            e.target.src = '/Mascot.webp';
+                          }}
+                        />
+                      </motion.div>
+                      <p className={`${isTop ? 'heading-sm' : 'body-sm'} text-white/80 font-medium text-center mb-1`}>
+                        {demo.name}
+                      </p>
+                      <p className={`${isTop ? 'body-md' : 'body-sm'} text-white/70 text-center`}>
+                        {demo.percentage}%
+                      </p>
+                    </motion.div>
+                  );
+                })}
+              </motion.div>
+            </motion.div>
           </SlideLayout>
         );
 
@@ -3600,46 +3726,6 @@ export default function MALWrapped() {
           </SlideLayout>
         );
 
-      case 'binge_day':
-        if (!stats.bingeDay || !stats.bingeDay.date) return null;
-        
-        const bingeDate = new Date(stats.bingeDay.date);
-        const formattedDate = bingeDate.toLocaleDateString('en-US', { 
-          month: 'long', 
-          day: 'numeric', 
-          year: 'numeric' 
-        });
-        const topAnimeFromBinge = stats.bingeDay.anime
-          .sort((a, b) => b.episodes - a.episodes)[0];
-        
-        return (
-          <SlideLayout bgColor="purple">
-            <motion.h2 className="body-md font-medium text-white text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
-              Your longest watch marathon
-            </motion.h2>
-            <motion.div className="mt-6 flex flex-col items-center relative z-10" {...fadeSlideUp} data-framer-motion>
-              <p className="heading-lg text-white font-semibold text-center mb-2">
-                {formattedDate}
-              </p>
-              <p className="body-md text-white/80 text-center mb-4">
-                {stats.bingeDay.episodes} episodes / {stats.bingeDay.hours.toFixed(1)} hours
-              </p>
-              {topAnimeFromBinge && (
-                <p className="body-sm text-white/70 text-center text-container italic">
-                  "{topAnimeFromBinge.title}" — You couldn't stop
-                </p>
-              )}
-            </motion.div>
-            {stats.mostWatchedDayOfWeek && (
-              <motion.p className="body-sm text-white/70 mt-6 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
-                Most of your watching happens on {stats.mostWatchedDayOfWeek}s
-              </motion.p>
-            )}
-            <motion.h3 className="body-sm font-regular text-white/70 mt-4 text-center text-container relative z-10" {...fadeSlideUp} data-framer-motion>
-              That's what we call commitment
-            </motion.h3>
-          </SlideLayout>
-        );
 
       case 'planned_anime':
         const plannedAnimeItems = stats.plannedAnime.slice(0, 5).map(item => ({
@@ -4491,9 +4577,7 @@ export default function MALWrapped() {
         if (!stats.longestMangaJourney) return null;
         
         const journey = stats.longestMangaJourney;
-        const chaptersText = journey.chapters >= 1000 
-          ? `${Math.floor(journey.chapters / 1000)}+ chapters` 
-          : `${journey.chapters}+ chapters`;
+        const chaptersText = `${journey.chapters.toLocaleString()} chapters`;
         const timeText = journey.monthsActive >= 12
           ? `${Math.floor(journey.monthsActive / 12)} ${Math.floor(journey.monthsActive / 12) === 1 ? 'year' : 'years'}`
           : `${journey.monthsActive} ${journey.monthsActive === 1 ? 'month' : 'months'}`;
@@ -4518,7 +4602,7 @@ export default function MALWrapped() {
               <p className="heading-lg text-white font-semibold text-center mb-2">
                 {journey.title}
               </p>
-              <p className="number-md text-white font-medium text-center mb-2">
+              <p className="body-sm text-white/70 text-center text-container mb-2">
                 {chaptersText}
               </p>
               <p className="body-sm text-white/70 text-center text-container">
