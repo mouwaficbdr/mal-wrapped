@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, Download, LogOut, Share2, Github, Youtube, Linkedin, Instagram, ExternalLink, Copy } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, LogOut, Share2, Github, Youtube, Linkedin, Instagram, ExternalLink, Copy, Volume2, VolumeX } from 'lucide-react';
 import { motion, useMotionValue } from 'framer-motion';
 
 // MyAnimeList Icon Component
@@ -221,11 +221,148 @@ export default function MALWrapped() {
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [emailCopied, setEmailCopied] = useState(false);
   const [authorPhotos, setAuthorPhotos] = useState({});
+  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const shareMenuRef = useRef(null);
   const slideRef = useRef(null);
+  const backgroundMusicRef = useRef(null);
+  const youtubePlayerRef = useRef(null);
+  
+  // Helper to extract YouTube video ID from URL or return as-is if already an ID
+  const getYouTubeVideoId = (urlOrId) => {
+    if (!urlOrId) return null;
+    // If it's already just an ID (no slashes), return it
+    if (!urlOrId.includes('/') && !urlOrId.includes('?')) return urlOrId;
+    // Extract from various YouTube URL formats
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+      /^([a-zA-Z0-9_-]{11})$/ // Direct video ID
+    ];
+    for (const pattern of patterns) {
+      const match = urlOrId.match(pattern);
+      if (match) return match[1];
+    }
+    return null;
+  };
+  
+  // Helper to create YouTube embed URL
+  const createYouTubeEmbedUrl = (videoId) => {
+    if (!videoId) return null;
+    return `https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}&controls=0&modestbranding=1&rel=0`;
+  };
+  
+  // Genre to YouTube music mapping
+  // User can provide either full YouTube URLs or just video IDs
+  // Example: 'Action': 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' OR 'Action': 'dQw4w9WgXcQ'
+  // Add your YouTube links below - uncomment and replace with your links:
+  const genreMusicMap = {
+    // Action & Adventure
+    'Action': 'https://www.youtube.com/watch?v=2B6nj38AdD0',
+    'Adventure': 'https://www.youtube.com/watch?v=FM3aJQzqV90',
+    'Martial Arts': 'YOUR_MARTIAL_ARTS_VIDEO_ID_OR_URL',
+    'Super Power': 'YOUR_SUPER_POWER_VIDEO_ID_OR_URL',
+    
+    // Comedy & Slice of Life
+    'Comedy': 'YOUR_COMEDY_VIDEO_ID_OR_URL',
+    'Slice of Life': 'YOUR_SLICE_OF_LIFE_VIDEO_ID_OR_URL',
+    'Parody': 'https://www.youtube.com/watch?v=rHwOE8R-gMA',
+    'School': 'YOUR_SCHOOL_VIDEO_ID_OR_URL',
+    
+    // Drama & Romance
+    'Drama': 'https://www.youtube.com/watch?v=c6rCRy6SrtU',
+    'Romance': 'https://www.youtube.com/watch?v=hoysCCR2TFA',
+    'Harem': 'YOUR_HAREM_VIDEO_ID_OR_URL',
+    'Ecchi': 'YOUR_ECCHI_VIDEO_ID_OR_URL',
+    
+    // Fantasy & Sci-Fi
+    'Fantasy': 'https://www.youtube.com/watch?v=6Y1swEeFwYo',
+    'Dark Fantasy': 'YOUR_DARK_FANTASY_VIDEO_ID_OR_URL',
+    'Sci-Fi': 'https://www.youtube.com/watch?v=ZGM90Bo3zH0',
+    'Space': 'https://www.youtube.com/watch?v=UFFa0QoHWvE',
+    'Mecha': 'https://www.youtube.com/watch?v=-RRWvHTQjPE',
+    'Isekai': 'https://www.youtube.com/watch?v=4a8XOwRzJC4',
+    
+    // Horror & Thriller
+    'Horror': 'YOUR_HORROR_VIDEO_ID_OR_URL',
+    'Thriller': 'YOUR_THRILLER_VIDEO_ID_OR_URL',
+    'Gore': 'YOUR_GORE_VIDEO_ID_OR_URL',
+    'Suspense': 'YOUR_SUSPENSE_VIDEO_ID_OR_URL',
+    
+    // Mystery & Psychological
+    'Mystery': 'YOUR_MYSTERY_VIDEO_ID_OR_URL',
+    'Psychological': 'YOUR_PSYCHOLOGICAL_VIDEO_ID_OR_URL',
+    
+    // Supernatural & Other
+    'Supernatural': 'YOUR_SUPERNATURAL_VIDEO_ID_OR_URL',
+    'Sports': 'YOUR_SPORTS_VIDEO_ID_OR_URL',
+    'Music': 'YOUR_MUSIC_VIDEO_ID_OR_URL',
+    'Historical': 'YOUR_HISTORICAL_VIDEO_ID_OR_URL',
+    'Military': 'YOUR_MILITARY_VIDEO_ID_OR_URL',
+    
+    // Add more genres as needed
+  };
+  
 
   const hasAnime = stats && stats.thisYearAnime && stats.thisYearAnime.length > 0;
   const hasManga = stats && mangaList && mangaList.length > 0;
+  
+  // Get top genre for music selection
+  const topAnimeGenre = stats?.topGenres && stats.topGenres.length > 0 ? stats.topGenres[0][0] : null;
+  const topMangaGenre = stats?.topMangaGenres && stats.topMangaGenres.length > 0 ? stats.topMangaGenres[0][0] : null;
+  
+  const currentMusicUrl = useMemo(() => {
+    if (!stats || !slides || slides.length === 0) return null;
+    
+    // Check if we're in manga section
+    const currentSlideId = slides[currentSlide]?.id;
+    const isMangaSection = currentSlideId && (
+      currentSlideId.includes('manga') || 
+      currentSlideId === 'anime_to_manga_transition' ||
+      currentSlideId === 'manga_count'
+    );
+    
+    // Use top manga genre for manga section, top anime genre for anime section
+    const selectedGenre = isMangaSection ? topMangaGenre : topAnimeGenre;
+    
+    let videoId = null;
+    
+    if (selectedGenre && genreMusicMap[selectedGenre]) {
+      videoId = getYouTubeVideoId(genreMusicMap[selectedGenre]);
+    } else if (Object.keys(genreMusicMap).length > 0) {
+      // Fallback to first available genre
+      videoId = getYouTubeVideoId(Object.values(genreMusicMap)[0]);
+    }
+    
+    return videoId ? createYouTubeEmbedUrl(videoId) : null;
+  }, [stats, slides, currentSlide, topAnimeGenre, topMangaGenre]);
+  
+  // Background music using YouTube iframe
+  useEffect(() => {
+    if (!currentMusicUrl || currentSlide === 0) return;
+    
+    // Remove old iframe if exists
+    if (youtubePlayerRef.current) {
+      youtubePlayerRef.current.remove();
+      youtubePlayerRef.current = null;
+    }
+    
+    // Create YouTube iframe for background music
+    const iframe = document.createElement('iframe');
+    iframe.src = currentMusicUrl;
+    iframe.style.display = 'none';
+    iframe.allow = 'autoplay; encrypted-media';
+    iframe.id = 'youtube-music-player';
+    document.body.appendChild(iframe);
+    youtubePlayerRef.current = iframe;
+    setIsMusicPlaying(true);
+    
+    return () => {
+      if (youtubePlayerRef.current) {
+        youtubePlayerRef.current.remove();
+        youtubePlayerRef.current = null;
+        setIsMusicPlaying(false);
+      }
+    };
+  }, [currentMusicUrl, currentSlide]);
   
   const slides = useMemo(() => stats ? [
     { id: 'welcome' },
@@ -724,6 +861,18 @@ export default function MALWrapped() {
 
     const topManga = ratedManga
       .sort((a, b) => b.list_status.score - a.list_status.score)
+      .slice(0, 5);
+    
+    // Calculate manga genres (from filtered manga)
+    const mangaGenreCounts = {};
+    filteredManga.forEach(item => {
+      item.node?.genres?.forEach(genre => {
+        mangaGenreCounts[genre.name] = (mangaGenreCounts[genre.name] || 0) + 1;
+      });
+    });
+    
+    const topMangaGenres = Object.entries(mangaGenreCounts)
+      .sort((a, b) => b[1] - a[1])
       .slice(0, 5);
     
     // Longest Manga Journey - find manga with most chapters read
@@ -1721,6 +1870,7 @@ export default function MALWrapped() {
       totalAnime: thisYearAnime.length,
       totalManga: filteredManga.length,
       topGenres: topGenres.length > 0 ? topGenres : [],
+      topMangaGenres: topMangaGenres.length > 0 ? topMangaGenres : [],
       topStudios: topStudios.length > 0 ? topStudios : [],
       topRated: topRated.length > 0 ? topRated : [],
       hiddenGems: hiddenGems.length > 0 ? hiddenGems : [],
@@ -1840,6 +1990,12 @@ export default function MALWrapped() {
 
   function handleLogout() {
     if (window.confirm('Are you sure you want to log out?')) {
+      // Stop background music
+      if (youtubePlayerRef.current) {
+        youtubePlayerRef.current.remove();
+        youtubePlayerRef.current = null;
+        setIsMusicPlaying(false);
+      }
       localStorage.removeItem('mal_access_token');
       localStorage.removeItem('mal_refresh_token');
       setIsAuthenticated(false);
@@ -1849,6 +2005,23 @@ export default function MALWrapped() {
       setUserData(null);
       setCurrentSlide(0);
       window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }
+  
+  function toggleMusic() {
+    const iframe = document.getElementById('youtube-music-player');
+    if (iframe) {
+      if (isMusicPlaying) {
+        // Pause YouTube video by removing and re-adding without autoplay
+        const currentSrc = iframe.src;
+        iframe.src = currentSrc.replace('autoplay=1', 'autoplay=0');
+        setIsMusicPlaying(false);
+      } else {
+        // Resume by setting autoplay
+        const currentSrc = iframe.src;
+        iframe.src = currentSrc.replace('autoplay=0', 'autoplay=1');
+        setIsMusicPlaying(true);
+      }
     }
   }
 
@@ -5433,7 +5606,31 @@ export default function MALWrapped() {
                     <span className="text-xs sm:text-sm font-medium">Download</span>
                   </motion.button>
                 </div>
-                <motion.button 
+                  {currentSlide > 0 && currentMusicUrl && (
+                    <motion.button 
+                      onClick={toggleMusic} 
+                      className="p-1.5 sm:p-2 text-white rounded-full flex items-center gap-1.5 sm:gap-2" 
+                      title={isMusicPlaying ? "Mute Music" : "Unmute Music"}  
+                      style={{ 
+                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)'
+                      }}
+                      whileHover={{ 
+                        scale: 1.1, 
+                        backgroundColor: 'rgba(139, 92, 246, 0.8)',
+                        borderColor: 'rgba(139, 92, 246, 0.8)'
+                      }}
+                      whileTap={{ scale: 0.9 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      {isMusicPlaying ? (
+                        <Volume2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                      ) : (
+                        <VolumeX className="w-4 h-4 sm:w-5 sm:h-5" />
+                      )}
+                    </motion.button>
+                  )}
+                  <motion.button 
                   onClick={handleLogout} 
                   className="p-1.5 sm:p-2 text-white rounded-full flex items-center gap-1.5 sm:gap-2" 
                   title="Logout"  
