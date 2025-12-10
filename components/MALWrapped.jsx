@@ -398,7 +398,12 @@ export default function MALWrapped() {
           headers: { 'Authorization': `Bearer ${accessToken}` },
         });
 
-        if (!response.ok) break;
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          const errorMessage = errorData.error || errorData.message || `HTTP ${response.status}`;
+          throw new Error(`Failed to fetch anime list: ${errorMessage}`);
+        }
+        
         const data = await response.json();
         
         if (!data.data || data.data.length === 0) break;
@@ -427,7 +432,9 @@ export default function MALWrapped() {
       return allAnime;
     } catch (err) {
       // Error fetching anime list
-      setError('Failed to load anime list. Please try again.');
+      const errorMessage = err.message || 'Failed to load anime list. Please try again.';
+      setError(errorMessage);
+      setIsLoading(false);
       return [];
     }
   }
@@ -445,7 +452,12 @@ export default function MALWrapped() {
           headers: { 'Authorization': `Bearer ${accessToken}` },
         });
 
-        if (!response.ok) break;
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          const errorMessage = errorData.error || errorData.message || `HTTP ${response.status}`;
+          throw new Error(`Failed to fetch manga list: ${errorMessage}`);
+        }
+        
         const data = await response.json();
         
         if (!data.data || data.data.length === 0) break;
@@ -477,6 +489,10 @@ export default function MALWrapped() {
       calculateStats(animeToUse, allManga);
     } catch (err) {
       // Error fetching manga list
+      const errorMessage = err.message || 'Failed to load manga list. Please try again.';
+      setError(errorMessage);
+      setIsLoading(false);
+      return [];
     }
   }
 
