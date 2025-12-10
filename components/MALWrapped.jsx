@@ -1765,6 +1765,7 @@ export default function MALWrapped() {
       mangaComparison: mangaComparison,
       totalCompletedAnime: totalCompletedAnime,
       ratingStyle: ratingStyle,
+      demographicDistribution: demographicDistribution.length > 0 ? demographicDistribution : null,
     };
     
     setStats(statsData);
