@@ -3138,13 +3138,19 @@ export default function MALWrapped() {
       case 'demographic': {
         const DemographicContent = () => {
           const [showPercentages, setShowPercentages] = useState(false);
+          const [useFlexLayout, setUseFlexLayout] = useState(false);
           
           useEffect(() => {
+            // Switch to flex layout after reveal starts (1.5s delay)
+            const flexTimer = setTimeout(() => {
+              setUseFlexLayout(true);
+            }, 1500);
             // Show percentages after reveal completes (1.5s delay + 1.2s transition = ~2.7s)
             const percentageTimer = setTimeout(() => {
               setShowPercentages(true);
             }, 2700);
             return () => {
+              clearTimeout(flexTimer);
               clearTimeout(percentageTimer);
             };
           }, []);
@@ -3223,58 +3229,87 @@ export default function MALWrapped() {
                 Your demographic preference
               </motion.h2>
               <motion.div className="mt-8 flex flex-col items-center relative z-10 min-h-[50vh] justify-center" {...fadeSlideUp} data-framer-motion>
-                <motion.div
-                  className="relative w-full h-80 flex items-center justify-center"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  {allDemographics.map((demo, idx) => {
-                    const isTop = demo.name === topDemographic.name;
-                    const initialPos = quadrantPositions[idx] || { x: 0, y: 0 };
-                    const finalX = isTop 
-                      ? 0 
-                      : (otherIndices.indexOf(idx) - (otherIndices.length - 1) / 2) * 100;
-                    const finalY = isTop ? -100 : 100;
-                    
-                    return (
+                {!useFlexLayout ? (
+                  <motion.div
+                    className="relative w-full h-80 flex items-center justify-center"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    {allDemographics.map((demo, idx) => {
+                      const isTop = demo.name === topDemographic.name;
+                      const initialPos = quadrantPositions[idx] || { x: 0, y: 0 };
+                      
+                      return (
+                        <motion.div
+                          key={demo.name}
+                          className="absolute flex flex-col items-center"
+                          initial={{ 
+                            scale: 0, 
+                            opacity: 0,
+                            x: initialPos.x,
+                            y: initialPos.y
+                          }}
+                          animate={useFlexLayout ? {} : {
+                            scale: [0, 1, 1.1, 0.95, 1.05, 1],
+                            opacity: [0, 1, 1, 1, 1, 1],
+                            y: [initialPos.y, initialPos.y, initialPos.y - 8, initialPos.y + 4, initialPos.y - 4, initialPos.y]
+                          }}
+                          transition={useFlexLayout ? {} : {
+                            scale: {
+                              duration: 2.5,
+                              delay: idx * 0.1,
+                              times: [0, 0.2, 0.4, 0.6, 0.8, 1],
+                              ease: "easeInOut",
+                              repeat: Infinity,
+                              repeatDelay: 0
+                            },
+                            opacity: {
+                              duration: 0.5,
+                              delay: idx * 0.1
+                            },
+                            y: {
+                              duration: 2.5,
+                              delay: idx * 0.1,
+                              times: [0, 0.2, 0.4, 0.6, 0.8, 1],
+                              ease: "easeInOut",
+                              repeat: Infinity,
+                              repeatDelay: 0
+                            }
+                          }}
+                        >
+                          <div
+                            className="relative rounded-full overflow-hidden mb-2 w-24 h-24 md:w-28 md:h-28"
+                          >
+                            <img
+                              src={demographicCharacters[demo.name] || '/Mascot.webp'}
+                              alt={demo.name}
+                              className="w-full h-full object-cover"
+                              crossOrigin="anonymous"
+                              onError={(e) => {
+                                e.target.src = '/Mascot.webp';
+                              }}
+                            />
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    className="flex flex-col items-center gap-8"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {/* Top demographic */}
+                    {allDemographics.filter(d => d.name === topDemographic.name).map((demo) => (
                       <motion.div
                         key={demo.name}
-                        className="absolute flex flex-col items-center"
-                        initial={{ 
-                          scale: 0, 
-                          opacity: 0,
-                          x: initialPos.x,
-                          y: initialPos.y
-                        }}
-                        animate={{
-                          scale: [0, 1, isTop ? 1.25 : 0.9],
-                          opacity: [0, 1, 1],
-                          x: [initialPos.x, initialPos.x, finalX],
-                          y: [initialPos.y, initialPos.y, finalY]
-                        }}
-                        transition={{
-                          scale: {
-                            duration: 2.5,
-                            delay: idx * 0.1,
-                            times: [0, 0.4, 1],
-                            ease: "easeInOut"
-                          },
-                          opacity: {
-                            duration: 0.5,
-                            delay: idx * 0.1
-                          },
-                          x: {
-                            duration: 1.2,
-                            delay: 1.5,
-                            ease: smoothEase
-                          },
-                          y: {
-                            duration: 1.2,
-                            delay: 1.5,
-                            ease: smoothEase
-                          }
-                        }}
+                        className="flex flex-col items-center"
+                        initial={{ scale: 1, opacity: 0 }}
+                        animate={{ scale: 1.25, opacity: 1 }}
+                        transition={{ duration: 1.2, ease: smoothEase }}
                       >
                         <div
                           className="relative rounded-full overflow-hidden mb-2 w-24 h-24 md:w-28 md:h-28"
@@ -3289,21 +3324,74 @@ export default function MALWrapped() {
                             }}
                           />
                         </div>
-                        <p className={`${isTop ? 'heading-sm' : 'body-sm'} text-white/80 font-medium text-center mb-1`}>
-                          {demo.name}
-                        </p>
                         <motion.p 
-                          className={`${isTop ? 'body-md' : 'body-sm'} text-white/70 text-center`}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: showPercentages ? 1 : 0 }}
-                          transition={{ duration: 0.5 }}
+                          className="heading-sm text-white/80 font-medium text-center mb-1"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 1.4, duration: 0.5 }}
+                        >
+                          {demo.name}
+                        </motion.p>
+                        <motion.p 
+                          className="body-md text-white/70 text-center"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: showPercentages ? 1 : 0, y: 0 }}
+                          transition={{ delay: 1.6, duration: 0.5 }}
                         >
                           {demo.percentage}%
                         </motion.p>
                       </motion.div>
-                    );
-                  })}
-                </motion.div>
+                    ))}
+                    
+                    {/* Other demographics */}
+                    <motion.div
+                      className="flex flex-row items-center gap-6"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.3, delay: 0.2 }}
+                    >
+                      {allDemographics.filter(d => d.name !== topDemographic.name).map((demo, idx) => (
+                        <motion.div
+                          key={demo.name}
+                          className="flex flex-col items-center"
+                          initial={{ scale: 1, opacity: 0 }}
+                          animate={{ scale: 0.9, opacity: 1 }}
+                          transition={{ duration: 1.2, delay: 0.2 + idx * 0.1, ease: smoothEase }}
+                        >
+                          <div
+                            className="relative rounded-full overflow-hidden mb-2 w-24 h-24 md:w-28 md:h-28"
+                          >
+                            <img
+                              src={demographicCharacters[demo.name] || '/Mascot.webp'}
+                              alt={demo.name}
+                              className="w-full h-full object-cover"
+                              crossOrigin="anonymous"
+                              onError={(e) => {
+                                e.target.src = '/Mascot.webp';
+                              }}
+                            />
+                          </div>
+                          <motion.p 
+                            className="body-sm text-white/80 font-medium text-center mb-1"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 1.4 + idx * 0.1, duration: 0.5 }}
+                          >
+                            {demo.name}
+                          </motion.p>
+                          <motion.p 
+                            className="body-sm text-white/70 text-center"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: showPercentages ? 1 : 0, y: 0 }}
+                            transition={{ delay: 1.6 + idx * 0.1, duration: 0.5 }}
+                          >
+                            {demo.percentage}%
+                          </motion.p>
+                        </motion.div>
+                      ))}
+                    </motion.div>
+                  </motion.div>
+                )}
                 <motion.p 
                   className="body-sm text-white/70 text-center mt-8 max-w-md"
                   initial={{ opacity: 0, y: 20 }}
