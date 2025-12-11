@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, Download, LogOut, Share2, Github, Youtube, Linkedin, Instagram, ExternalLink, Copy } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, LogOut, Share2, Github, Youtube, Linkedin, Instagram, ExternalLink, Copy, Volume2, VolumeX } from 'lucide-react';
 import { motion, useMotionValue } from 'framer-motion';
 
 // MyAnimeList Icon Component
@@ -221,8 +221,12 @@ export default function MALWrapped() {
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [emailCopied, setEmailCopied] = useState(false);
   const [authorPhotos, setAuthorPhotos] = useState({});
+  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
+  const [playlist, setPlaylist] = useState([]);
   const shareMenuRef = useRef(null);
   const slideRef = useRef(null);
+  const audioRef = useRef(null);
 
   const hasAnime = stats && stats.thisYearAnime && stats.thisYearAnime.length > 0;
   const hasManga = stats && mangaList && mangaList.length > 0;
@@ -1764,11 +1768,135 @@ export default function MALWrapped() {
     
     setStats(statsData);
     
+    // Fetch anime themes for top 5 anime
+    if (statsData.topRated && statsData.topRated.length > 0) {
+      fetchAnimeThemes(statsData.topRated);
+    }
+    
     // Fetch character image if we have an anime ID
     if (characterTwin && characterTwin.animeId && characterTwin.characterName) {
       fetchCharacterImage(characterTwin.animeId, characterTwin.characterName, statsData);
     }
   }
+
+  // Fetch anime themes from animethemes.moe
+  async function fetchAnimeThemes(topRatedAnime) {
+    try {
+      const malIds = topRatedAnime
+        .slice(0, 5)
+        .map(item => item.node?.id)
+        .filter(id => id != null);
+      
+      if (malIds.length === 0) return;
+      
+      const response = await fetch('/api/animethemes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ malIds })
+      });
+      
+      if (!response.ok) {
+        console.error('Failed to fetch anime themes');
+        return;
+      }
+      
+      const data = await response.json();
+      if (data.themes && data.themes.length > 0) {
+        setPlaylist(data.themes);
+        // Auto-play first track
+        if (data.themes[0]?.videoUrl) {
+          playTrack(0, data.themes);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching anime themes:', error);
+    }
+  }
+
+  // Play a track from the playlist
+  const playTrack = useCallback((index, tracks = null) => {
+    const tracksToUse = tracks || playlist;
+    if (!tracksToUse || tracksToUse.length === 0 || index < 0 || index >= tracksToUse.length) return;
+    
+    // Stop current audio if playing
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    
+    const track = tracksToUse[index];
+    if (!track.videoUrl) return;
+    
+    const audio = new Audio(track.videoUrl);
+    audio.volume = 0.3; // 30% volume
+    audioRef.current = audio;
+    setCurrentTrackIndex(index);
+    
+    audio.addEventListener('ended', () => {
+      // Play next track
+      const nextIndex = (index + 1) % tracksToUse.length;
+      playTrack(nextIndex, tracksToUse);
+    });
+    
+    audio.addEventListener('error', (e) => {
+      console.error('Audio playback error:', e);
+      // Try next track on error
+      const nextIndex = (index + 1) % tracksToUse.length;
+      if (nextIndex !== index) {
+        playTrack(nextIndex, tracksToUse);
+      }
+    });
+    
+    audio.play().then(() => {
+      setIsMusicPlaying(true);
+    }).catch(err => {
+      console.error('Failed to play audio:', err);
+      setIsMusicPlaying(false);
+    });
+  }, [playlist]);
+
+  // Toggle music play/pause
+  const toggleMusic = useCallback(() => {
+    if (!audioRef.current) {
+      if (playlist.length > 0) {
+        playTrack(currentTrackIndex, playlist);
+      }
+      return;
+    }
+    
+    if (isMusicPlaying) {
+      audioRef.current.pause();
+      setIsMusicPlaying(false);
+    } else {
+      audioRef.current.play().then(() => {
+        setIsMusicPlaying(true);
+      }).catch(err => {
+        console.error('Failed to resume audio:', err);
+      });
+    }
+  }, [playlist, currentTrackIndex, isMusicPlaying, playTrack]);
+
+  // Adjust volume based on current slide
+  useEffect(() => {
+    if (!audioRef.current || !stats || !slides || slides.length === 0) return;
+    
+    const currentSlideId = slides[currentSlide]?.id;
+    const isDrumrollSlide = currentSlideId === 'drumroll_anime' || currentSlideId === 'drumroll_manga';
+    
+    if (audioRef.current) {
+      audioRef.current.volume = isDrumrollSlide ? 0.1 : 0.3;
+    }
+  }, [currentSlide, stats, slides]);
+
+  // Cleanup audio on unmount
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
 
   async function fetchCharacterImage(animeId, characterName, currentStats) {
     try {
@@ -5408,6 +5536,30 @@ export default function MALWrapped() {
                       </svg>
                     </div>
                   </div>
+                  {playlist.length > 0 && (
+                    <motion.button 
+                      onClick={toggleMusic} 
+                      className="p-1.5 sm:p-2 text-white rounded-full flex items-center gap-1.5 sm:gap-2" 
+                      title={isMusicPlaying ? "Pause Music" : "Play Music"}  
+                      style={{ 
+                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)'
+                      }}
+                      whileHover={{ 
+                        scale: 1.1, 
+                        backgroundColor: 'rgba(139, 92, 246, 0.8)',
+                        borderColor: 'rgba(139, 92, 246, 0.8)'
+                      }}
+                      whileTap={{ scale: 0.9 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      {isMusicPlaying ? (
+                        <Volume2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                      ) : (
+                        <VolumeX className="w-4 h-4 sm:w-5 sm:h-5" />
+                      )}
+                    </motion.button>
+                  )}
                   <motion.button 
                     type="button"
                     onClick={(e) => {
