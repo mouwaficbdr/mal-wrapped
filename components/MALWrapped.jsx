@@ -296,11 +296,9 @@ export default function MALWrapped() {
   };
   
   // Helper to create YouTube embed URL
-  const createYouTubeEmbedUrl = (videoId, muted = false) => {
+  const createYouTubeEmbedUrl = (videoId) => {
     if (!videoId) return null;
-    // Start muted to allow autoplay, then unmute after load
-    const muteParam = muted ? '1' : '0';
-    return `https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}&controls=0&modestbranding=1&rel=0&mute=${muteParam}&enablejsapi=1`;
+    return `https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}&controls=0&modestbranding=1&rel=0&mute=0&enablejsapi=1`;
   };
 
   const hasAnime = stats && stats.thisYearAnime && stats.thisYearAnime.length > 0;
@@ -343,6 +341,7 @@ export default function MALWrapped() {
   const topMangaGenre = stats?.topMangaGenres && stats.topMangaGenres.length > 0 ? stats.topMangaGenres[0][0] : null;
   
   // Determine which genre to use for music based on current section
+  // This should only change when transitioning between anime and manga sections
   const musicGenre = useMemo(() => {
     if (!stats || !slides || slides.length === 0) return null;
     
@@ -358,79 +357,72 @@ export default function MALWrapped() {
     return isMangaSection ? topMangaGenre : topAnimeGenre;
   }, [stats, slides, currentSlide, topAnimeGenre, topMangaGenre]);
   
+  // Track the last genre used to avoid recalculating URL on every slide
+  const lastGenreRef = useRef(null);
+  const lastMusicUrlRef = useRef(null);
+  
   const currentMusicUrl = useMemo(() => {
+    // If genre hasn't changed, return the cached URL
+    if (musicGenre === lastGenreRef.current && lastMusicUrlRef.current) {
+      return lastMusicUrlRef.current;
+    }
+    
+    let videoId = null;
+    
     // If we have a genre and it exists in the map, use it
     if (musicGenre && genreMusicMap[musicGenre]) {
-      const videoId = getYouTubeVideoId(genreMusicMap[musicGenre]);
-      if (videoId) {
-        return createYouTubeEmbedUrl(videoId);
-      }
+      videoId = getYouTubeVideoId(genreMusicMap[musicGenre]);
     }
     
     // Fallback to first available genre with a valid URL
-    if (Object.keys(genreMusicMap).length > 0) {
+    if (!videoId && Object.keys(genreMusicMap).length > 0) {
       for (const [genre, url] of Object.entries(genreMusicMap)) {
         if (url && url !== `YOUR_${genre.toUpperCase().replace(/\s+/g, '_')}_VIDEO_ID_OR_URL`) {
-          const videoId = getYouTubeVideoId(url);
-          if (videoId) {
-            return createYouTubeEmbedUrl(videoId);
-          }
+          videoId = getYouTubeVideoId(url);
+          if (videoId) break;
         }
       }
     }
     
-    return null;
+    const musicUrl = videoId ? createYouTubeEmbedUrl(videoId) : null;
+    
+    // Cache the result
+    lastGenreRef.current = musicGenre;
+    lastMusicUrlRef.current = musicUrl;
+    
+    return musicUrl;
   }, [musicGenre]);
 
   // Background music using YouTube iframe
   // Only change music when URL changes (e.g., transitioning between anime/manga), not on every slide
   const previousMusicUrlRef = useRef(null);
-  const musicInitializedRef = useRef(false);
   
   useEffect(() => {
-    if (!currentMusicUrl) {
-      // If no music URL yet, try to initialize with fallback after a short delay
-      if (!musicInitializedRef.current && stats && Object.keys(genreMusicMap).length > 0) {
-        const timer = setTimeout(() => {
-          if (!currentMusicUrl && Object.keys(genreMusicMap).length > 0 && !youtubePlayerRef.current) {
-            // Find first valid video URL
-            for (const [genre, url] of Object.entries(genreMusicMap)) {
-              if (url && url !== `YOUR_${genre.toUpperCase().replace(/\s+/g, '_')}_VIDEO_ID_OR_URL`) {
-                const fallbackVideoId = getYouTubeVideoId(url);
-                if (fallbackVideoId) {
-                  const iframe = document.createElement('iframe');
-                  iframe.src = createYouTubeEmbedUrl(fallbackVideoId, true);
-                  iframe.style.display = 'none';
-                  iframe.allow = 'autoplay; encrypted-media';
-                  iframe.id = 'youtube-music-player';
-                  document.body.appendChild(iframe);
-                  youtubePlayerRef.current = iframe;
-                  previousMusicUrlRef.current = createYouTubeEmbedUrl(fallbackVideoId, false);
-                  setIsMusicPlaying(true);
-                  musicInitializedRef.current = true;
-                  
-                  // Unmute after iframe loads
-                  const unmuteTimer = setTimeout(() => {
-                    try {
-                      if (iframe.contentWindow && iframe.contentWindow.postMessage) {
-                        iframe.contentWindow.postMessage('{"event":"command","func":"setVolume","args":[100]}', '*');
-                        iframe.contentWindow.postMessage('{"event":"command","func":"unMute","args":[]}', '*');
-                      }
-                    } catch (e) {
-                      iframe.src = createYouTubeEmbedUrl(fallbackVideoId, false);
-                    }
-                  }, 2000);
-                  iframe._unmuteTimer = unmuteTimer;
-                  break;
-                }
-              }
-            }
+    // If no music URL but we have stats, try to get a fallback
+    if (!currentMusicUrl && stats && Object.keys(genreMusicMap).length > 0 && !youtubePlayerRef.current) {
+      // Find first valid video URL as fallback
+      for (const [genre, url] of Object.entries(genreMusicMap)) {
+        if (url && url !== `YOUR_${genre.toUpperCase().replace(/\s+/g, '_')}_VIDEO_ID_OR_URL`) {
+          const fallbackVideoId = getYouTubeVideoId(url);
+          if (fallbackVideoId) {
+            const fallbackUrl = createYouTubeEmbedUrl(fallbackVideoId);
+            const iframe = document.createElement('iframe');
+            iframe.src = fallbackUrl;
+            iframe.style.display = 'none';
+            iframe.allow = 'autoplay; encrypted-media';
+            iframe.id = 'youtube-music-player';
+            document.body.appendChild(iframe);
+            youtubePlayerRef.current = iframe;
+            previousMusicUrlRef.current = fallbackUrl;
+            setIsMusicPlaying(true);
+            break;
           }
-        }, 1000);
-        return () => clearTimeout(timer);
+        }
       }
       return;
     }
+    
+    if (!currentMusicUrl) return;
     
     // Only recreate iframe if music URL actually changed
     if (previousMusicUrlRef.current === currentMusicUrl && youtubePlayerRef.current) {
@@ -444,57 +436,17 @@ export default function MALWrapped() {
     }
     
     // Create YouTube iframe for background music
-    // Start muted to allow autoplay, then unmute after a short delay
     const iframe = document.createElement('iframe');
-    // Extract videoId from the embed URL
-    const videoIdMatch = currentMusicUrl.match(/embed\/([a-zA-Z0-9_-]+)/);
-    if (videoIdMatch && videoIdMatch[1]) {
-      const videoId = videoIdMatch[1];
-      // Start with muted URL for autoplay
-      iframe.src = createYouTubeEmbedUrl(videoId, true);
-      iframe.style.display = 'none';
-      iframe.allow = 'autoplay; encrypted-media';
-      iframe.id = 'youtube-music-player';
-      document.body.appendChild(iframe);
-      youtubePlayerRef.current = iframe;
-      previousMusicUrlRef.current = currentMusicUrl;
-      setIsMusicPlaying(true);
-      musicInitializedRef.current = true;
-      
-      // Unmute after iframe loads (YouTube requires this for autoplay)
-      const unmuteTimer = setTimeout(() => {
-        try {
-          if (iframe.contentWindow && iframe.contentWindow.postMessage) {
-            iframe.contentWindow.postMessage('{"event":"command","func":"setVolume","args":[100]}', '*');
-            iframe.contentWindow.postMessage('{"event":"command","func":"unMute","args":[]}', '*');
-          }
-        } catch (e) {
-          // If API doesn't work, try updating src
-          iframe.src = createYouTubeEmbedUrl(videoId, false);
-        }
-      }, 2000);
-      
-      // Store timer for cleanup
-      iframe._unmuteTimer = unmuteTimer;
-    } else {
-      // Fallback: use the URL directly (might not autoplay)
-      iframe.src = currentMusicUrl;
-      iframe.style.display = 'none';
-      iframe.allow = 'autoplay; encrypted-media';
-      iframe.id = 'youtube-music-player';
-      document.body.appendChild(iframe);
-      youtubePlayerRef.current = iframe;
-      previousMusicUrlRef.current = currentMusicUrl;
-      setIsMusicPlaying(true);
-      musicInitializedRef.current = true;
-    }
+    iframe.src = currentMusicUrl;
+    iframe.style.display = 'none';
+    iframe.allow = 'autoplay; encrypted-media';
+    iframe.id = 'youtube-music-player';
+    document.body.appendChild(iframe);
+    youtubePlayerRef.current = iframe;
+    previousMusicUrlRef.current = currentMusicUrl;
+    setIsMusicPlaying(true);
     
     return () => {
-      // Cleanup unmute timer if it exists
-      if (youtubePlayerRef.current && youtubePlayerRef.current._unmuteTimer) {
-        clearTimeout(youtubePlayerRef.current._unmuteTimer);
-        youtubePlayerRef.current._unmuteTimer = null;
-      }
       // Only cleanup on unmount, not when URL changes
       // This allows music to continue playing across slides
     };
