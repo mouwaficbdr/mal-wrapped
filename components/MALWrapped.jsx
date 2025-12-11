@@ -554,14 +554,18 @@ export default function MALWrapped() {
             // Unmute after iframe loads
             const unmuteTimer = setTimeout(() => {
               try {
-                if (iframe.contentWindow && iframe.contentWindow.postMessage) {
-                  iframe.contentWindow.postMessage('{"event":"command","func":"unMute","args":[]}', '*');
-                  iframe.contentWindow.postMessage('{"event":"command","func":"setVolume","args":[50]}', '*');
+                if (iframe && iframe.contentWindow) {
+                  iframe.contentWindow.postMessage('{"event":"command","func":"unMute","args":[]}', 'https://www.youtube.com');
+                  iframe.contentWindow.postMessage('{"event":"command","func":"setVolume","args":[50]}', 'https://www.youtube.com');
                 }
               } catch (e) {
-                iframe.src = createYouTubeEmbedUrl(fallbackVideoId, false);
+                try {
+                  iframe.src = createYouTubeEmbedUrl(fallbackVideoId, false);
+                } catch (err) {
+                  // Ignore errors
+                }
               }
-            }, 2000);
+            }, 3000);
             iframe._unmuteTimer = unmuteTimer;
             break;
           }
@@ -615,16 +619,23 @@ export default function MALWrapped() {
     // Unmute after iframe loads (allows autoplay, then unmutes)
     const unmuteTimer = setTimeout(() => {
       try {
-        if (iframe.contentWindow && iframe.contentWindow.postMessage) {
-          // Unmute using YouTube IFrame API
-          iframe.contentWindow.postMessage('{"event":"command","func":"unMute","args":[]}', '*');
-          iframe.contentWindow.postMessage('{"event":"command","func":"setVolume","args":[50]}', '*');
+        // Wait for iframe to be ready and send commands to YouTube
+        if (iframe && iframe.contentWindow) {
+          // Send commands to YouTube IFrame API
+          // Target must be the iframe's origin (youtube.com)
+          iframe.contentWindow.postMessage('{"event":"command","func":"unMute","args":[]}', 'https://www.youtube.com');
+          iframe.contentWindow.postMessage('{"event":"command","func":"setVolume","args":[50]}', 'https://www.youtube.com');
         }
       } catch (e) {
         // If API doesn't work, try updating src to unmuted version
-        iframe.src = createYouTubeEmbedUrl(videoId, false);
+        // This is a fallback but may not autoplay
+        try {
+          iframe.src = createYouTubeEmbedUrl(videoId, false);
+        } catch (err) {
+          // Ignore errors
+        }
       }
-    }, 2000); // Wait 2 seconds for iframe to load
+    }, 3000); // Wait 3 seconds for iframe to fully load
     
     // Store timer for cleanup
     iframe._unmuteTimer = unmuteTimer;
@@ -647,20 +658,25 @@ export default function MALWrapped() {
     const currentSlideId = slides[currentSlide]?.id;
     const isDrumrollSlide = currentSlideId === 'drumroll_anime' || currentSlideId === 'drumroll_manga';
     
-    try {
-      const iframe = youtubePlayerRef.current;
-      if (iframe.contentWindow && iframe.contentWindow.postMessage) {
-        if (isDrumrollSlide) {
-          // Reduce volume to 20% on drumroll slides
-          iframe.contentWindow.postMessage('{"event":"command","func":"setVolume","args":[20]}', '*');
-        } else {
-          // Restore volume to 50% on other slides
-          iframe.contentWindow.postMessage('{"event":"command","func":"setVolume","args":[50]}', '*');
+    // Small delay to ensure iframe is ready
+    const volumeTimer = setTimeout(() => {
+      try {
+        const iframe = youtubePlayerRef.current;
+        if (iframe && iframe.contentWindow) {
+          if (isDrumrollSlide) {
+            // Reduce volume to 20% on drumroll slides
+            iframe.contentWindow.postMessage('{"event":"command","func":"setVolume","args":[20]}', 'https://www.youtube.com');
+          } else {
+            // Restore volume to 50% on other slides
+            iframe.contentWindow.postMessage('{"event":"command","func":"setVolume","args":[50]}', 'https://www.youtube.com');
+          }
         }
+      } catch (e) {
+        // Ignore cross-origin errors - this is expected in some browsers
       }
-    } catch (e) {
-      // Ignore errors
-    }
+    }, 100);
+    
+    return () => clearTimeout(volumeTimer);
   }, [currentSlide, stats, slides]);
 
   // Cleanup on component unmount
