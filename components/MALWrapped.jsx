@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, Download, LogOut, Share2, Github, Youtube, Linkedin, Instagram, ExternalLink, Copy, Volume2, VolumeX } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, LogOut, Share2, Github, Youtube, Linkedin, Instagram, ExternalLink, Copy } from 'lucide-react';
 import { motion, useMotionValue } from 'framer-motion';
 
 // MyAnimeList Icon Component
@@ -51,57 +51,6 @@ const fadeIn = {
   initial: { opacity: 0 },
   animate: { opacity: 1 },
   transition: { duration: 0.6, ease: smoothEase }
-};
-
-// Genre to YouTube music mapping
-// User can provide either full YouTube URLs or just video IDs
-// Example: 'Action': 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' OR 'Action': 'dQw4w9WgXcQ'
-// Add your YouTube links below:
-const genreMusicMap = {
-  // Action & Adventure
-  'Action': 'https://www.youtube.com/watch?v=mpJIBY6eg-8',
-  'Adventure': 'https://www.youtube.com/watch?v=IHhNTt3oxtY',
-  'Martial Arts': 'https://www.youtube.com/watch?v=PyQacNnXFnk',
-  'Super Power': 'https://www.youtube.com/watch?v=gUCmjNHIrcU',
-  
-  // Comedy & Slice of Life
-  'Comedy': 'https://www.youtube.com/watch?v=G3qQtf7jahE',
-  'Slice of Life': 'https://www.youtube.com/watch?v=f7x7WXUtVrY',
-  'Parody': 'https://www.youtube.com/watch?v=rHwOE8R-gMA',
-  'School': 'https://www.youtube.com/watch?v=Do1UtRDoQa0',
-  
-  // Drama & Romance
-  'Drama': 'https://www.youtube.com/watch?v=FM3aJQzqV90',
-  'Romance': 'https://www.youtube.com/watch?v=fdNRh_PXbbo',
-  'Harem': 'https://www.youtube.com/watch?v=AW7_dqi9X7M',
-  'Ecchi': 'https://www.youtube.com/watch?v=UjZDDtPK4jM',
-  
-  // Fantasy & Sci-Fi
-  'Fantasy': 'https://www.youtube.com/watch?v=6Y1swEeFwYo',
-  'Dark Fantasy': 'https://www.youtube.com/watch?v=2B6nj38AdD0',
-  'Sci-Fi': 'https://www.youtube.com/watch?v=ZGM90Bo3zH0',
-  'Space': 'https://www.youtube.com/watch?v=UFFa0QoHWvE',
-  'Mecha': 'https://www.youtube.com/watch?v=-RRWvHTQjPE',
-  'Isekai': 'https://www.youtube.com/watch?v=4a8XOwRzJC4',
-  
-  // Horror & Thriller
-  'Horror': 'https://www.youtube.com/watch?v=494STlRAn3A',
-  'Thriller': 'https://www.youtube.com/watch?v=EtGhFQ88mjc',
-  'Gore': 'https://www.youtube.com/watch?v=NMinvWBxmGs',
-  'Suspense': 'https://www.youtube.com/watch?v=rxuR-52cyNw',
-  
-  // Mystery & Psychological
-  'Mystery': 'https://www.youtube.com/watch?v=HGhjyd8ZE78',
-  'Psychological': 'https://www.youtube.com/watch?v=wt4af_R6iJk',
-  
-  // Supernatural & Other
-  'Supernatural': 'https://www.youtube.com/watch?v=sP86J1InpFY',
-  'Sports': 'https://www.youtube.com/watch?v=vyLpzI59-Cc',
-  'Music': 'https://www.youtube.com/watch?v=cWtgGTCAjYY',
-  'Historical': 'https://www.youtube.com/watch?v=oomE4oltFRo',
-  'Military': 'https://www.youtube.com/watch?v=WAoPeG1LU1g',
-  
-  // Add more genres as needed
 };
 
 const fadeIn100 = {
@@ -272,35 +221,8 @@ export default function MALWrapped() {
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [emailCopied, setEmailCopied] = useState(false);
   const [authorPhotos, setAuthorPhotos] = useState({});
-  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const shareMenuRef = useRef(null);
   const slideRef = useRef(null);
-  const backgroundMusicRef = useRef(null);
-  const youtubePlayerRef = useRef(null);
-  
-  // Helper to extract YouTube video ID from URL or return as-is if already an ID
-  const getYouTubeVideoId = (urlOrId) => {
-    if (!urlOrId) return null;
-    // If it's already just an ID (no slashes), return it
-    if (!urlOrId.includes('/') && !urlOrId.includes('?')) return urlOrId;
-    // Extract from various YouTube URL formats
-    const patterns = [
-      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
-      /^([a-zA-Z0-9_-]{11})$/ // Direct video ID
-    ];
-    for (const pattern of patterns) {
-      const match = urlOrId.match(pattern);
-      if (match) return match[1];
-    }
-    return null;
-  };
-  
-  // Helper to create YouTube embed URL
-  const createYouTubeEmbedUrl = (videoId, muted = false) => {
-    if (!videoId) return null;
-    const muteParam = muted ? '1' : '0';
-    return `https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}&controls=0&modestbranding=1&rel=0&mute=${muteParam}&enablejsapi=1`;
-  };
 
   const hasAnime = stats && stats.thisYearAnime && stats.thisYearAnime.length > 0;
   const hasManga = stats && mangaList && mangaList.length > 0;
@@ -336,214 +258,6 @@ export default function MALWrapped() {
     ...(stats.characterTwin ? [{ id: 'character_twin' }] : []),
     { id: 'finale' },
   ] : [], [stats, hasAnime, hasManga]);
-
-  // Get top genre for music selection
-  const topAnimeGenre = stats?.topGenres && stats.topGenres.length > 0 ? stats.topGenres[0][0] : null;
-  const topMangaGenre = stats?.topMangaGenres && stats.topMangaGenres.length > 0 ? stats.topMangaGenres[0][0] : null;
-  
-  // Determine which genre to use for music based on current section
-  // This should only change when transitioning between anime and manga sections
-  const musicGenre = useMemo(() => {
-    if (!stats || !slides || slides.length === 0) return null;
-    
-    // Check if we're in manga section
-    const currentSlideId = slides[currentSlide]?.id;
-    const isMangaSection = currentSlideId && (
-      currentSlideId.includes('manga') || 
-      currentSlideId === 'anime_to_manga_transition' ||
-      currentSlideId === 'manga_count'
-    );
-    
-    // Use top manga genre for manga section, top anime genre for anime section (including welcome)
-    return isMangaSection ? topMangaGenre : topAnimeGenre;
-  }, [stats, slides, currentSlide, topAnimeGenre, topMangaGenre]);
-  
-  // Track the last genre used to avoid recalculating URL on every slide
-  const lastGenreRef = useRef(null);
-  const lastMusicUrlRef = useRef(null);
-  
-  const currentMusicUrl = useMemo(() => {
-    // If genre hasn't changed, return the cached URL
-    if (musicGenre === lastGenreRef.current && lastMusicUrlRef.current) {
-      return lastMusicUrlRef.current;
-    }
-    
-    let videoId = null;
-    
-    // If we have a genre and it exists in the map, use it
-    if (musicGenre && genreMusicMap[musicGenre]) {
-      videoId = getYouTubeVideoId(genreMusicMap[musicGenre]);
-    }
-    
-    // Fallback to first available genre with a valid URL
-    if (!videoId && Object.keys(genreMusicMap).length > 0) {
-      for (const [genre, url] of Object.entries(genreMusicMap)) {
-        if (url && url !== `YOUR_${genre.toUpperCase().replace(/\s+/g, '_')}_VIDEO_ID_OR_URL`) {
-          videoId = getYouTubeVideoId(url);
-          if (videoId) break;
-        }
-      }
-    }
-    
-    const musicUrl = videoId ? createYouTubeEmbedUrl(videoId) : null;
-    
-    // Cache the result
-    lastGenreRef.current = musicGenre;
-    lastMusicUrlRef.current = musicUrl;
-    
-    return musicUrl;
-  }, [musicGenre]);
-
-  // Background music using YouTube iframe
-  // Only change music when URL changes (e.g., transitioning between anime/manga), not on every slide
-  const previousMusicUrlRef = useRef(null);
-  
-  useEffect(() => {
-    // If no music URL but we have stats, try to get a fallback
-    if (!currentMusicUrl && stats && Object.keys(genreMusicMap).length > 0 && !youtubePlayerRef.current) {
-      // Find first valid video URL as fallback
-      for (const [genre, url] of Object.entries(genreMusicMap)) {
-        if (url && url !== `YOUR_${genre.toUpperCase().replace(/\s+/g, '_')}_VIDEO_ID_OR_URL`) {
-          const fallbackVideoId = getYouTubeVideoId(url);
-          if (fallbackVideoId) {
-            // Start muted for autoplay
-            const fallbackUrl = createYouTubeEmbedUrl(fallbackVideoId, true);
-            const iframe = document.createElement('iframe');
-            iframe.src = fallbackUrl;
-            iframe.style.display = 'none';
-            iframe.allow = 'autoplay; encrypted-media';
-            iframe.id = 'youtube-music-player';
-            document.body.appendChild(iframe);
-            youtubePlayerRef.current = iframe;
-            previousMusicUrlRef.current = createYouTubeEmbedUrl(fallbackVideoId, false);
-            setIsMusicPlaying(true);
-            
-            // Unmute and set volume after iframe loads
-            setTimeout(() => {
-              try {
-                if (iframe.contentWindow) {
-                  iframe.contentWindow.postMessage('{"event":"command","func":"unMute","args":[]}', '*');
-                  iframe.contentWindow.postMessage('{"event":"command","func":"setVolume","args":[50]}', '*');
-                }
-              } catch (e) {
-                // Fallback: update src to unmuted version
-                iframe.src = createYouTubeEmbedUrl(fallbackVideoId, false);
-              }
-            }, 2000);
-            break;
-          }
-        }
-      }
-      return;
-    }
-    
-    if (!currentMusicUrl) return;
-    
-    // Only recreate iframe if music URL actually changed
-    if (previousMusicUrlRef.current === currentMusicUrl && youtubePlayerRef.current) {
-      return; // Keep playing the same music
-    }
-    
-    // Remove old iframe if exists
-    if (youtubePlayerRef.current) {
-      youtubePlayerRef.current.remove();
-      youtubePlayerRef.current = null;
-    }
-    
-    // Extract video ID from URL
-    const videoIdMatch = currentMusicUrl.match(/embed\/([a-zA-Z0-9_-]+)/);
-    if (!videoIdMatch || !videoIdMatch[1]) {
-      // Fallback: use URL directly (might not autoplay)
-      const iframe = document.createElement('iframe');
-      iframe.src = currentMusicUrl;
-      iframe.style.display = 'none';
-      iframe.allow = 'autoplay; encrypted-media';
-      iframe.id = 'youtube-music-player';
-      document.body.appendChild(iframe);
-      youtubePlayerRef.current = iframe;
-      previousMusicUrlRef.current = currentMusicUrl;
-      setIsMusicPlaying(true);
-      return;
-    }
-    
-    const videoId = videoIdMatch[1];
-    
-    // Create YouTube iframe for background music - start muted for autoplay
-    const iframe = document.createElement('iframe');
-    iframe.src = createYouTubeEmbedUrl(videoId, true); // Start muted
-    iframe.style.display = 'none';
-    iframe.allow = 'autoplay; encrypted-media';
-    iframe.id = 'youtube-music-player';
-    document.body.appendChild(iframe);
-    youtubePlayerRef.current = iframe;
-    previousMusicUrlRef.current = currentMusicUrl;
-    setIsMusicPlaying(true);
-    
-    // Unmute and set volume to 50 after iframe loads
-    const unmuteTimer = setTimeout(() => {
-      try {
-        if (iframe.contentWindow) {
-          iframe.contentWindow.postMessage('{"event":"command","func":"unMute","args":[]}', '*');
-          iframe.contentWindow.postMessage('{"event":"command","func":"setVolume","args":[50]}', '*');
-        }
-      } catch (e) {
-        // Fallback: update src to unmuted version
-        iframe.src = createYouTubeEmbedUrl(videoId, false);
-      }
-    }, 2000);
-    
-    // Store timer for cleanup
-    iframe._unmuteTimer = unmuteTimer;
-    
-    return () => {
-      // Cleanup unmute timer if it exists
-      if (iframe._unmuteTimer) {
-        clearTimeout(iframe._unmuteTimer);
-        iframe._unmuteTimer = null;
-      }
-      // Only cleanup on unmount, not when URL changes
-      // This allows music to continue playing across slides
-    };
-  }, [currentMusicUrl, stats]);
-  
-  // Adjust volume based on current slide (reduce on drumroll slides)
-  useEffect(() => {
-    if (!youtubePlayerRef.current || !stats || !slides || slides.length === 0) return;
-    
-    const currentSlideId = slides[currentSlide]?.id;
-    const isDrumrollSlide = currentSlideId === 'drumroll_anime' || currentSlideId === 'drumroll_manga';
-    
-    // Small delay to ensure iframe is ready
-    const volumeTimer = setTimeout(() => {
-      try {
-        const iframe = youtubePlayerRef.current;
-        if (iframe && iframe.contentWindow) {
-          if (isDrumrollSlide) {
-            // Reduce volume to 20% on drumroll slides
-            iframe.contentWindow.postMessage('{"event":"command","func":"setVolume","args":[20]}', '*');
-          } else {
-            // Restore volume to 50% on other slides
-            iframe.contentWindow.postMessage('{"event":"command","func":"setVolume","args":[50]}', '*');
-          }
-        }
-      } catch (e) {
-        // Ignore cross-origin errors
-      }
-    }, 100);
-    
-    return () => clearTimeout(volumeTimer);
-  }, [currentSlide, stats, slides]);
-  
-  // Cleanup on component unmount
-  useEffect(() => {
-    return () => {
-      if (youtubePlayerRef.current) {
-        youtubePlayerRef.current.remove();
-        youtubePlayerRef.current = null;
-        setIsMusicPlaying(false);
-      }
-    };
-  }, []);
 
   // Get website URL for watermark
   const websiteUrl = useMemo(() => {
@@ -1010,18 +724,6 @@ export default function MALWrapped() {
 
     const topManga = ratedManga
       .sort((a, b) => b.list_status.score - a.list_status.score)
-      .slice(0, 5);
-    
-    // Calculate manga genres (from filtered manga)
-    const mangaGenreCounts = {};
-    filteredManga.forEach(item => {
-      item.node?.genres?.forEach(genre => {
-        mangaGenreCounts[genre.name] = (mangaGenreCounts[genre.name] || 0) + 1;
-      });
-    });
-    
-    const topMangaGenres = Object.entries(mangaGenreCounts)
-      .sort((a, b) => b[1] - a[1])
       .slice(0, 5);
     
     // Longest Manga Journey - find manga with most chapters read
@@ -2019,7 +1721,6 @@ export default function MALWrapped() {
       totalAnime: thisYearAnime.length,
       totalManga: filteredManga.length,
       topGenres: topGenres.length > 0 ? topGenres : [],
-      topMangaGenres: topMangaGenres.length > 0 ? topMangaGenres : [],
       topStudios: topStudios.length > 0 ? topStudios : [],
       topRated: topRated.length > 0 ? topRated : [],
       hiddenGems: hiddenGems.length > 0 ? hiddenGems : [],
@@ -2139,12 +1840,6 @@ export default function MALWrapped() {
 
   function handleLogout() {
     if (window.confirm('Are you sure you want to log out?')) {
-      // Stop background music
-      if (youtubePlayerRef.current) {
-        youtubePlayerRef.current.remove();
-        youtubePlayerRef.current = null;
-        setIsMusicPlaying(false);
-      }
       localStorage.removeItem('mal_access_token');
       localStorage.removeItem('mal_refresh_token');
       setIsAuthenticated(false);
@@ -2154,40 +1849,6 @@ export default function MALWrapped() {
       setUserData(null);
       setCurrentSlide(0);
       window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  }
-  
-  function toggleMusic() {
-    const iframe = youtubePlayerRef.current || document.getElementById('youtube-music-player');
-    if (iframe) {
-      if (isMusicPlaying) {
-        // Mute by setting volume to 0 or removing autoplay
-        try {
-          // Try to use YouTube IFrame API if available
-          if (iframe.contentWindow && iframe.contentWindow.postMessage) {
-            iframe.contentWindow.postMessage('{"event":"command","func":"setVolume","args":[0]}', '*');
-          }
-        } catch (e) {
-          // Fallback: remove and recreate without autoplay
-          const currentSrc = iframe.src;
-          iframe.src = currentSrc.replace('autoplay=1', 'autoplay=0');
-        }
-        setIsMusicPlaying(false);
-      } else {
-        // Unmute by setting volume to 100 or enabling autoplay
-        try {
-          // Try to use YouTube IFrame API if available
-          if (iframe.contentWindow && iframe.contentWindow.postMessage) {
-            iframe.contentWindow.postMessage('{"event":"command","func":"setVolume","args":[100]}', '*');
-            iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":[]}', '*');
-          }
-        } catch (e) {
-          // Fallback: recreate with autoplay
-          const currentSrc = iframe.src;
-          iframe.src = currentSrc.replace('autoplay=0', 'autoplay=1');
-        }
-        setIsMusicPlaying(true);
-      }
     }
   }
 
@@ -5772,31 +5433,7 @@ export default function MALWrapped() {
                     <span className="text-xs sm:text-sm font-medium">Download</span>
                   </motion.button>
                 </div>
-                  {currentMusicUrl && (
-                    <motion.button 
-                      onClick={toggleMusic} 
-                      className="p-1.5 sm:p-2 text-white rounded-full flex items-center gap-1.5 sm:gap-2" 
-                      title={isMusicPlaying ? "Mute Music" : "Unmute Music"}  
-                      style={{ 
-                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                        border: '1px solid rgba(255, 255, 255, 0.1)'
-                      }}
-                      whileHover={{ 
-                        scale: 1.1, 
-                        backgroundColor: 'rgba(139, 92, 246, 0.8)',
-                        borderColor: 'rgba(139, 92, 246, 0.8)'
-                      }}
-                      whileTap={{ scale: 0.9 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      {isMusicPlaying ? (
-                        <Volume2 className="w-4 h-4 sm:w-5 sm:h-5" />
-                      ) : (
-                        <VolumeX className="w-4 h-4 sm:w-5 sm:h-5" />
-                      )}
-                    </motion.button>
-                  )}
-                  <motion.button 
+                <motion.button 
                   onClick={handleLogout} 
                   className="p-1.5 sm:p-2 text-white rounded-full flex items-center gap-1.5 sm:gap-2" 
                   title="Logout"  
