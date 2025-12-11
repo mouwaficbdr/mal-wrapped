@@ -16,10 +16,26 @@ export default async function handler(req, res) {
     for (const malId of malIds) {
       try {
         // Query animethemes.moe GraphQL API
-        // Try different query structures - the mapping might need different syntax
+        // Filter by external site (MAL) as per documentation: https://api-docs.animethemes.moe/graphql/examples/filter-by-external-site/
+        // Try the documented query structure first
         const query = `
           query GetAnimeThemes($malId: Int!) {
-            anime(where: { mappings: { some: { externalSite: "myanimelist", externalId: $malId } } }) {
+            anime(
+              where: {
+                mappings: {
+                  some: {
+                    externalSite: {
+                      name: {
+                        eq: "myanimelist"
+                      }
+                    },
+                    externalId: {
+                      eq: $malId
+                    }
+                  }
+                }
+              }
+            ) {
               name
               slug
               themes {
@@ -41,7 +57,7 @@ export default async function handler(req, res) {
         
         console.log(`Fetching themes for MAL ID: ${malId}`);
 
-        const response = await fetch('https://api.animethemes.moe/api/graphql', {
+        let response = await fetch('https://api.animethemes.moe/api/graphql', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -58,7 +74,7 @@ export default async function handler(req, res) {
           continue;
         }
 
-        const responseText = await response.text();
+        let responseText = await response.text();
         console.log(`Raw response for MAL ID ${malId}:`, responseText.substring(0, 500));
 
         let data;
@@ -70,57 +86,127 @@ export default async function handler(req, res) {
           continue;
         }
         
+        // If there are errors, try alternative query structures
         if (data.errors) {
           console.error(`GraphQL errors for MAL ID ${malId}:`, JSON.stringify(data.errors, null, 2));
-          // Try alternative query structure if first one fails
-          if (data.errors.some(e => e.message?.includes('mappings'))) {
-            console.log(`Trying alternative query structure for MAL ID ${malId}`);
-            const altQuery = `
-              query GetAnimeThemes($malId: Int!) {
-                anime(where: { mappings: { externalSite: "myanimelist", externalId: $malId } }) {
-                  name
+          
+          // Try simpler query structure without nested eq operators
+          console.log(`Trying simpler query structure for MAL ID ${malId}`);
+          const altQuery1 = `
+            query GetAnimeThemes($malId: Int!) {
+              anime(
+                where: {
+                  mappings: {
+                    some: {
+                      externalSite: {
+                        name: "myanimelist"
+                      },
+                      externalId: $malId
+                    }
+                  }
+                }
+              ) {
+                name
+                slug
+                themes {
                   slug
-                  themes {
-                    slug
-                    type
-                    entries {
-                      videos {
-                        link
-                        basename
-                        tags
-                      }
+                  type
+                  sequence
+                  entries {
+                    version
+                    videos {
+                      tags
+                      link
+                      basename
                     }
                   }
                 }
               }
-            `;
-            const altResponse = await fetch('https://api.animethemes.moe/api/graphql', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-              },
-              body: JSON.stringify({
-                query: altQuery,
-                variables: { malId: parseInt(malId) }
-              })
-            });
-            if (altResponse.ok) {
-              const altText = await altResponse.text();
-              data = JSON.parse(altText);
-              if (data.errors) {
-                console.error(`Alternative query also failed for MAL ID ${malId}:`, data.errors);
+            }
+          `;
+          
+          response = await fetch('https://api.animethemes.moe/api/graphql', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: JSON.stringify({
+              query: altQuery1,
+              variables: { malId: parseInt(malId) }
+            })
+          });
+          
+          if (response.ok) {
+            responseText = await response.text();
+            data = JSON.parse(responseText);
+            if (!data.errors) {
+              console.log(`Simpler query worked for MAL ID ${malId}`);
+            } else {
+              // Try even simpler structure
+              console.log(`Trying direct mapping query for MAL ID ${malId}`);
+              const altQuery2 = `
+                query GetAnimeThemes($malId: Int!) {
+                  anime(where: { mappings: { some: { externalSite: "myanimelist", externalId: $malId } } }) {
+                    name
+                    slug
+                    themes {
+                      slug
+                      type
+                      sequence
+                      entries {
+                        version
+                        videos {
+                          tags
+                          link
+                          basename
+                        }
+                      }
+                    }
+                  }
+                }
+              `;
+              
+              response = await fetch('https://api.animethemes.moe/api/graphql', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json',
+                },
+                body: JSON.stringify({
+                  query: altQuery2,
+                  variables: { malId: parseInt(malId) }
+                })
+              });
+              
+              if (response.ok) {
+                responseText = await response.text();
+                data = JSON.parse(responseText);
+                if (data.errors) {
+                  console.error(`All query attempts failed for MAL ID ${malId}:`, data.errors);
+                  continue;
+                }
+              } else {
+                console.error(`Failed to fetch with alternative query for MAL ID ${malId}`);
                 continue;
               }
             }
           } else {
+            console.error(`Alternative query request failed for MAL ID ${malId}`);
             continue;
           }
         }
 
         console.log(`Response for MAL ID ${malId}:`, JSON.stringify(data.data, null, 2));
         
-        const animeArray = data.data?.anime || [];
+        // Handle both array and single object responses
+        let animeArray = [];
+        if (Array.isArray(data.data?.anime)) {
+          animeArray = data.data.anime;
+        } else if (data.data?.anime) {
+          animeArray = [data.data.anime];
+        }
+        
         if (animeArray.length === 0) {
           console.log(`No anime found for MAL ID ${malId}`);
           continue;
