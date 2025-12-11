@@ -1801,12 +1801,13 @@ export default function MALWrapped() {
       }
       
       const data = await response.json();
+      console.log('Fetched themes:', data.themes);
       if (data.themes && data.themes.length > 0) {
         setPlaylist(data.themes);
-        // Auto-play first track
-        if (data.themes[0]?.videoUrl) {
-          playTrack(0, data.themes);
-        }
+        // Don't auto-play - wait for user interaction
+        // User can click play button to start music
+      } else {
+        console.warn('No themes found for top 5 anime');
       }
     } catch (error) {
       console.error('Error fetching anime themes:', error);
@@ -1818,48 +1819,89 @@ export default function MALWrapped() {
     const tracksToUse = tracks || playlist;
     if (!tracksToUse || tracksToUse.length === 0 || index < 0 || index >= tracksToUse.length) return;
     
-    // Stop current audio if playing
+    // Stop current audio/video if playing
     if (audioRef.current) {
       audioRef.current.pause();
+      audioRef.current.src = '';
+      audioRef.current.load();
       audioRef.current = null;
     }
     
     const track = tracksToUse[index];
-    if (!track.videoUrl) return;
+    if (!track.videoUrl) {
+      console.error('No video URL for track:', track);
+      return;
+    }
     
-    const audio = new Audio(track.videoUrl);
-    audio.volume = 0.3; // 30% volume
-    audioRef.current = audio;
+    // Use Audio element for audio files, Video element for video files
+    const isAudio = track.isAudio || track.videoUrl.match(/\.(mp3|m4a|ogg|wav|aac)(\?|$)/i);
+    const mediaElement = isAudio 
+      ? document.createElement('audio')
+      : document.createElement('video');
+    
+    mediaElement.src = track.videoUrl;
+    mediaElement.volume = 0.3; // 30% volume
+    mediaElement.crossOrigin = 'anonymous';
+    mediaElement.preload = 'auto';
+    mediaElement.style.display = 'none';
+    document.body.appendChild(mediaElement);
+    
+    audioRef.current = mediaElement;
     setCurrentTrackIndex(index);
     
-    audio.addEventListener('ended', () => {
+    mediaElement.addEventListener('loadeddata', () => {
+      console.log('Media loaded:', track.animeName, isAudio ? '(audio)' : '(video)');
+    });
+    
+    mediaElement.addEventListener('ended', () => {
       // Play next track
       const nextIndex = (index + 1) % tracksToUse.length;
       playTrack(nextIndex, tracksToUse);
     });
     
-    audio.addEventListener('error', (e) => {
-      console.error('Audio playback error:', e);
+    mediaElement.addEventListener('error', (e) => {
+      console.error('Media playback error:', e, track);
+      console.error('Media element error details:', mediaElement.error);
       // Try next track on error
       const nextIndex = (index + 1) % tracksToUse.length;
       if (nextIndex !== index) {
         playTrack(nextIndex, tracksToUse);
+      } else {
+        setIsMusicPlaying(false);
       }
     });
     
-    audio.play().then(() => {
-      setIsMusicPlaying(true);
-    }).catch(err => {
-      console.error('Failed to play audio:', err);
-      setIsMusicPlaying(false);
-    });
+    const handleCanPlay = () => {
+      mediaElement.play().then(() => {
+        console.log('Playing:', track.animeName, isAudio ? '(audio)' : '(video)');
+        setIsMusicPlaying(true);
+      }).catch(err => {
+        console.error('Failed to play media:', err, track);
+        console.error('Error details:', err.message);
+        setIsMusicPlaying(false);
+        // Try next track if autoplay fails
+        const nextIndex = (index + 1) % tracksToUse.length;
+        if (nextIndex !== index) {
+          playTrack(nextIndex, tracksToUse);
+        }
+      });
+    };
+    
+    mediaElement.addEventListener('canplay', handleCanPlay);
+    mediaElement.addEventListener('loadedmetadata', handleCanPlay);
+    
+    // Start loading
+    mediaElement.load();
   }, [playlist]);
 
   // Toggle music play/pause
   const toggleMusic = useCallback(() => {
     if (!audioRef.current) {
       if (playlist.length > 0) {
+        console.log('Starting playlist from track', currentTrackIndex);
         playTrack(currentTrackIndex, playlist);
+      } else {
+        console.warn('No playlist available');
       }
       return;
     }
@@ -1867,11 +1909,17 @@ export default function MALWrapped() {
     if (isMusicPlaying) {
       audioRef.current.pause();
       setIsMusicPlaying(false);
+      console.log('Music paused');
     } else {
       audioRef.current.play().then(() => {
         setIsMusicPlaying(true);
+        console.log('Music resumed');
       }).catch(err => {
-        console.error('Failed to resume audio:', err);
+        console.error('Failed to resume video:', err);
+        // Try to restart from current track
+        if (playlist.length > 0) {
+          playTrack(currentTrackIndex, playlist);
+        }
       });
     }
   }, [playlist, currentTrackIndex, isMusicPlaying, playTrack]);
@@ -1888,11 +1936,15 @@ export default function MALWrapped() {
     }
   }, [currentSlide, stats, slides]);
 
-  // Cleanup audio on unmount
+  // Cleanup audio/video on unmount
   useEffect(() => {
     return () => {
       if (audioRef.current) {
         audioRef.current.pause();
+        audioRef.current.src = '';
+        if (audioRef.current.parentNode) {
+          audioRef.current.parentNode.removeChild(audioRef.current);
+        }
         audioRef.current = null;
       }
     };

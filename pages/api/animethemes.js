@@ -70,7 +70,18 @@ export default async function handler(req, res) {
         if (opThemes.length > 0) {
           const theme = opThemes[0];
           const entry = theme.entries?.[0];
-          const video = entry?.videos?.find(v => v.tags?.includes('720p') || v.tags?.includes('1080p')) || entry?.videos?.[0];
+          
+          // Try to find audio file first, then fallback to video
+          const audioFile = entry?.videos?.find(v => 
+            v.tags?.includes('audio') || 
+            v.basename?.includes('.mp3') || 
+            v.basename?.includes('.m4a') ||
+            v.basename?.includes('.ogg')
+          );
+          
+          const video = audioFile || 
+            entry?.videos?.find(v => v.tags?.includes('720p') || v.tags?.includes('1080p')) || 
+            entry?.videos?.[0];
           
           if (video?.link) {
             themes.push({
@@ -80,7 +91,8 @@ export default async function handler(req, res) {
               themeSlug: theme.slug,
               themeType: theme.type,
               videoUrl: video.link,
-              basename: video.basename
+              basename: video.basename,
+              isAudio: !!audioFile
             });
           }
         }
