@@ -1937,7 +1937,7 @@ export default function MALWrapped() {
     }
   }
 
-  // Initialize and fetch first theme
+  // Fetch all 5 themes together
   async function fetchAnimeThemes(topRatedAnime) {
     try {
       const malIds = topRatedAnime
@@ -1947,47 +1947,32 @@ export default function MALWrapped() {
       
       if (malIds.length === 0) return;
       
-      // Store MAL IDs for lazy loading
+      // Store MAL IDs
       setPendingMalIds(malIds);
-      setCurrentMalIdIndex(0);
       
-      // Fetch first theme immediately
-      const firstTheme = await fetchSingleAnimeTheme(malIds[0]);
-      if (firstTheme) {
-        setPlaylist([firstTheme]);
-        // Don't auto-play - wait for user interaction (browser autoplay policy)
-        // User can click play button to start music
-        console.log('First theme loaded, ready to play');
-      } else {
-        // If first theme failed, try next one
-        fetchNextTheme(1, malIds);
+      // Fetch all themes together with delays to avoid rate limiting
+      const themes = [];
+      for (let i = 0; i < malIds.length; i++) {
+        if (i > 0) {
+          // Add delay between requests
+          await new Promise(resolve => setTimeout(resolve, 300));
+        }
+        const theme = await fetchSingleAnimeTheme(malIds[i]);
+        if (theme) {
+          themes.push(theme);
+        }
+      }
+      
+      if (themes.length > 0) {
+        setPlaylist(themes);
+        console.log(`Fetched ${themes.length} themes, starting with 5th anime (index 4)`);
+        // Start with 5th anime song (index 4)
+        setCurrentTrackIndex(Math.min(4, themes.length - 1));
       }
     } catch (error) {
-      console.error('Error initializing anime themes:', error);
+      console.error('Error fetching anime themes:', error);
     }
   }
-
-  // Fetch next theme when current track ends
-  const fetchNextTheme = useCallback(async (nextIndex, malIds = null) => {
-    const idsToUse = malIds || pendingMalIds;
-    if (!idsToUse || idsToUse.length === 0) return null;
-    
-    if (nextIndex >= idsToUse.length) {
-      console.log('All themes fetched');
-      return null;
-    }
-    
-    // Small delay to avoid rate limiting
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    const nextTheme = await fetchSingleAnimeTheme(idsToUse[nextIndex]);
-    if (nextTheme) {
-      return nextTheme;
-    } else {
-      // If this theme failed, try next one
-      return fetchNextTheme(nextIndex + 1, idsToUse);
-    }
-  }, [pendingMalIds]);
   
   // Original fetchAnimeThemes code (keeping for reference but not used)
   async function fetchAnimeThemes_OLD(topRatedAnime) {
@@ -2229,40 +2214,10 @@ export default function MALWrapped() {
       console.log('Media loaded:', track.animeName, isAudio ? '(audio)' : '(video)');
     });
     
-    mediaElement.addEventListener('ended', async () => {
-      // Play next track
-      const nextIndex = index + 1;
-      
-      // If we have the next track in playlist, play it
-      if (nextIndex < tracksToUse.length) {
+    mediaElement.addEventListener('ended', () => {
+      // Play next track (loop back to start if at end)
+      const nextIndex = (index + 1) % tracksToUse.length;
       playTrack(nextIndex, tracksToUse);
-      } else {
-        // Need to fetch next theme
-        const idsToUse = pendingMalIds.length > 0 ? pendingMalIds : [];
-        if (idsToUse.length > nextIndex) {
-          console.log(`Fetching next theme (index ${nextIndex})...`);
-          // Fetch next theme
-          const nextTheme = await fetchNextTheme(nextIndex, idsToUse);
-          if (nextTheme) {
-            // Add to playlist and play
-            setPlaylist(prev => {
-              const newPlaylist = [...prev, nextTheme];
-              setTimeout(() => {
-                playTrack(nextIndex, newPlaylist);
-              }, 100);
-              return newPlaylist;
-            });
-          } else {
-            // No more tracks available
-            console.log('No more themes available');
-            setIsMusicPlaying(false);
-          }
-        } else {
-          // No more tracks, stop playback
-          console.log('Reached end of playlist');
-          setIsMusicPlaying(false);
-        }
-      }
     });
     
     mediaElement.addEventListener('error', (e) => {
@@ -2293,13 +2248,13 @@ export default function MALWrapped() {
           setIsMusicPlaying(false);
           // Don't try next track - wait for user to click play
         } else {
-          console.error('Failed to play media:', err, track);
-          console.error('Error details:', err.message);
-          setIsMusicPlaying(false);
+        console.error('Failed to play media:', err, track);
+        console.error('Error details:', err.message);
+        setIsMusicPlaying(false);
           // Try next track if it's a different error
-          const nextIndex = (index + 1) % tracksToUse.length;
-          if (nextIndex !== index) {
-            playTrack(nextIndex, tracksToUse);
+        const nextIndex = (index + 1) % tracksToUse.length;
+        if (nextIndex !== index) {
+          playTrack(nextIndex, tracksToUse);
           }
         }
       });
@@ -2344,11 +2299,20 @@ export default function MALWrapped() {
 
   // Fetch themes when user moves past welcome screen
   useEffect(() => {
-    if (currentSlide > 0 && stats && stats.topRated && stats.topRated.length > 0 && playlist.length === 0 && !pendingMalIds.length) {
+    if (currentSlide > 0 && stats && stats.topRated && stats.topRated.length > 0 && playlist.length === 0 && pendingMalIds.length === 0) {
       console.log('Fetching themes after welcome screen');
       fetchAnimeThemes(stats.topRated);
     }
   }, [currentSlide, stats, playlist.length, pendingMalIds.length]);
+
+  // On slide 7 (index 6), skip to top 1 song (index 0)
+  useEffect(() => {
+    if (currentSlide === 6 && playlist.length > 0 && audioRef.current && isMusicPlaying) {
+      // Slide 7 (index 6) - skip to top 1 song
+      console.log('Slide 7 reached - skipping to top 1 song');
+      playTrack(0, playlist);
+    }
+  }, [currentSlide, playlist, isMusicPlaying, playTrack]);
 
   // Change tracks based on slide numbers and adjust volume
   useEffect(() => {
@@ -2381,8 +2345,9 @@ export default function MALWrapped() {
     }
     
     // Only change track if we have a valid target and we're not already playing it
+    // Skip slide 7 check here as it's handled separately
     if (targetTrackIndex !== null && targetTrackIndex < playlist.length && 
-        currentTrackIndex !== targetTrackIndex && audioRef.current) {
+        currentTrackIndex !== targetTrackIndex && audioRef.current && currentSlide !== 6) {
       console.log(`Changing track from ${currentTrackIndex} to ${targetTrackIndex} for slide ${slideNumber}`);
       // Only play if music is already playing, otherwise just set the track index
       if (isMusicPlaying) {
@@ -2405,6 +2370,15 @@ export default function MALWrapped() {
       fetchAnimeThemes(stats.topRated);
     }
   }, [currentSlide, stats, playlist.length, pendingMalIds.length]);
+
+  // On slide 7, skip to top 1 song (index 0)
+  useEffect(() => {
+    if (currentSlide === 6 && playlist.length > 0 && audioRef.current && isMusicPlaying) {
+      // Slide 7 (index 6) - skip to top 1 song
+      console.log('Slide 7 reached - skipping to top 1 song');
+      playTrack(0, playlist);
+    }
+  }, [currentSlide, playlist, isMusicPlaying, playTrack]);
 
   // Cleanup audio/video on unmount
   useEffect(() => {
@@ -3583,27 +3557,37 @@ export default function MALWrapped() {
                   </div>
                   <p className="body-md font-regular text-white mt-8 text-center text-container max-w-2xl mx-auto">A look back at your {stats.selectedYear === 'all' ? 'journey' : stats.selectedYear}, <span className="text-white font-medium">{username || 'a'}</span>.</p>
                   
-                  {/* Year Picker */}
+                  {/* Year Picker - moved from top nav */}
                   <motion.div {...fadeIn} data-framer-motion className="mt-8 flex flex-col items-center gap-4">
-                    <label className="body-sm text-white/80">Select Year:</label>
-                    <select
-                      value={selectedYear}
-                      onChange={(e) => {
-                        const newYear = e.target.value;
-                        setSelectedYear(newYear);
-                        // Recalculate stats with new year
-                        if (animeList.length > 0 || mangaList.length > 0) {
-                          calculateStats(animeList, mangaList, userData, newYear);
-                        }
-                      }}
-                      className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-white/50 min-w-[120px]"
-                    >
-                      <option value="all">All Time</option>
-                      {Array.from({ length: new Date().getFullYear() - 2019 }, (_, i) => {
-                        const year = new Date().getFullYear() - i;
-                        return <option key={year} value={year}>{year}</option>;
-                      })}
-                    </select>
+                    <div className="relative min-w-[120px] sm:min-w-[140px]">
+                      <select
+                        value={selectedYear}
+                        onChange={(e) => {
+                          const newYear = e.target.value === 'all' ? 'all' : parseInt(e.target.value);
+                          setSelectedYear(newYear);
+                          // Recalculate stats with new year
+                          if (animeList.length > 0 || mangaList.length > 0) {
+                            calculateStats(animeList, mangaList, userData, newYear);
+                          }
+                        }}
+                        className="w-full px-3 sm:px-4 py-1.5 sm:py-2 text-white rounded-full border-box-cyan transition-all rounded-lg text-xs sm:text-sm font-medium tracking-wider focus:outline-none appearance-none pr-8 sm:pr-10"
+                        style={{ 
+                          border: '1px solid rgba(255, 255, 255, 0.1)',
+                          color: '#ffffff',
+                          background: 'rgba(255, 255, 255, 0.1)'
+                        }}
+                      >
+                        <option value="2023" style={{ background: 'rgba(0, 0, 0, 0.85)', color: '#ffffff' }}>2023</option>
+                        <option value="2024" style={{ background: 'rgba(0, 0, 0, 0.85)', color: '#ffffff' }}>2024</option>
+                        <option value="2025" style={{ background: 'rgba(0, 0, 0, 0.85)', color: '#ffffff' }}>2025</option>
+                        <option value="all" style={{ background: 'rgba(0, 0, 0, 0.85)', color: '#ffffff' }}>All Time</option>
+                      </select>
+                      <div className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 pointer-events-none z-10">
+                        <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
                   </motion.div>
               </motion.div>
               <motion.div 
@@ -6057,30 +6041,9 @@ export default function MALWrapped() {
 
           {isAuthenticated && stats && slides.length > 0 && (
             <div className="w-full h-full flex flex-col overflow-hidden relative">
-              {/* Top Bar - Year Selector, Download, Share, Logout */}
+              {/* Top Bar - Download, Share, Logout (Year picker moved to welcome screen) */}
               <div className="flex-shrink-0 px-3 sm:px-4 md:px-6 pt-3 pb-2 flex items-center justify-between gap-2 sm:gap-3" data-exclude-from-screenshot>
                 <div className="flex items-center gap-2 sm:gap-3">
-                  <div className="relative min-w-[120px] sm:min-w-[140px]">
-                  <select
-                    value={selectedYear}
-                    onChange={(e) => setSelectedYear(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
-                      className="w-full px-3 sm:px-4 py-1.5 sm:py-2 text-white rounded-full border-box-cyan transition-all rounded-lg text-xs sm:text-sm font-medium tracking-wider focus:outline-none appearance-none pr-8 sm:pr-10"
-                      style={{ 
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                        color: '#ffffff'
-                      }}
-                    >
-                      <option value="2023" style={{ background: 'rgba(0, 0, 0, 0.85)', color: '#ffffff' }}>2023</option>
-                      <option value="2024" style={{ background: 'rgba(0, 0, 0, 0.85)', color: '#ffffff' }}>2024</option>
-                      <option value="2025" style={{ background: 'rgba(0, 0, 0, 0.85)', color: '#ffffff' }}>2025</option>
-                      <option value="all" style={{ background: 'rgba(0, 0, 0, 0.85)', color: '#ffffff' }}>All Time</option>
-                  </select>
-                    <div className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 pointer-events-none z-10">
-                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </div>
-                  </div>
                   {playlist.length > 0 && (
                     <motion.button 
                       onClick={toggleMusic} 
@@ -6226,22 +6189,22 @@ export default function MALWrapped() {
                       >
                         <span className="text-xs sm:text-sm font-medium">Restart</span>
                       </motion.button>
-                      <div className="relative" ref={shareMenuRef}>
-                        <motion.button
-                          type="button"
-                          onClick={handleShareButtonClick}
-                          className="p-1.5 sm:p-2 text-white rounded-full border-box-cyan flex items-center gap-1.5 sm:gap-2"
-                          whileHover={{ 
-                            scale: 1.1, 
-                            backgroundColor: 'rgba(64, 101, 204, 0.8)',
-                            borderColor: 'rgba(64, 101, 204, 0.8)'
-                          }}
-                          whileTap={{ scale: 0.9 }}
-                          transition={{ duration: 0.2 }}
-                        >
-                          <Share2 className="w-5 h-5 sm:w-6 sm:h-6" />
-                          <span className="text-xs sm:text-sm font-medium">Share</span>
-                        </motion.button>
+                    <div className="relative" ref={shareMenuRef}>
+                      <motion.button
+                        type="button"
+                        onClick={handleShareButtonClick}
+                        className="p-1.5 sm:p-2 text-white rounded-full border-box-cyan flex items-center gap-1.5 sm:gap-2"
+                        whileHover={{ 
+                          scale: 1.1, 
+                          backgroundColor: 'rgba(64, 101, 204, 0.8)',
+                          borderColor: 'rgba(64, 101, 204, 0.8)'
+                        }}
+                        whileTap={{ scale: 0.9 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <Share2 className="w-5 h-5 sm:w-6 sm:h-6" />
+                        <span className="text-xs sm:text-sm font-medium">Share</span>
+                      </motion.button>
 
                       {showShareMenu && (
                         <motion.div
