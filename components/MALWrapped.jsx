@@ -2396,7 +2396,7 @@ export default function MALWrapped() {
 
   // Start music when playlist is ready and button was clicked
   useEffect(() => {
-    if (shouldStartMusic && playlist.length > 0 && currentSlide === 0) {
+    if (shouldStartMusic && playlist.length > 0 && currentSlide >= 1) {
       // Start with 3rd anime (index 2) for slides 1-5
       const initialTrackIndex = Math.min(2, playlist.length - 1);
       setCurrentTrackIndex(initialTrackIndex);
@@ -3667,7 +3667,7 @@ export default function MALWrapped() {
                   
                   {/* Year Picker - moved from top nav */}
                   <motion.div {...fadeIn} data-framer-motion className="mt-8 flex flex-col items-center gap-4">
-                    <p className="body-sm font-regular text-white/70 text-center mb-2">Select a year to view your stats</p>
+                    <p className="body-sm font-regular text-white/70 text-center mb-1">Select a year to view your stats</p>
                     <div className="relative min-w-[120px] sm:min-w-[140px]">
                       <select
                         id="year-selector"
@@ -3718,7 +3718,7 @@ export default function MALWrapped() {
                       whileTap={{ scale: 0.95 }}
                       transition={{ duration: 0.2, ease: smoothEase }}
                     >
-                      Let's Get Wrapped
+                      Let's Go
                     </motion.button>
                   </motion.div>
               </motion.div>
@@ -4112,7 +4112,7 @@ export default function MALWrapped() {
           const topItem = stats.topRated.length > 0 ? stats.topRated[0] : null;
           
           useEffect(() => {
-            const timer1 = setTimeout(() => setPhase(1), 4000);
+            const timer1 = setTimeout(() => setPhase(1), 2500);
             return () => {
               clearTimeout(timer1);
             };
@@ -4850,7 +4850,7 @@ export default function MALWrapped() {
           const topItem = stats.topManga.length > 0 ? stats.topManga[0] : null;
           
           useEffect(() => {
-            const timer1 = setTimeout(() => setPhase(1), 4000);
+            const timer1 = setTimeout(() => setPhase(1), 2500);
             return () => {
               clearTimeout(timer1);
             };
