@@ -2169,7 +2169,7 @@ export default function MALWrapped() {
     }
   }
 
-  // Play a track from the playlist
+  // Play a track from the playlist with crossfade
   const playTrack = useCallback((index, tracks = null) => {
     const tracksToUse = tracks || playlist;
     if (!tracksToUse || tracksToUse.length === 0 || index < 0 || index >= tracksToUse.length) return;
@@ -2181,23 +2181,6 @@ export default function MALWrapped() {
     }
     isSwitchingTrackRef.current = true;
     
-    // Stop current audio/video if playing
-    if (audioRef.current) {
-      try {
-      audioRef.current.pause();
-        audioRef.current.removeEventListener('error', () => {});
-        audioRef.current.removeEventListener('ended', () => {});
-        audioRef.current.removeEventListener('canplay', () => {});
-        audioRef.current.removeEventListener('loadedmetadata', () => {});
-        if (audioRef.current.parentNode) {
-          audioRef.current.parentNode.removeChild(audioRef.current);
-        }
-      } catch (e) {
-        console.error('Error cleaning up old media element:', e);
-      }
-      audioRef.current = null;
-    }
-    
     const track = tracksToUse[index];
     if (!track || !track.videoUrl) {
       console.error('No video URL for track:', track);
@@ -2207,7 +2190,7 @@ export default function MALWrapped() {
     
     // Use Audio element for audio files, Video element for video files
     const isAudio = track.isAudio || track.videoUrl.match(/\.(mp3|m4a|ogg|wav|aac)(\?|$)/i);
-    const mediaElement = isAudio 
+    const newMediaElement = isAudio 
       ? document.createElement('audio')
       : document.createElement('video');
     
@@ -2220,40 +2203,127 @@ export default function MALWrapped() {
     }
     
     console.log('Setting media src to:', audioUrl);
-    // Set src before appending to DOM to avoid empty src errors
-    mediaElement.src = audioUrl;
-    mediaElement.volume = 0.3; // 30% volume
-    mediaElement.crossOrigin = 'anonymous';
-    mediaElement.preload = 'auto';
-    mediaElement.style.display = 'none';
-    document.body.appendChild(mediaElement);
+    newMediaElement.src = audioUrl;
+    newMediaElement.volume = 0; // Start at 0 for crossfade
+    newMediaElement.crossOrigin = 'anonymous';
+    newMediaElement.preload = 'auto';
+    newMediaElement.style.display = 'none';
+    document.body.appendChild(newMediaElement);
     
-    audioRef.current = mediaElement;
-    setCurrentTrackIndex(index);
+    const oldMediaElement = audioRef.current;
+    const targetVolume = 0.3;
+    const fadeDuration = 1000; // 1 second crossfade
+    const fadeSteps = 20;
+    const fadeInterval = fadeDuration / fadeSteps;
+    let currentStep = 0;
     
-    mediaElement.addEventListener('loadeddata', () => {
-      console.log('Media loaded:', track.animeName, isAudio ? '(audio)' : '(video)');
-      isSwitchingTrackRef.current = false;
-    });
+    const handleCanPlay = () => {
+      // If there's an old track, crossfade. Otherwise, just start playing.
+      if (oldMediaElement && !oldMediaElement.paused && oldMediaElement.currentTime > 0) {
+        // Crossfade: fade out old, fade in new
+        newMediaElement.play().then(() => {
+          console.log('Starting crossfade to:', track.animeName);
+          
+          const fadeIntervalId = setInterval(() => {
+            currentStep++;
+            const progress = currentStep / fadeSteps;
+            
+            if (oldMediaElement) {
+              oldMediaElement.volume = targetVolume * (1 - progress);
+            }
+            newMediaElement.volume = targetVolume * progress;
+            
+            if (currentStep >= fadeSteps) {
+              clearInterval(fadeIntervalId);
+              
+              // Clean up old element
+              if (oldMediaElement) {
+                try {
+                  oldMediaElement.pause();
+                  if (oldMediaElement.parentNode) {
+                    oldMediaElement.parentNode.removeChild(oldMediaElement);
+                  }
+                } catch (e) {
+                  console.error('Error cleaning up old media element:', e);
+                }
+              }
+              
+              newMediaElement.volume = targetVolume;
+              audioRef.current = newMediaElement;
+              setCurrentTrackIndex(index);
+              setIsMusicPlaying(true);
+              isSwitchingTrackRef.current = false;
+              console.log('Crossfade complete');
+            }
+          }, fadeInterval);
+        }).catch(err => {
+          console.error('Failed to start crossfade:', err);
+          isSwitchingTrackRef.current = false;
+        });
+      } else {
+        // No old track, just start playing
+        newMediaElement.volume = targetVolume;
+        newMediaElement.play().then(() => {
+          console.log('Playing:', track.animeName, isAudio ? '(audio)' : '(video)');
+          
+          // Clean up old element if it exists
+          if (oldMediaElement) {
+            try {
+              oldMediaElement.pause();
+              if (oldMediaElement.parentNode) {
+                oldMediaElement.parentNode.removeChild(oldMediaElement);
+              }
+            } catch (e) {
+              console.error('Error cleaning up old media element:', e);
+            }
+          }
+          
+          audioRef.current = newMediaElement;
+          setCurrentTrackIndex(index);
+          setIsMusicPlaying(true);
+          isSwitchingTrackRef.current = false;
+        }).catch(err => {
+          if (err.name === 'NotAllowedError') {
+            console.log('Autoplay prevented - waiting for user interaction');
+            setIsMusicPlaying(false);
+            isSwitchingTrackRef.current = false;
+          } else {
+            console.error('Failed to play media:', err, track);
+            setIsMusicPlaying(false);
+            isSwitchingTrackRef.current = false;
+          }
+        });
+      }
+    };
     
-    mediaElement.addEventListener('ended', () => {
+    newMediaElement.addEventListener('canplay', handleCanPlay, { once: true });
+    newMediaElement.addEventListener('loadedmetadata', handleCanPlay, { once: true });
+    
+    newMediaElement.addEventListener('ended', () => {
       // Play next track (loop back to start if at end)
       const nextIndex = (index + 1) % tracksToUse.length;
       playTrack(nextIndex, tracksToUse);
     });
     
-    mediaElement.addEventListener('error', (e) => {
+    newMediaElement.addEventListener('error', (e) => {
       console.error('Media playback error:', e, track);
-      console.error('Media element error details:', mediaElement.error);
+      console.error('Media element error details:', newMediaElement.error);
       isSwitchingTrackRef.current = false;
       
-      // Skip to next track on error (audio files only, no video fallback due to CORS)
+      // Clean up
+      try {
+        if (newMediaElement.parentNode) {
+          newMediaElement.parentNode.removeChild(newMediaElement);
+        }
+      } catch (e) {
+        console.error('Error cleaning up error media element:', e);
+      }
+      
+      // Skip to next track on error
       const nextIndex = (index + 1) % tracksToUse.length;
       if (nextIndex !== index) {
-        console.log(`Skipping to next track due to playback error`);
-        // Use setTimeout to allow the ref to reset
         setTimeout(() => {
-        playTrack(nextIndex, tracksToUse);
+          playTrack(nextIndex, tracksToUse);
         }, 100);
       } else {
         console.log(`No more tracks available`);
@@ -2261,42 +2331,8 @@ export default function MALWrapped() {
       }
     });
     
-    const handleCanPlay = () => {
-      // Only try to play if user has interacted (autoplay policy)
-      // If autoplay fails, we'll wait for user to click play button
-      mediaElement.play().then(() => {
-        console.log('Playing:', track.animeName, isAudio ? '(audio)' : '(video)');
-        setIsMusicPlaying(true);
-        isSwitchingTrackRef.current = false;
-      }).catch(err => {
-        // Autoplay was prevented - this is normal, user needs to interact first
-        if (err.name === 'NotAllowedError') {
-          console.log('Autoplay prevented - waiting for user interaction');
-          setIsMusicPlaying(false);
-          isSwitchingTrackRef.current = false;
-          // Don't try next track - wait for user to click play
-        } else {
-        console.error('Failed to play media:', err, track);
-        console.error('Error details:', err.message);
-        setIsMusicPlaying(false);
-        isSwitchingTrackRef.current = false;
-          // Try next track if it's a different error
-        const nextIndex = (index + 1) % tracksToUse.length;
-        if (nextIndex !== index) {
-          // Use setTimeout to allow the ref to reset
-          setTimeout(() => {
-          playTrack(nextIndex, tracksToUse);
-          }, 100);
-          }
-        }
-      });
-    };
-    
-    mediaElement.addEventListener('canplay', handleCanPlay);
-    mediaElement.addEventListener('loadedmetadata', handleCanPlay);
-    
-    // Start loading
-    mediaElement.load();
+    // Start loading immediately
+    newMediaElement.load();
   }, [playlist]);
 
   // Toggle music play/pause
@@ -2329,6 +2365,31 @@ export default function MALWrapped() {
     }
   }, [playlist, currentTrackIndex, isMusicPlaying, playTrack]);
 
+  // Stop music and clear playlist when returning to welcome slide
+  useEffect(() => {
+    if (currentSlide === 0) {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        try {
+          if (audioRef.current.parentNode) {
+            audioRef.current.parentNode.removeChild(audioRef.current);
+          }
+        } catch (e) {
+          console.error('Error removing audio element:', e);
+        }
+        audioRef.current = null;
+      }
+      setIsMusicPlaying(false);
+      setPlaylist([]);
+      setPendingMalIds([]);
+      setCurrentMalIdIndex(0);
+      setCurrentTrackIndex(0);
+      isSwitchingTrackRef.current = false;
+      slide7ProcessedRef.current = false;
+      console.log('Welcome slide - music stopped and playlist cleared');
+    }
+  }, [currentSlide]);
+
   // Fetch themes when user moves past welcome screen
   useEffect(() => {
     if (currentSlide > 0 && stats && stats.topRated && stats.topRated.length > 0 && playlist.length === 0 && pendingMalIds.length === 0) {
@@ -2337,53 +2398,37 @@ export default function MALWrapped() {
     }
   }, [currentSlide, stats, playlist.length, pendingMalIds.length]);
 
-  // On slide 7 (index 6), skip to top 1 song (index 0)
-  useEffect(() => {
-    if (currentSlide === 6 && playlist.length > 0 && audioRef.current && isMusicPlaying && !slide7ProcessedRef.current) {
-      // Slide 7 (index 6) - skip to top 1 song
-      console.log('Slide 7 reached - skipping to top 1 song');
-      slide7ProcessedRef.current = true;
-      playTrack(0, playlist);
-    } else if (currentSlide !== 6) {
-      // Reset the flag when we're not on slide 7
-      slide7ProcessedRef.current = false;
-    }
-  }, [currentSlide, playlist, isMusicPlaying, playTrack]);
 
-  // Change tracks based on slide numbers and adjust volume
+  // Change tracks based on slide numbers
   useEffect(() => {
-    if (!audioRef.current || !stats || !slides || slides.length === 0 || !playlist || playlist.length === 0) return;
+    if (!audioRef.current || !stats || !slides || slides.length === 0 || !playlist || playlist.length === 0 || currentSlide === 0) return;
     
-    const currentSlideId = slides[currentSlide]?.id;
-    const isDrumrollSlide = currentSlideId === 'drumroll_anime' || currentSlideId === 'drumroll_manga';
-    
-    // Track mapping: 5th anime (index 4): slides 1-6, 1st anime (index 0): slides 7-12, 
-    // 4th anime (index 3): slides 13-17, 2nd anime (index 1): slides 17-21, 3rd anime (index 2): slides 22-25
+    // Track mapping: 1-5 (5th), 5-10 (1st), 11-15 (4th), 15-20 (2nd), 21-25 (3rd)
     // Note: slide 0 is welcome, so we use currentSlide + 1 for mapping
+    // Overlaps: slide 5 uses 1st (per "5-10"), slide 15 uses 2nd (per "15-20")
     const slideNumber = currentSlide + 1;
     let targetTrackIndex = null;
     
-    if (slideNumber >= 1 && slideNumber <= 6) {
-      // 5th anime (index 4 in playlist, which corresponds to 5th in topRated)
+    if (slideNumber >= 1 && slideNumber < 5) {
+      // 5th anime (index 4 in playlist) - slides 1-4
       targetTrackIndex = Math.min(4, playlist.length - 1);
-    } else if (slideNumber >= 7 && slideNumber <= 12) {
-      // 1st anime (index 0 in playlist, which corresponds to 1st in topRated)
+    } else if (slideNumber >= 5 && slideNumber <= 10) {
+      // 1st anime (index 0 in playlist) - slides 5-10
       targetTrackIndex = 0;
-    } else if (slideNumber >= 13 && slideNumber <= 17) {
-      // 4th anime (index 3 in playlist, which corresponds to 4th in topRated)
+    } else if (slideNumber >= 11 && slideNumber < 15) {
+      // 4th anime (index 3 in playlist) - slides 11-14
       targetTrackIndex = Math.min(3, playlist.length - 1);
-    } else if (slideNumber >= 17 && slideNumber <= 21) {
-      // 2nd anime (index 1 in playlist, which corresponds to 2nd in topRated)
+    } else if (slideNumber >= 15 && slideNumber <= 20) {
+      // 2nd anime (index 1 in playlist) - slides 15-20
       targetTrackIndex = Math.min(1, playlist.length - 1);
-    } else if (slideNumber >= 22 && slideNumber <= 25) {
-      // 3rd anime (index 2 in playlist, which corresponds to 3rd in topRated)
+    } else if (slideNumber >= 21 && slideNumber <= 25) {
+      // 3rd anime (index 2 in playlist) - slides 21-25
       targetTrackIndex = Math.min(2, playlist.length - 1);
     }
     
     // Only change track if we have a valid target and we're not already playing it
-    // Skip slide 7 check here as it's handled separately
     if (targetTrackIndex !== null && targetTrackIndex < playlist.length && 
-        currentTrackIndex !== targetTrackIndex && audioRef.current && currentSlide !== 6) {
+        currentTrackIndex !== targetTrackIndex && audioRef.current) {
       console.log(`Changing track from ${currentTrackIndex} to ${targetTrackIndex} for slide ${slideNumber}`);
       // Only play if music is already playing, otherwise just set the track index
       if (isMusicPlaying) {
@@ -2393,9 +2438,9 @@ export default function MALWrapped() {
       }
     }
     
-    // Adjust volume
+    // Set volume (no reduction on drumroll)
     if (audioRef.current) {
-      audioRef.current.volume = isDrumrollSlide ? 0.1 : 0.3;
+      audioRef.current.volume = 0.3;
     }
   }, [currentSlide, stats, slides, playlist, currentTrackIndex, isMusicPlaying, playTrack]);
 
@@ -3940,8 +3985,8 @@ export default function MALWrapped() {
                     const isTop = demo.name === topDemographic.name;
                     const initialPos = quadrantPositions[idx] || { x: 0, y: 0 };
                     // Reduce spacing on mobile
-                    const horizontalSpacing = isMobile ? 60 : 120;
-                    const verticalSpacing = isMobile ? 40 : 100;
+                    const horizontalSpacing = isMobile ? 80 : 120;
+                    const verticalSpacing = isMobile ? 80 : 100;
                     const finalX = isTop 
                       ? 0 
                       : (otherIndices.indexOf(idx) - (otherIndices.length - 1) / 2) * horizontalSpacing;
@@ -3966,9 +4011,9 @@ export default function MALWrapped() {
                         transition={{
                           scale: {
                             duration: 3.5,
-                            delay: idx * 0.3,
+                            delay: idx * 0.2,
                             times: [0, 0.2, 0.4, 0.6, 0.8],
-                            ease: "easeOut",
+                            ease: smoothEase,
                           },
                           opacity: {
                             duration: 0.5,
@@ -4037,26 +4082,11 @@ export default function MALWrapped() {
         const DrumrollContent = () => {
           const [phase, setPhase] = useState(0);
           const topItem = stats.topRated.length > 0 ? stats.topRated[0] : null;
-          const audioRef = useRef(null);
           
           useEffect(() => {
-            // Play drumroll audio
-            audioRef.current = new Audio('/drumroll.mp3');
-            audioRef.current.volume = 0.5;
-            audioRef.current.play().catch(err => {
-              // Ignore autoplay errors
-              console.log('Audio play failed:', err);
-            });
-            
             const timer1 = setTimeout(() => setPhase(1), 4000);
             return () => {
               clearTimeout(timer1);
-              // Stop and cleanup audio
-              if (audioRef.current) {
-                audioRef.current.pause();
-                audioRef.current.currentTime = 0;
-                audioRef.current = null;
-              }
             };
           }, []);
 
@@ -4790,26 +4820,11 @@ export default function MALWrapped() {
         const DrumrollContent = () => {
           const [phase, setPhase] = useState(0);
           const topItem = stats.topManga.length > 0 ? stats.topManga[0] : null;
-          const audioRef = useRef(null);
           
           useEffect(() => {
-            // Play drumroll audio
-            audioRef.current = new Audio('/drumroll.mp3');
-            audioRef.current.volume = 0.5;
-            audioRef.current.play().catch(err => {
-              // Ignore autoplay errors
-              console.log('Audio play failed:', err);
-            });
-            
             const timer1 = setTimeout(() => setPhase(1), 4000);
             return () => {
               clearTimeout(timer1);
-              // Stop and cleanup audio
-              if (audioRef.current) {
-                audioRef.current.pause();
-                audioRef.current.currentTime = 0;
-                audioRef.current = null;
-              }
             };
           }, []);
 
