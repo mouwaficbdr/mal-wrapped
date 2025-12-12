@@ -1957,10 +1957,9 @@ export default function MALWrapped() {
       const firstTheme = await fetchSingleAnimeTheme(malIds[0]);
       if (firstTheme) {
         setPlaylist([firstTheme]);
-        // Auto-play first track after a short delay
-        setTimeout(() => {
-          playTrack(0, [firstTheme]);
-        }, 1000);
+        // Don't auto-play - wait for user interaction (browser autoplay policy)
+        // User can click play button to start music
+        console.log('First theme loaded, ready to play');
       } else {
         // If first theme failed, try next one
         fetchNextTheme(1, malIds);
@@ -2199,7 +2198,7 @@ export default function MALWrapped() {
     }
     
     const track = tracksToUse[index];
-    if (!track.videoUrl) {
+    if (!track || !track.videoUrl) {
       console.error('No video URL for track:', track);
       return;
     }
@@ -2210,7 +2209,15 @@ export default function MALWrapped() {
       ? document.createElement('audio')
       : document.createElement('video');
     
-    mediaElement.src = track.videoUrl;
+    // Ensure URL is properly set
+    const audioUrl = track.videoUrl;
+    if (!audioUrl || audioUrl.trim() === '') {
+      console.error('Empty audio URL for track:', track);
+      return;
+    }
+    
+    console.log('Setting media src to:', audioUrl);
+    mediaElement.src = audioUrl;
     mediaElement.volume = 0.3; // 30% volume
     mediaElement.crossOrigin = 'anonymous';
     mediaElement.preload = 'auto';
@@ -2276,17 +2283,26 @@ export default function MALWrapped() {
     });
     
     const handleCanPlay = () => {
+      // Only try to play if user has interacted (autoplay policy)
+      // If autoplay fails, we'll wait for user to click play button
       mediaElement.play().then(() => {
         console.log('Playing:', track.animeName, isAudio ? '(audio)' : '(video)');
         setIsMusicPlaying(true);
       }).catch(err => {
-        console.error('Failed to play media:', err, track);
-        console.error('Error details:', err.message);
-        setIsMusicPlaying(false);
-        // Try next track if autoplay fails
-        const nextIndex = (index + 1) % tracksToUse.length;
-        if (nextIndex !== index) {
-          playTrack(nextIndex, tracksToUse);
+        // Autoplay was prevented - this is normal, user needs to interact first
+        if (err.name === 'NotAllowedError') {
+          console.log('Autoplay prevented - waiting for user interaction');
+          setIsMusicPlaying(false);
+          // Don't try next track - wait for user to click play
+        } else {
+          console.error('Failed to play media:', err, track);
+          console.error('Error details:', err.message);
+          setIsMusicPlaying(false);
+          // Try next track if it's a different error
+          const nextIndex = (index + 1) % tracksToUse.length;
+          if (nextIndex !== index) {
+            playTrack(nextIndex, tracksToUse);
+          }
         }
       });
     };
