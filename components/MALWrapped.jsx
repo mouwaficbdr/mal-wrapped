@@ -229,6 +229,8 @@ export default function MALWrapped() {
   const shareMenuRef = useRef(null);
   const slideRef = useRef(null);
   const audioRef = useRef(null);
+  const isSwitchingTrackRef = useRef(false);
+  const slide7ProcessedRef = useRef(false);
 
   const hasAnime = stats && stats.thisYearAnime && stats.thisYearAnime.length > 0;
   const hasManga = stats && mangaList && mangaList.length > 0;
@@ -2172,17 +2174,34 @@ export default function MALWrapped() {
     const tracksToUse = tracks || playlist;
     if (!tracksToUse || tracksToUse.length === 0 || index < 0 || index >= tracksToUse.length) return;
     
+    // Prevent concurrent calls
+    if (isSwitchingTrackRef.current) {
+      console.log('Already switching tracks, skipping...');
+      return;
+    }
+    isSwitchingTrackRef.current = true;
+    
     // Stop current audio/video if playing
     if (audioRef.current) {
+      try {
       audioRef.current.pause();
-      audioRef.current.src = '';
-      audioRef.current.load();
+        audioRef.current.removeEventListener('error', () => {});
+        audioRef.current.removeEventListener('ended', () => {});
+        audioRef.current.removeEventListener('canplay', () => {});
+        audioRef.current.removeEventListener('loadedmetadata', () => {});
+        if (audioRef.current.parentNode) {
+          audioRef.current.parentNode.removeChild(audioRef.current);
+        }
+      } catch (e) {
+        console.error('Error cleaning up old media element:', e);
+      }
       audioRef.current = null;
     }
     
     const track = tracksToUse[index];
     if (!track || !track.videoUrl) {
       console.error('No video URL for track:', track);
+      isSwitchingTrackRef.current = false;
       return;
     }
     
@@ -2196,10 +2215,12 @@ export default function MALWrapped() {
     const audioUrl = track.videoUrl;
     if (!audioUrl || audioUrl.trim() === '') {
       console.error('Empty audio URL for track:', track);
+      isSwitchingTrackRef.current = false;
       return;
     }
     
     console.log('Setting media src to:', audioUrl);
+    // Set src before appending to DOM to avoid empty src errors
     mediaElement.src = audioUrl;
     mediaElement.volume = 0.3; // 30% volume
     mediaElement.crossOrigin = 'anonymous';
@@ -2212,6 +2233,7 @@ export default function MALWrapped() {
     
     mediaElement.addEventListener('loadeddata', () => {
       console.log('Media loaded:', track.animeName, isAudio ? '(audio)' : '(video)');
+      isSwitchingTrackRef.current = false;
     });
     
     mediaElement.addEventListener('ended', () => {
@@ -2223,12 +2245,16 @@ export default function MALWrapped() {
     mediaElement.addEventListener('error', (e) => {
       console.error('Media playback error:', e, track);
       console.error('Media element error details:', mediaElement.error);
+      isSwitchingTrackRef.current = false;
       
       // Skip to next track on error (audio files only, no video fallback due to CORS)
       const nextIndex = (index + 1) % tracksToUse.length;
       if (nextIndex !== index) {
         console.log(`Skipping to next track due to playback error`);
+        // Use setTimeout to allow the ref to reset
+        setTimeout(() => {
         playTrack(nextIndex, tracksToUse);
+        }, 100);
       } else {
         console.log(`No more tracks available`);
         setIsMusicPlaying(false);
@@ -2241,20 +2267,26 @@ export default function MALWrapped() {
       mediaElement.play().then(() => {
         console.log('Playing:', track.animeName, isAudio ? '(audio)' : '(video)');
         setIsMusicPlaying(true);
+        isSwitchingTrackRef.current = false;
       }).catch(err => {
         // Autoplay was prevented - this is normal, user needs to interact first
         if (err.name === 'NotAllowedError') {
           console.log('Autoplay prevented - waiting for user interaction');
           setIsMusicPlaying(false);
+          isSwitchingTrackRef.current = false;
           // Don't try next track - wait for user to click play
         } else {
         console.error('Failed to play media:', err, track);
         console.error('Error details:', err.message);
         setIsMusicPlaying(false);
+        isSwitchingTrackRef.current = false;
           // Try next track if it's a different error
         const nextIndex = (index + 1) % tracksToUse.length;
         if (nextIndex !== index) {
+          // Use setTimeout to allow the ref to reset
+          setTimeout(() => {
           playTrack(nextIndex, tracksToUse);
+          }, 100);
           }
         }
       });
@@ -2307,10 +2339,14 @@ export default function MALWrapped() {
 
   // On slide 7 (index 6), skip to top 1 song (index 0)
   useEffect(() => {
-    if (currentSlide === 6 && playlist.length > 0 && audioRef.current && isMusicPlaying) {
+    if (currentSlide === 6 && playlist.length > 0 && audioRef.current && isMusicPlaying && !slide7ProcessedRef.current) {
       // Slide 7 (index 6) - skip to top 1 song
       console.log('Slide 7 reached - skipping to top 1 song');
+      slide7ProcessedRef.current = true;
       playTrack(0, playlist);
+    } else if (currentSlide !== 6) {
+      // Reset the flag when we're not on slide 7
+      slide7ProcessedRef.current = false;
     }
   }, [currentSlide, playlist, isMusicPlaying, playTrack]);
 
