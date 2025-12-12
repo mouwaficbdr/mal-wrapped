@@ -1914,35 +1914,13 @@ export default function MALWrapped() {
       
       if (selectedVideo && videoFilename) {
         // Only use audio files (video files have CORS restrictions)
-        // Try audio file only for the selected video (one HEAD request max per anime)
-        let audioUrl = null;
-        let confirmedFilename = videoFilename;
+        // Construct audio URL - we'll try it and let playback handle errors
+        const audioUrl = `https://api.animethemes.moe/audio/${videoFilename}.ogg`;
+        const confirmedFilename = videoFilename;
         
-        // Try audio file only for the selected video (to minimize API calls)
-        const testUrl = `https://api.animethemes.moe/audio/${videoFilename}.ogg`;
-        
-        try {
-          // Single HEAD request to check if audio exists (rate limit friendly)
-          const headResponse = await fetch(testUrl, { method: 'HEAD' });
-          if (headResponse.ok && headResponse.headers.get('content-length')) {
-            const contentLength = parseInt(headResponse.headers.get('content-length') || '0');
-            if (contentLength > 0) {
-              audioUrl = testUrl;
-              console.log(`Found audio file for ${animeName}: ${testUrl}`);
-            }
-          }
-        } catch (error) {
-          // If HEAD request fails, audio file likely doesn't exist
-          console.log(`Audio file not available for ${animeName}`);
-        }
-        
-        // Only return theme if we found an audio file (skip if none available due to CORS)
-        if (!audioUrl) {
-          console.log(`Skipping ${animeName} - no audio file available`);
-          return null;
-        }
-        
-        console.log(`Found theme for ${animeName}: ${audioUrl} (from ${confirmedFilename})`);
+        // Skip HEAD check to avoid rate limiting - just try the audio URL directly
+        // The browser will handle 404s gracefully during playback
+        console.log(`Found theme for ${animeName}: ${audioUrl}`);
         
         return {
           malId: parseInt(malId),
@@ -2173,35 +2151,11 @@ export default function MALWrapped() {
           
           if (selectedVideo && videoFilename) {
             // Only use audio files (video files have CORS restrictions)
-            // Try audio file only for the selected video (one HEAD request max per anime)
-            let audioUrl = null;
-            let confirmedFilename = videoFilename;
+            // Skip HEAD check to avoid rate limiting - just construct the URL
+            // The browser will handle 404s gracefully during playback
+            const audioUrl = `https://api.animethemes.moe/audio/${videoFilename}.ogg`;
             
-            // Try audio file only for the selected video (to minimize API calls)
-            const testUrl = `https://api.animethemes.moe/audio/${videoFilename}.ogg`;
-            
-            try {
-              // Single HEAD request to check if audio exists (rate limit friendly)
-              const headResponse = await fetch(testUrl, { method: 'HEAD' });
-              if (headResponse.ok && headResponse.headers.get('content-length')) {
-                const contentLength = parseInt(headResponse.headers.get('content-length') || '0');
-                if (contentLength > 0) {
-                  audioUrl = testUrl;
-                  console.log(`Found audio file for ${animeName}: ${testUrl}`);
-                }
-              }
-            } catch (error) {
-              // If HEAD request fails, audio file likely doesn't exist
-              console.log(`Audio file not available for ${animeName}`);
-            }
-            
-            // Only add theme if we found an audio file (skip if none available)
-            if (!audioUrl) {
-              console.log(`Skipping ${animeName} - no audio file available`);
-              continue; // Skip this anime
-            }
-            
-            console.log(`Adding theme for ${animeName}: ${audioUrl} (from ${confirmedFilename})`);
+            console.log(`Adding theme for ${animeName}: ${audioUrl}`);
             
             themes.push({
               malId: parseInt(malId),
@@ -2211,7 +2165,7 @@ export default function MALWrapped() {
               themeType: themeType,
               videoUrl: audioUrl,
               basename: videoBasename,
-              filename: confirmedFilename,
+              filename: videoFilename,
               isAudio: true // Always true since we only use audio files
             });
           }
