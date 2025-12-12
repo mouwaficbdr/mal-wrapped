@@ -2228,10 +2228,13 @@ export default function MALWrapped() {
             currentStep++;
             const progress = currentStep / fadeSteps;
             
+            // Clamp volume values between 0 and 1
             if (oldMediaElement) {
-              oldMediaElement.volume = targetVolume * (1 - progress);
+              const oldVolume = Math.max(0, Math.min(1, targetVolume * (1 - progress)));
+              oldMediaElement.volume = oldVolume;
             }
-            newMediaElement.volume = targetVolume * progress;
+            const newVolume = Math.max(0, Math.min(1, targetVolume * progress));
+            newMediaElement.volume = newVolume;
             
             if (currentStep >= fadeSteps) {
               clearInterval(fadeIntervalId);
@@ -2250,7 +2253,7 @@ export default function MALWrapped() {
               
               newMediaElement.volume = targetVolume;
               audioRef.current = newMediaElement;
-              setCurrentTrackIndex(index);
+    setCurrentTrackIndex(index);
               setIsMusicPlaying(true);
               isSwitchingTrackRef.current = false;
               console.log('Crossfade complete');
@@ -2323,7 +2326,7 @@ export default function MALWrapped() {
       const nextIndex = (index + 1) % tracksToUse.length;
       if (nextIndex !== index) {
         setTimeout(() => {
-          playTrack(nextIndex, tracksToUse);
+        playTrack(nextIndex, tracksToUse);
         }, 100);
       } else {
         console.log(`No more tracks available`);
@@ -2403,23 +2406,22 @@ export default function MALWrapped() {
   useEffect(() => {
     if (!audioRef.current || !stats || !slides || slides.length === 0 || !playlist || playlist.length === 0 || currentSlide === 0) return;
     
-    // Track mapping: 1-5 (5th), 5-10 (1st), 11-15 (4th), 15-20 (2nd), 21-25 (3rd)
+    // Track mapping: 1-5 (5th), 6-10 (1st), 11-15 (4th), 16-20 (2nd), 21-25 (3rd)
     // Note: slide 0 is welcome, so we use currentSlide + 1 for mapping
-    // Overlaps: slide 5 uses 1st (per "5-10"), slide 15 uses 2nd (per "15-20")
     const slideNumber = currentSlide + 1;
     let targetTrackIndex = null;
     
-    if (slideNumber >= 1 && slideNumber < 5) {
-      // 5th anime (index 4 in playlist) - slides 1-4
+    if (slideNumber >= 1 && slideNumber <= 5) {
+      // 5th anime (index 4 in playlist) - slides 1-5
       targetTrackIndex = Math.min(4, playlist.length - 1);
-    } else if (slideNumber >= 5 && slideNumber <= 10) {
-      // 1st anime (index 0 in playlist) - slides 5-10
+    } else if (slideNumber >= 6 && slideNumber <= 10) {
+      // 1st anime (index 0 in playlist) - slides 6-10
       targetTrackIndex = 0;
-    } else if (slideNumber >= 11 && slideNumber < 15) {
-      // 4th anime (index 3 in playlist) - slides 11-14
+    } else if (slideNumber >= 11 && slideNumber <= 15) {
+      // 4th anime (index 3 in playlist) - slides 11-15
       targetTrackIndex = Math.min(3, playlist.length - 1);
-    } else if (slideNumber >= 15 && slideNumber <= 20) {
-      // 2nd anime (index 1 in playlist) - slides 15-20
+    } else if (slideNumber >= 16 && slideNumber <= 20) {
+      // 2nd anime (index 1 in playlist) - slides 16-20
       targetTrackIndex = Math.min(1, playlist.length - 1);
     } else if (slideNumber >= 21 && slideNumber <= 25) {
       // 3rd anime (index 2 in playlist) - slides 21-25
@@ -3642,8 +3644,11 @@ export default function MALWrapped() {
                   <motion.div {...fadeIn} data-framer-motion className="mt-8 flex flex-col items-center gap-4">
                     <div className="relative min-w-[120px] sm:min-w-[140px]">
                       <select
+                        id="year-selector"
+                        name="year-selector"
                         value={selectedYear}
                         onChange={(e) => {
+                          e.preventDefault();
                           const newYear = e.target.value === 'all' ? 'all' : parseInt(e.target.value);
                           setSelectedYear(newYear);
                           // Recalculate stats with new year
