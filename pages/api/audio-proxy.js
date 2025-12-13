@@ -1,4 +1,12 @@
 export default async function handler(req, res) {
+  // Handle preflight requests for CORS
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Range');
+    return res.status(200).end();
+  }
+
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -46,14 +54,39 @@ export default async function handler(req, res) {
 
     // Set CORS headers to allow client-side access
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Range');
+    res.setHeader('Accept-Ranges', 'bytes');
     res.setHeader('Content-Type', contentType);
     if (contentLength) {
       res.setHeader('Content-Length', contentLength);
     }
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
 
-    // Stream the audio file to the client
+    // Handle range requests for mobile streaming
+    const range = req.headers.range;
+    if (range && contentLength) {
+      const parts = range.replace(/bytes=/, "").split("-");
+      const start = parseInt(parts[0], 10);
+      const end = parts[1] ? parseInt(parts[1], 10) : parseInt(contentLength, 10) - 1;
+      const chunksize = (end - start) + 1;
+      
+      res.setHeader('Content-Range', `bytes ${start}-${end}/${contentLength}`);
+      res.setHeader('Content-Length', chunksize);
+      res.status(206); // Partial Content
+      
+      // Fetch only the requested range
+      const rangeResponse = await fetch(audioUrl, {
+        headers: { Range: `bytes=${start}-${end}` }
+      });
+      
+      if (rangeResponse.ok) {
+        const buffer = await rangeResponse.arrayBuffer();
+        return res.send(Buffer.from(buffer));
+      }
+    }
+
+    // Stream the audio file to the client (full file for non-range requests)
     const audioBuffer = await audioResponse.arrayBuffer();
     res.status(200).send(Buffer.from(audioBuffer));
   } catch (error) {

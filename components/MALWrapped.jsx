@@ -1987,6 +1987,8 @@ export default function MALWrapped() {
     newMediaElement.volume = 0; // Start at 0 for crossfade
     newMediaElement.crossOrigin = 'anonymous';
     newMediaElement.preload = 'auto';
+    newMediaElement.playsInline = true; // Required for iOS mobile browsers
+    newMediaElement.setAttribute('playsinline', 'true'); // Fallback for older iOS
     newMediaElement.style.display = 'none';
     document.body.appendChild(newMediaElement);
     
@@ -2074,8 +2076,28 @@ export default function MALWrapped() {
       }
     };
     
-    newMediaElement.addEventListener('canplay', handleCanPlay, { once: true });
-    newMediaElement.addEventListener('loadedmetadata', handleCanPlay, { once: true });
+    // Use multiple events for better mobile compatibility
+    let hasStarted = false;
+    let timeoutId = null;
+    
+    const handleReady = () => {
+      if (hasStarted) return;
+      hasStarted = true;
+      if (timeoutId) clearTimeout(timeoutId);
+      handleCanPlay();
+    };
+    
+    newMediaElement.addEventListener('canplay', handleReady, { once: true });
+    newMediaElement.addEventListener('canplaythrough', handleReady, { once: true });
+    newMediaElement.addEventListener('loadeddata', handleReady, { once: true });
+    newMediaElement.addEventListener('loadedmetadata', handleReady, { once: true });
+    
+    // Fallback timeout for mobile devices that may not fire events properly
+    timeoutId = setTimeout(() => {
+      if (!hasStarted && newMediaElement.readyState >= 2) { // HAVE_CURRENT_DATA or higher
+        handleReady();
+      }
+    }, 3000);
     
     newMediaElement.addEventListener('ended', () => {
       // Play next track in sequence (5th→4th→3rd→2nd→1st, backwards)
@@ -2170,7 +2192,12 @@ export default function MALWrapped() {
       // Start with 5th anime (index 4) - will play freely 4→3→2→1→0
       const initialTrackIndex = Math.min(4, playlist.length - 1);
       setCurrentTrackIndex(initialTrackIndex);
-      playTrack(initialTrackIndex, playlist);
+      
+      // Use requestAnimationFrame to ensure DOM is ready for mobile
+      requestAnimationFrame(() => {
+        playTrack(initialTrackIndex, playlist);
+      });
+      
       setShouldStartMusic(false);
     }
   }, [shouldStartMusic, playlist, currentSlide, playTrack]);
