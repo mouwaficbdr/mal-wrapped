@@ -397,8 +397,8 @@ export default function MALWrapped() {
   }
 
   async function fetchAnimeList(accessToken) {
-    setLoadingProgress('Loading anime');
-    setLoadingProgressPercent(20);
+    setLoadingProgress('Loading your anime list...');
+    setLoadingProgressPercent(25);
     try {
       let allAnime = [];
       let offset = 0;
@@ -415,16 +415,17 @@ export default function MALWrapped() {
         if (!data.data || data.data.length === 0) break;
         
         allAnime = [...allAnime, ...data.data];
+        setLoadingProgress(`Loaded ${allAnime.length} anime...`);
         
-        // Update progress: 20% to 40% for anime loading
+        // Update progress: 25% to 60% for anime loading
         if (data.paging?.next) {
           // Estimate progress based on items loaded (assume roughly similar batch sizes)
           // Use a logarithmic scale to slow down as we approach the end
           const estimatedProgress = Math.min(0.95, 1 - Math.pow(0.9, allAnime.length / 100));
-          const animeProgress = 20 + (20 * estimatedProgress);
-          setLoadingProgressPercent(Math.min(animeProgress, 40));
+          const animeProgress = 25 + (35 * estimatedProgress);
+          setLoadingProgressPercent(Math.min(animeProgress, 60));
         } else {
-          setLoadingProgressPercent(40);
+          setLoadingProgressPercent(60);
         }
         
         if (!data.paging?.next) break;
@@ -443,8 +444,8 @@ export default function MALWrapped() {
   }
 
   async function fetchMangaList(accessToken, animeData = []) {
-    setLoadingProgress('Loading manga');
-    setLoadingProgressPercent(40);
+    setLoadingProgress('Loading your manga list...');
+    setLoadingProgressPercent(65);
     try {
       let allManga = [];
       let offset = 0;
@@ -460,29 +461,32 @@ export default function MALWrapped() {
         
         if (!data.data || data.data.length === 0) break;
         allManga = [...allManga, ...data.data];
+        setLoadingProgress(`Loaded ${allManga.length} manga...`);
         
-        // Update progress: 40% to 60% for manga loading
+        // Update progress: 65% to 95% for manga loading
         if (data.paging?.next) {
           // Estimate progress based on items loaded (assume roughly similar batch sizes)
           // Use a logarithmic scale to slow down as we approach the end
           const estimatedProgress = Math.min(0.95, 1 - Math.pow(0.9, allManga.length / 100));
-          const mangaProgress = 40 + (20 * estimatedProgress);
-          setLoadingProgressPercent(Math.min(mangaProgress, 60));
+          const mangaProgress = 65 + (30 * estimatedProgress);
+          setLoadingProgressPercent(Math.min(mangaProgress, 95));
         } else {
-          setLoadingProgressPercent(60);
+          setLoadingProgressPercent(95);
         }
         
         if (!data.paging?.next) break;
         offset += limit;
       }
       
+      setLoadingProgress('Processing genres, characters, authors...');
+      // Ensure progress only increases, never decreases (manga loading might have reached 95%)
+      setLoadingProgressPercent(prev => Math.max(prev, 80));
+
       setMangaList(allManga);
-      
       // Recalculate stats with both anime and manga
       // Use the passed animeData or fall back to state (shouldn't be needed)
       const animeToUse = animeData.length > 0 ? animeData : animeList;
       // Recalculate with current year selection
-      // Loading messages for genres, authors, and characters will be set inside calculateStats
       calculateStats(animeToUse, allManga);
       
       // Stats calculation is done, but songs will be loaded separately
@@ -542,8 +546,6 @@ export default function MALWrapped() {
     });
     
     // Calculate genres (from filtered anime)
-    setLoadingProgress('Loading genres');
-    setLoadingProgressPercent(60);
     const genreCounts = {};
     thisYearAnime.forEach(item => {
       item.node?.genres?.forEach(genre => {
@@ -850,8 +852,6 @@ export default function MALWrapped() {
     const mangaDays = Math.floor(mangaHours / 24);
 
     // Manga authors (from filtered manga)
-    setLoadingProgress('Loading authors');
-    setLoadingProgressPercent(65);
     // Normalize author names to avoid duplicates from spacing/case variations
     const normalizeAuthorName = (first, last) => {
       return `${(first || '').trim()} ${(last || '').trim()}`.trim().replace(/\s+/g, ' ');
@@ -1481,8 +1481,6 @@ export default function MALWrapped() {
       bestMatch = availableCharacterDatabase[0];
     }
     
-    setLoadingProgress('Loading characters');
-    setLoadingProgressPercent(70);
     let characterTwin = null;
     if (bestMatch) {
       const matchedGenres = userTopGenres.length > 0 
@@ -1962,8 +1960,9 @@ export default function MALWrapped() {
       setPendingMalIds(malIds);
       
       // Update loading progress to show we're fetching songs
-      setLoadingProgress('Loading songs');
-      setLoadingProgressPercent(75);
+      setLoadingProgress('Loading your top songs...');
+      // Ensure progress only increases, never decreases
+      setLoadingProgressPercent(prev => Math.max(prev, 85));
       
       // Fetch all themes with delays to avoid rate limiting (500ms between requests)
       const themes = [];
@@ -1977,11 +1976,6 @@ export default function MALWrapped() {
           setLoadingProgress('');
           return;
         }
-        
-        // Update progress gradually
-        const progressBase = 75;
-        const progressStep = 25 / malIds.length; // 25% for songs (75% to 100%)
-        setLoadingProgressPercent(Math.min(progressBase + (progressStep * (i + 1)), 100));
         
         if (i > 0) {
           // Add delay between requests to prevent rate limiting
@@ -2001,7 +1995,9 @@ export default function MALWrapped() {
         setPlaylistYear(year);
         // Start with 5th anime song (index 4) - will play 4→3→2→1→0 freely
         setCurrentTrackIndex(Math.min(4, themes.length - 1));
-        setLoadingProgressPercent(100);
+        setLoadingProgress('Complete!');
+        // Ensure progress only increases, never decreases
+        setLoadingProgressPercent(prev => Math.max(prev, 100));
       } else if (year !== selectedYear) {
         devLog(`Year changed after fetch from ${year} to ${selectedYear}, discarding results`);
       }
