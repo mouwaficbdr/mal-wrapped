@@ -65,17 +65,6 @@ const fadeIn300 = {
   transition: { duration: 0.4, ease: smoothEase }
 };
 
-const pulse = {
-  animate: {
-    opacity: [1, 0.5, 1],
-    transition: {
-      duration: 2,
-      repeat: Infinity,
-      ease: smoothEase
-    }
-  }
-};
-
 const float = {
   animate: {
     y: [0, -20, 0],
@@ -226,13 +215,14 @@ export default function MALWrapped() {
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [playlist, setPlaylist] = useState([]);
   const [pendingMalIds, setPendingMalIds] = useState([]);
-  const [currentMalIdIndex, setCurrentMalIdIndex] = useState(0);
   const shareMenuRef = useRef(null);
   const slideRef = useRef(null);
   const audioRef = useRef(null);
   const isSwitchingTrackRef = useRef(false);
-  const slide7ProcessedRef = useRef(false);
   const lastForcedSlideRef = useRef(null);
+  
+  // Dev-only logger
+  const devError = process.env.NODE_ENV === 'development' ? console.error : () => {};
 
   const hasAnime = stats && stats.thisYearAnime && stats.thisYearAnime.length > 0;
   const hasManga = stats && mangaList && mangaList.length > 0;
@@ -1801,7 +1791,7 @@ export default function MALWrapped() {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`Failed to fetch themes for MAL ID ${malId}: ${response.status} ${response.statusText}`);
+        devError(`Failed to fetch themes for MAL ID ${malId}: ${response.status} ${response.statusText}`);
         return null;
       }
 
@@ -1809,7 +1799,6 @@ export default function MALWrapped() {
       
       // The API returns { anime: [...] }
       if (!data.anime || !Array.isArray(data.anime) || data.anime.length === 0) {
-        console.log(`No anime found for MAL ID ${malId}`);
         return null;
       }
 
@@ -1825,7 +1814,6 @@ export default function MALWrapped() {
       });
       
       if (opThemes.length === 0) {
-        console.log(`No OP themes found for ${animeName}`);
         return null;
       }
 
@@ -1919,8 +1907,6 @@ export default function MALWrapped() {
         // The proxy fetches the audio server-side and streams it to the client
         const audioUrl = `/api/audio-proxy?filename=${encodeURIComponent(videoFilename + '.ogg')}`;
         
-        console.log(`Using proxied audio URL for ${animeName}: ${audioUrl}`);
-        
         return {
           malId: parseInt(malId),
           animeName: animeName,
@@ -1936,7 +1922,7 @@ export default function MALWrapped() {
       
       return null;
     } catch (error) {
-      console.error(`Error fetching theme for MAL ID ${malId}:`, error);
+      devError(`Error fetching theme for MAL ID ${malId}:`, error);
       return null;
     }
   }
@@ -1969,12 +1955,11 @@ export default function MALWrapped() {
       
       if (themes.length > 0) {
         setPlaylist(themes);
-        console.log(`Fetched ${themes.length} themes, starting with 5th anime (index 4)`);
         // Start with 5th anime song (index 4) - will play 4→3→2→1→0 freely
         setCurrentTrackIndex(Math.min(4, themes.length - 1));
       }
     } catch (error) {
-      console.error('Error fetching anime themes:', error);
+      devError('Error fetching anime themes:', error);
     }
   }
 
@@ -1985,14 +1970,12 @@ export default function MALWrapped() {
     
     // Prevent concurrent calls
     if (isSwitchingTrackRef.current) {
-      console.log('Already switching tracks, skipping...');
       return;
     }
     isSwitchingTrackRef.current = true;
     
     const track = tracksToUse[index];
     if (!track || !track.videoUrl) {
-      console.error('No video URL for track:', track);
       isSwitchingTrackRef.current = false;
       return;
     }
@@ -2006,12 +1989,9 @@ export default function MALWrapped() {
     // Ensure URL is properly set
     const audioUrl = track.videoUrl;
     if (!audioUrl || audioUrl.trim() === '') {
-      console.error('Empty audio URL for track:', track);
       isSwitchingTrackRef.current = false;
       return;
     }
-    
-    console.log('Setting media src to:', audioUrl);
     newMediaElement.src = audioUrl;
     newMediaElement.volume = 0; // Start at 0 for crossfade
     newMediaElement.crossOrigin = 'anonymous';
@@ -2031,8 +2011,6 @@ export default function MALWrapped() {
       if (oldMediaElement && !oldMediaElement.paused && oldMediaElement.currentTime > 0) {
         // Crossfade: fade out old, fade in new
         newMediaElement.play().then(() => {
-          console.log('Starting crossfade to:', track.animeName);
-          
           const fadeIntervalId = setInterval(() => {
             currentStep++;
             const progress = currentStep / fadeSteps;
@@ -2056,28 +2034,25 @@ export default function MALWrapped() {
                     oldMediaElement.parentNode.removeChild(oldMediaElement);
                   }
                 } catch (e) {
-                  console.error('Error cleaning up old media element:', e);
+                  devError('Error cleaning up old media element:', e);
                 }
               }
               
               newMediaElement.volume = targetVolume;
               audioRef.current = newMediaElement;
-    setCurrentTrackIndex(index);
+              setCurrentTrackIndex(index);
               setIsMusicPlaying(true);
               isSwitchingTrackRef.current = false;
-              console.log('Crossfade complete');
             }
           }, fadeInterval);
         }).catch(err => {
-          console.error('Failed to start crossfade:', err);
+          devError('Failed to start crossfade:', err);
           isSwitchingTrackRef.current = false;
         });
       } else {
         // No old track, just start playing
         newMediaElement.volume = targetVolume;
         newMediaElement.play().then(() => {
-          console.log('Playing:', track.animeName, isAudio ? '(audio)' : '(video)');
-          
           // Clean up old element if it exists
           if (oldMediaElement) {
             try {
@@ -2086,7 +2061,7 @@ export default function MALWrapped() {
                 oldMediaElement.parentNode.removeChild(oldMediaElement);
               }
             } catch (e) {
-              console.error('Error cleaning up old media element:', e);
+              devError('Error cleaning up old media element:', e);
             }
           }
           
@@ -2096,11 +2071,11 @@ export default function MALWrapped() {
           isSwitchingTrackRef.current = false;
         }).catch(err => {
           if (err.name === 'NotAllowedError') {
-            console.log('Autoplay prevented - waiting for user interaction');
+            // Autoplay prevented - waiting for user interaction
             setIsMusicPlaying(false);
             isSwitchingTrackRef.current = false;
           } else {
-            console.error('Failed to play media:', err, track);
+            devError('Failed to play media:', err, track);
             setIsMusicPlaying(false);
             isSwitchingTrackRef.current = false;
           }
@@ -2119,14 +2094,12 @@ export default function MALWrapped() {
         playTrack(nextIndex, tracksToUse);
       } else {
         // Reached the end (index 0), stop playback
-        console.log('Reached end of playlist');
         setIsMusicPlaying(false);
       }
     });
     
     newMediaElement.addEventListener('error', (e) => {
-      console.error('Media playback error:', e, track);
-      console.error('Media element error details:', newMediaElement.error);
+      devError('Media playback error:', e, track);
       isSwitchingTrackRef.current = false;
       
       // Clean up
@@ -2134,18 +2107,17 @@ export default function MALWrapped() {
         if (newMediaElement.parentNode) {
           newMediaElement.parentNode.removeChild(newMediaElement);
         }
-      } catch (e) {
-        console.error('Error cleaning up error media element:', e);
+      } catch (cleanupErr) {
+        devError('Error cleaning up error media element:', cleanupErr);
       }
       
       // Skip to next track on error
-        const nextIndex = (index + 1) % tracksToUse.length;
-        if (nextIndex !== index) {
+      const nextIndex = (index + 1) % tracksToUse.length;
+      if (nextIndex !== index) {
         setTimeout(() => {
           playTrack(nextIndex, tracksToUse);
         }, 100);
       } else {
-        console.log(`No more tracks available`);
         setIsMusicPlaying(false);
       }
     });
@@ -2158,10 +2130,7 @@ export default function MALWrapped() {
   const toggleMusic = useCallback(() => {
     if (!audioRef.current) {
       if (playlist.length > 0) {
-        console.log('Starting playlist from track', currentTrackIndex);
         playTrack(currentTrackIndex, playlist);
-      } else {
-        console.warn('No playlist available');
       }
       return;
     }
@@ -2169,13 +2138,11 @@ export default function MALWrapped() {
     if (isMusicPlaying) {
       audioRef.current.pause();
       setIsMusicPlaying(false);
-      console.log('Music paused');
     } else {
       audioRef.current.play().then(() => {
         setIsMusicPlaying(true);
-        console.log('Music resumed');
       }).catch(err => {
-        console.error('Failed to resume video:', err);
+        devError('Failed to resume video:', err);
         // Try to restart from current track
         if (playlist.length > 0) {
           playTrack(currentTrackIndex, playlist);
@@ -2194,18 +2161,15 @@ export default function MALWrapped() {
             audioRef.current.parentNode.removeChild(audioRef.current);
           }
         } catch (e) {
-          console.error('Error removing audio element:', e);
+          devError('Error removing audio element:', e);
         }
         audioRef.current = null;
       }
       setIsMusicPlaying(false);
       setPlaylist([]);
       setPendingMalIds([]);
-      setCurrentMalIdIndex(0);
       setCurrentTrackIndex(0);
       isSwitchingTrackRef.current = false;
-      slide7ProcessedRef.current = false;
-      console.log('Welcome slide - music stopped and playlist cleared');
     }
   }, [currentSlide]);
 
@@ -2224,7 +2188,6 @@ export default function MALWrapped() {
   useEffect(() => {
     const topRatedLength = stats?.topRated?.length || 0;
     if (topRatedLength > 0 && playlist.length === 0 && pendingMalIds.length === 0) {
-      console.log('Fetching themes');
       fetchAnimeThemes(stats.topRated);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -2261,7 +2224,6 @@ export default function MALWrapped() {
     // Only change track if we have a forced change and we're not already playing it
     if (shouldForceChange && targetTrackIndex !== null && targetTrackIndex < playlist.length && 
         currentTrackIndex !== targetTrackIndex && audioRef.current) {
-      console.log(`Forcing track change from ${currentTrackIndex} to ${targetTrackIndex} for slide ${slideNumber}`);
       if (isMusicPlaying) {
         playTrack(targetTrackIndex, playlist);
       } else {
@@ -3496,7 +3458,6 @@ export default function MALWrapped() {
                           // Clear playlist and pending MAL IDs to trigger refetch
                           setPlaylist([]);
                           setPendingMalIds([]);
-                          setCurrentMalIdIndex(0);
                           setCurrentTrackIndex(0);
                           setIsMusicPlaying(false);
                           // Stop current audio if playing
@@ -3507,7 +3468,7 @@ export default function MALWrapped() {
                                 audioRef.current.parentNode.removeChild(audioRef.current);
                               }
                             } catch (e) {
-                              console.error('Error removing audio element:', e);
+                              devError('Error removing audio element:', e);
                             }
                             audioRef.current = null;
                           }
