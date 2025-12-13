@@ -247,6 +247,7 @@ export default function MALWrapped() {
   const [playlist, setPlaylist] = useState([]);
   const [playlistYear, setPlaylistYear] = useState(null); // Track which year the playlist belongs to
   const [pendingMalIds, setPendingMalIds] = useState([]);
+  const [isLoadingSongs, setIsLoadingSongs] = useState(false);
   const shareMenuRef = useRef(null);
   const slideRef = useRef(null);
   const audioRef = useRef(null);
@@ -1928,6 +1929,7 @@ export default function MALWrapped() {
     }
     
     isFetchingThemesRef.current = true;
+    setIsLoadingSongs(true);
     
     try {
       const malIds = topRatedAnime
@@ -1937,6 +1939,7 @@ export default function MALWrapped() {
       
       if (malIds.length === 0) {
         isFetchingThemesRef.current = false;
+        setIsLoadingSongs(false);
         return;
       }
       
@@ -1955,6 +1958,9 @@ export default function MALWrapped() {
         if (theme) {
           themes.push(theme);
         }
+        
+        // Update pending IDs to show progress (remove fetched ones)
+        setPendingMalIds(prev => prev.filter(id => id !== malIds[i]));
       }
       
       // Only set playlist if we still have the same year (prevent race conditions)
@@ -1972,6 +1978,7 @@ export default function MALWrapped() {
       setPendingMalIds([]);
     } finally {
       isFetchingThemesRef.current = false;
+      setIsLoadingSongs(false);
     }
   }
 
@@ -2244,6 +2251,7 @@ export default function MALWrapped() {
       setPendingMalIds([]);
       setCurrentTrackIndex(0);
       setIsMusicPlaying(false);
+      setIsLoadingSongs(false); // Don't show loading on initial mount
       isFetchingThemesRef.current = false;
       if (audioRef.current) {
         audioRef.current.pause();
@@ -2287,21 +2295,18 @@ export default function MALWrapped() {
     
     // Only fetch if playlist is empty or if it's for a different year
     if (playlist.length > 0 && playlistYear === selectedYear) {
+      setIsLoadingSongs(false); // Make sure loading is off if we have songs
       return; // Already have songs for this year
     }
     
     const topRatedLength = stats?.topRated?.length || 0;
-    if (topRatedLength > 0 && pendingMalIds.length === 0) {
+    if (topRatedLength > 0 && pendingMalIds.length === 0 && !isLoadingSongs) {
       devLog(`Fetching themes for welcome page (year: ${selectedYear})`);
-      // Use setTimeout to defer the fetch and prevent blocking render
-      const timeoutId = setTimeout(() => {
-        fetchAnimeThemes(stats.topRated, selectedYear);
-      }, 0);
-      
-      return () => clearTimeout(timeoutId);
+      // Start fetch immediately
+      fetchAnimeThemes(stats.topRated, selectedYear);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentSlide, stats?.topRated?.length, selectedYear, playlist.length, playlistYear]);
+  }, [currentSlide, stats?.topRated, selectedYear, playlist.length, playlistYear]);
 
 
   // Change tracks based on slide numbers
@@ -3510,6 +3515,42 @@ export default function MALWrapped() {
 
     switch (slide.id) {
       case 'welcome':
+        // Show loading screen while fetching songs
+        if (isLoadingSongs || (isFetchingThemesRef.current && playlist.length === 0)) {
+          return (
+            <SlideLayout bgColor="pink">
+              <div className="text-center relative w-full h-full flex flex-col items-center justify-center">
+                <motion.div 
+                  {...fadeIn} 
+                  data-framer-motion 
+                  className="flex flex-col items-center justify-center gap-4"
+                >
+                  <div className="relative w-16 h-16">
+                    <div className="absolute inset-0 border-4 border-white/20 rounded-full"></div>
+                    <motion.div
+                      className="absolute inset-0 border-4 border-white border-t-transparent rounded-full"
+                      animate={{ rotate: 360 }}
+                      transition={{
+                        duration: 1,
+                        repeat: Infinity,
+                        ease: "linear"
+                      }}
+                    />
+                  </div>
+                  <p className="body-md font-regular text-white/70 text-center">
+                    Loading your top songs...
+                  </p>
+                  {pendingMalIds.length > 0 && (
+                    <p className="body-sm font-regular text-white/50 text-center">
+                      {pendingMalIds.length} song{pendingMalIds.length > 1 ? 's' : ''} remaining
+                    </p>
+                  )}
+                </motion.div>
+              </div>
+            </SlideLayout>
+          );
+        }
+        
         return (
           <SlideLayout bgColor="pink">
             <div className="text-center relative w-full h-full flex flex-col items-center justify-center">
@@ -3602,6 +3643,7 @@ export default function MALWrapped() {
                           setPendingMalIds([]);
                           setCurrentTrackIndex(0);
                           setIsMusicPlaying(false);
+                          setIsLoadingSongs(true); // Show loading when year changes
                           isSwitchingTrackRef.current = false;
                           isFetchingThemesRef.current = false; // Reset fetching flag
                           
