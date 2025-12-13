@@ -1804,29 +1804,12 @@ export default function MALWrapped() {
       url.searchParams.append('filter[external_id]', malId.toString());
       url.searchParams.append('include', 'animethemes.animethemeentries.videos');
 
-      // Add timeout for mobile devices (30 seconds)
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
-
-      let response;
-      try {
-        response = await fetch(url.toString(), {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-          },
-          signal: controller.signal,
-        });
-        clearTimeout(timeoutId);
-      } catch (fetchError) {
-        clearTimeout(timeoutId);
-        if (fetchError.name === 'AbortError') {
-          devError(`Timeout fetching themes for MAL ID ${malId} (30s timeout)`);
-        } else {
-          devError(`Network error fetching themes for MAL ID ${malId}:`, fetchError);
-        }
-        return null;
-      }
+      const response = await fetch(url.toString(), {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -1943,44 +1926,31 @@ export default function MALWrapped() {
         .map(item => item.node?.id)
         .filter(id => id != null);
       
-      if (malIds.length === 0) {
-        setPendingMalIds([]);
-        return;
-      }
+      if (malIds.length === 0) return;
       
       // Store MAL IDs
       setPendingMalIds(malIds);
       
       // Fetch all themes together with delays to avoid rate limiting
       const themes = [];
-      try {
-        for (let i = 0; i < malIds.length; i++) {
-          if (i > 0) {
-            // Add delay between requests
-            await new Promise(resolve => setTimeout(resolve, 300));
-          }
-          const theme = await fetchSingleAnimeTheme(malIds[i]);
-          if (theme) {
-            themes.push(theme);
-          }
+      for (let i = 0; i < malIds.length; i++) {
+        if (i > 0) {
+          // Add delay between requests
+          await new Promise(resolve => setTimeout(resolve, 300));
         }
-        
-        if (themes.length > 0) {
-          setPlaylist(themes);
-          // Start with 5th anime song (index 4) - will play 4→3→2→1→0 freely
-          setCurrentTrackIndex(Math.min(4, themes.length - 1));
-          devLog(`Successfully loaded ${themes.length} themes into playlist`);
-        } else {
-          devWarn('No themes were successfully fetched');
+        const theme = await fetchSingleAnimeTheme(malIds[i]);
+        if (theme) {
+          themes.push(theme);
         }
-      } finally {
-        // Always clear pending IDs after fetching completes
-        setPendingMalIds([]);
+      }
+      
+      if (themes.length > 0) {
+        setPlaylist(themes);
+        // Start with 5th anime song (index 4) - will play 4→3→2→1→0 freely
+        setCurrentTrackIndex(Math.min(4, themes.length - 1));
       }
     } catch (error) {
       devError('Error fetching anime themes:', error);
-      // Clear pending IDs on error
-      setPendingMalIds([]);
     }
   }
 
@@ -2017,8 +1987,6 @@ export default function MALWrapped() {
     newMediaElement.volume = 0; // Start at 0 for crossfade
     newMediaElement.crossOrigin = 'anonymous';
     newMediaElement.preload = 'auto';
-    newMediaElement.playsInline = true; // Required for iOS mobile browsers
-    newMediaElement.setAttribute('playsinline', 'true'); // Fallback for older iOS
     newMediaElement.style.display = 'none';
     document.body.appendChild(newMediaElement);
     
@@ -2106,28 +2074,8 @@ export default function MALWrapped() {
       }
     };
     
-    // Use multiple events for better mobile compatibility
-    let hasStarted = false;
-    let timeoutId = null;
-    
-    const handleReady = () => {
-      if (hasStarted) return;
-      hasStarted = true;
-      if (timeoutId) clearTimeout(timeoutId);
-      handleCanPlay();
-    };
-    
-    newMediaElement.addEventListener('canplay', handleReady, { once: true });
-    newMediaElement.addEventListener('canplaythrough', handleReady, { once: true });
-    newMediaElement.addEventListener('loadeddata', handleReady, { once: true });
-    newMediaElement.addEventListener('loadedmetadata', handleReady, { once: true });
-    
-    // Fallback timeout for mobile devices that may not fire events properly
-    timeoutId = setTimeout(() => {
-      if (!hasStarted && newMediaElement.readyState >= 2) { // HAVE_CURRENT_DATA or higher
-        handleReady();
-      }
-    }, 3000);
+    newMediaElement.addEventListener('canplay', handleCanPlay, { once: true });
+    newMediaElement.addEventListener('loadedmetadata', handleCanPlay, { once: true });
     
     newMediaElement.addEventListener('ended', () => {
       // Play next track in sequence (5th→4th→3rd→2nd→1st, backwards)
@@ -2222,12 +2170,7 @@ export default function MALWrapped() {
       // Start with 5th anime (index 4) - will play freely 4→3→2→1→0
       const initialTrackIndex = Math.min(4, playlist.length - 1);
       setCurrentTrackIndex(initialTrackIndex);
-      
-      // Use requestAnimationFrame to ensure DOM is ready for mobile
-      requestAnimationFrame(() => {
-        playTrack(initialTrackIndex, playlist);
-      });
-      
+      playTrack(initialTrackIndex, playlist);
       setShouldStartMusic(false);
     }
   }, [shouldStartMusic, playlist, currentSlide, playTrack]);
