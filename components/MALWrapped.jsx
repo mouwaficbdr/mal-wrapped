@@ -1804,12 +1804,29 @@ export default function MALWrapped() {
       url.searchParams.append('filter[external_id]', malId.toString());
       url.searchParams.append('include', 'animethemes.animethemeentries.videos');
 
-      const response = await fetch(url.toString(), {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-        },
-      });
+      // Add timeout for mobile devices (30 seconds)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+      let response;
+      try {
+        response = await fetch(url.toString(), {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+          },
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        if (fetchError.name === 'AbortError') {
+          devError(`Timeout fetching themes for MAL ID ${malId} (30s timeout)`);
+        } else {
+          devError(`Network error fetching themes for MAL ID ${malId}:`, fetchError);
+        }
+        return null;
+      }
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -1926,31 +1943,44 @@ export default function MALWrapped() {
         .map(item => item.node?.id)
         .filter(id => id != null);
       
-      if (malIds.length === 0) return;
+      if (malIds.length === 0) {
+        setPendingMalIds([]);
+        return;
+      }
       
       // Store MAL IDs
       setPendingMalIds(malIds);
       
       // Fetch all themes together with delays to avoid rate limiting
       const themes = [];
-      for (let i = 0; i < malIds.length; i++) {
-        if (i > 0) {
-          // Add delay between requests
-          await new Promise(resolve => setTimeout(resolve, 300));
+      try {
+        for (let i = 0; i < malIds.length; i++) {
+          if (i > 0) {
+            // Add delay between requests
+            await new Promise(resolve => setTimeout(resolve, 300));
+          }
+          const theme = await fetchSingleAnimeTheme(malIds[i]);
+          if (theme) {
+            themes.push(theme);
+          }
         }
-        const theme = await fetchSingleAnimeTheme(malIds[i]);
-        if (theme) {
-          themes.push(theme);
+        
+        if (themes.length > 0) {
+          setPlaylist(themes);
+          // Start with 5th anime song (index 4) - will play 4→3→2→1→0 freely
+          setCurrentTrackIndex(Math.min(4, themes.length - 1));
+          devLog(`Successfully loaded ${themes.length} themes into playlist`);
+        } else {
+          devWarn('No themes were successfully fetched');
         }
-      }
-      
-      if (themes.length > 0) {
-        setPlaylist(themes);
-        // Start with 5th anime song (index 4) - will play 4→3→2→1→0 freely
-        setCurrentTrackIndex(Math.min(4, themes.length - 1));
+      } finally {
+        // Always clear pending IDs after fetching completes
+        setPendingMalIds([]);
       }
     } catch (error) {
       devError('Error fetching anime themes:', error);
+      // Clear pending IDs on error
+      setPendingMalIds([]);
     }
   }
 
