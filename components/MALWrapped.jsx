@@ -246,6 +246,7 @@ export default function MALWrapped() {
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [playlist, setPlaylist] = useState([]);
   const [pendingMalIds, setPendingMalIds] = useState([]);
+  const [isFetchingThemes, setIsFetchingThemes] = useState(false);
   const shareMenuRef = useRef(null);
   const slideRef = useRef(null);
   const audioRef = useRef(null);
@@ -1926,8 +1927,12 @@ export default function MALWrapped() {
         .map(item => item.node?.id)
         .filter(id => id != null);
       
-      if (malIds.length === 0) return;
+      if (malIds.length === 0) {
+        setIsFetchingThemes(false);
+        return;
+      }
       
+      setIsFetchingThemes(true);
       // Store MAL IDs
       setPendingMalIds(malIds);
       
@@ -1938,19 +1943,34 @@ export default function MALWrapped() {
           // Add delay between requests
           await new Promise(resolve => setTimeout(resolve, 300));
         }
-        const theme = await fetchSingleAnimeTheme(malIds[i]);
-        if (theme) {
-          themes.push(theme);
+        try {
+          const theme = await fetchSingleAnimeTheme(malIds[i]);
+          if (theme) {
+            themes.push(theme);
+            devLog(`Successfully fetched theme ${i + 1}/${malIds.length} for MAL ID ${malIds[i]}`);
+          } else {
+            devWarn(`No theme found for MAL ID ${malIds[i]}`);
+          }
+        } catch (error) {
+          devError(`Error fetching theme for MAL ID ${malIds[i]}:`, error);
         }
       }
+      
+      setIsFetchingThemes(false);
+      setPendingMalIds([]);
       
       if (themes.length > 0) {
         setPlaylist(themes);
         // Start with 5th anime song (index 4) - will play 4→3→2→1→0 freely
         setCurrentTrackIndex(Math.min(4, themes.length - 1));
+        devLog(`Successfully loaded ${themes.length} themes into playlist`);
+      } else {
+        devWarn('No themes were successfully fetched');
       }
     } catch (error) {
       devError('Error fetching anime themes:', error);
+      setIsFetchingThemes(false);
+      setPendingMalIds([]);
     }
   }
 
@@ -2182,6 +2202,7 @@ export default function MALWrapped() {
       setPlaylist([]);
       setPendingMalIds([]);
       setCurrentTrackIndex(0);
+      setIsFetchingThemes(false);
       isSwitchingTrackRef.current = false;
     }
   }, [currentSlide]);
@@ -3478,6 +3499,7 @@ export default function MALWrapped() {
                           // Clear playlist and pending MAL IDs to trigger refetch
                           setPlaylist([]);
                           setPendingMalIds([]);
+                          setIsFetchingThemes(false);
                           setCurrentMalIdIndex(0);
                           setCurrentTrackIndex(0);
                           setIsMusicPlaying(false);
@@ -5938,24 +5960,42 @@ export default function MALWrapped() {
               {/* Top Bar - Download, Share, Logout (Year picker moved to welcome screen) */}
               <div className="flex-shrink-0 px-3 sm:px-4 md:px-6 pt-3 pb-2 flex items-center justify-between gap-2 sm:gap-3" data-exclude-from-screenshot>
                 <div className="flex items-center gap-2 sm:gap-3">
-                  {playlist.length > 0 && (
+                  {(playlist.length > 0 || isFetchingThemes || pendingMalIds.length > 0) && (
                     <motion.button 
                       onClick={toggleMusic} 
                       className="p-1.5 sm:p-2 text-white rounded-full flex items-center gap-1.5 sm:gap-2" 
-                      title={isMusicPlaying ? "Pause Music" : "Play Music"}  
+                      title={
+                        isFetchingThemes || pendingMalIds.length > 0 
+                          ? "Loading music..." 
+                          : isMusicPlaying 
+                            ? "Pause Music" 
+                            : "Play Music"
+                      }
+                      disabled={isFetchingThemes || pendingMalIds.length > 0 || playlist.length === 0}
                       style={{ 
                         backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                        border: '1px solid rgba(255, 255, 255, 0.1)'
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        opacity: (isFetchingThemes || pendingMalIds.length > 0 || playlist.length === 0) ? 0.5 : 1
                       }}
                       whileHover={{ 
-                        scale: 1.1, 
-                        backgroundColor: 'rgba(139, 92, 246, 0.8)',
-                        borderColor: 'rgba(139, 92, 246, 0.8)'
+                        scale: (isFetchingThemes || pendingMalIds.length > 0 || playlist.length === 0) ? 1 : 1.1, 
+                        backgroundColor: (isFetchingThemes || pendingMalIds.length > 0 || playlist.length === 0) 
+                          ? 'rgba(255, 255, 255, 0.05)' 
+                          : 'rgba(139, 92, 246, 0.8)',
+                        borderColor: (isFetchingThemes || pendingMalIds.length > 0 || playlist.length === 0) 
+                          ? 'rgba(255, 255, 255, 0.1)' 
+                          : 'rgba(139, 92, 246, 0.8)'
                       }}
                       whileTap={{ scale: 0.9 }}
                       transition={{ duration: 0.2 }}
                     >
-                      {isMusicPlaying ? (
+                      {isFetchingThemes || pendingMalIds.length > 0 ? (
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                          className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white border-t-transparent rounded-full"
+                        />
+                      ) : isMusicPlaying ? (
                         <Volume2 className="w-4 h-4 sm:w-5 sm:h-5" />
                       ) : (
                         <VolumeX className="w-4 h-4 sm:w-5 sm:h-5" />
