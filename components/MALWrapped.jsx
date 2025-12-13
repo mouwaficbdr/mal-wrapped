@@ -254,6 +254,7 @@ export default function MALWrapped() {
   const isSwitchingTrackRef = useRef(false);
   const lastForcedSlideRef = useRef(null);
   const isFetchingThemesRef = useRef(false);
+  const currentTrackIndexRef = useRef(0);
   
   // Dev-only logger
   const devLog = process.env.NODE_ENV === 'development' ? console.log : () => {};
@@ -2002,7 +2003,9 @@ export default function MALWrapped() {
         setPlaylist(themes);
         setPlaylistYear(year);
         // Start with 5th anime song (index 4) - will play 4→3→2→1→0 freely
-        setCurrentTrackIndex(Math.min(4, themes.length - 1));
+        const initialIndex = Math.min(4, themes.length - 1);
+        setCurrentTrackIndex(initialIndex);
+        currentTrackIndexRef.current = initialIndex;
         setLoadingProgress('Complete!');
         // Ensure progress only increases, never decreases
         setLoadingProgressPercent(prev => Math.max(prev, 100));
@@ -2129,6 +2132,7 @@ export default function MALWrapped() {
               newMediaElement.volume = targetVolume;
               audioRef.current = newMediaElement;
               setCurrentTrackIndex(index);
+              currentTrackIndexRef.current = index;
               setIsMusicPlaying(true);
               isSwitchingTrackRef.current = false;
             }
@@ -2155,6 +2159,7 @@ export default function MALWrapped() {
           
           audioRef.current = newMediaElement;
           setCurrentTrackIndex(index);
+          currentTrackIndexRef.current = index;
           setIsMusicPlaying(true);
           isSwitchingTrackRef.current = false;
         }).catch(err => {
@@ -2182,6 +2187,7 @@ export default function MALWrapped() {
           playPromise.then(() => {
             audioRef.current = newMediaElement;
             setCurrentTrackIndex(index);
+            currentTrackIndexRef.current = index;
             setIsMusicPlaying(true);
             isSwitchingTrackRef.current = false;
           }).catch(err => {
@@ -2218,13 +2224,14 @@ export default function MALWrapped() {
       }
       
       // Play next track in sequence (5th→4th→3rd→2nd→1st, backwards)
-      // Don't loop - just stop if we reach the end
+      // Loop back to 5th song (index 4) when reaching the end (index 0)
       if (index > 0) {
         const nextIndex = index - 1; // Go backwards: 4→3→2→1→0
         playTrack(nextIndex, tracksToUse);
       } else {
-        // Reached the end (index 0), stop playback
-        setIsMusicPlaying(false);
+        // Reached the end (index 0), loop back to 5th song (index 4)
+        const lastIndex = Math.min(4, tracksToUse.length - 1);
+        playTrack(lastIndex, tracksToUse);
       }
     });
     
@@ -2316,6 +2323,7 @@ export default function MALWrapped() {
       setPlaylistYear(null); // Clear playlist year
       setPendingMalIds([]);
       setCurrentTrackIndex(0);
+      currentTrackIndexRef.current = 0;
       isSwitchingTrackRef.current = false;
       isFetchingThemesRef.current = false; // Reset fetching flag
     }
@@ -2332,6 +2340,7 @@ export default function MALWrapped() {
       setPlaylistYear(null); // Clear playlist year
       setPendingMalIds([]);
       setCurrentTrackIndex(0);
+      currentTrackIndexRef.current = 0;
       setIsMusicPlaying(false);
       setIsLoadingSongs(false); // Don't show loading on initial mount
       isFetchingThemesRef.current = false;
@@ -2362,6 +2371,7 @@ export default function MALWrapped() {
       // Start with 5th anime (index 4) - will play freely 4→3→2→1→0
       const initialTrackIndex = Math.min(4, playlist.length - 1);
       setCurrentTrackIndex(initialTrackIndex);
+      currentTrackIndexRef.current = initialTrackIndex;
       playTrack(initialTrackIndex, playlist);
       setShouldStartMusic(false);
     }
@@ -2445,13 +2455,17 @@ export default function MALWrapped() {
     }
     
     // Only change track if we have a forced change and we're not already playing it
+    // Use ref to check current track index to avoid re-running effect when track changes
     if (shouldForceChange && targetTrackIndex !== null && targetTrackIndex < playlist.length && 
-        currentTrackIndex !== targetTrackIndex && audioRef.current) {
-      devLog(`Forcing track change from ${currentTrackIndex} to ${targetTrackIndex} for slide ${slideNumber}`);
-      if (isMusicPlaying) {
+        currentTrackIndexRef.current !== targetTrackIndex && audioRef.current) {
+      devLog(`Forcing track change from ${currentTrackIndexRef.current} to ${targetTrackIndex} for slide ${slideNumber}`);
+      // Check if music is playing using audioRef instead of state
+      const isPlaying = audioRef.current && !audioRef.current.paused && audioRef.current.currentTime > 0;
+      if (isPlaying) {
         playTrack(targetTrackIndex, playlist);
       } else {
         setCurrentTrackIndex(targetTrackIndex);
+        currentTrackIndexRef.current = targetTrackIndex;
       }
     }
     
@@ -2459,7 +2473,7 @@ export default function MALWrapped() {
     if (audioRef.current) {
       audioRef.current.volume = 0.3;
     }
-  }, [currentSlide, stats, slides, playlist, currentTrackIndex, isMusicPlaying, playTrack]);
+  }, [currentSlide, stats, slides, playlist, playTrack]);
 
 
 
@@ -3714,6 +3728,7 @@ export default function MALWrapped() {
                           setPlaylistYear(null); // Clear playlist year
                           setPendingMalIds([]);
                           setCurrentTrackIndex(0);
+                          currentTrackIndexRef.current = 0;
                           setIsMusicPlaying(false);
                           // Keep loading visible - it will stay until new songs are fetched
                           setIsLoadingSongs(true);
@@ -3778,6 +3793,7 @@ export default function MALWrapped() {
                                 playPromise.then(() => {
                                   audioRef.current = mediaElement;
                                   setCurrentTrackIndex(initialTrackIndex);
+                                  currentTrackIndexRef.current = initialTrackIndex;
                                   setIsMusicPlaying(true);
                                 }).catch(err => {
                                   devError('Failed to play on button click:', err);
@@ -6063,7 +6079,7 @@ export default function MALWrapped() {
           )}
 
           {(isLoading || isLoadingSongs) && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center z-50 bg-black/95 backdrop-blur-sm">
+            <div className="absolute inset-0 flex flex-col items-center justify-center z-50 bg-black">
               <div className="text-center w-full max-w-2xl mx-auto px-4">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -6076,7 +6092,7 @@ export default function MALWrapped() {
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.8, delay: 0.2 }}
                   >
-                    {loadingProgress || ('Generating your wrapped...')}
+                    {loadingProgress || ('Generating your Wrapped...')}
                   </motion.h1>
 
                   {/* Progress bar */}
