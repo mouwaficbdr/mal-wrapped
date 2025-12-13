@@ -2139,10 +2139,10 @@ export default function MALWrapped() {
       }
       
       // Skip to next track on error
-      const nextIndex = (index + 1) % tracksToUse.length;
-      if (nextIndex !== index) {
+        const nextIndex = (index + 1) % tracksToUse.length;
+        if (nextIndex !== index) {
         setTimeout(() => {
-        playTrack(nextIndex, tracksToUse);
+          playTrack(nextIndex, tracksToUse);
         }, 100);
       } else {
         console.log(`No more tracks available`);
@@ -3445,31 +3445,31 @@ export default function MALWrapped() {
               <div className="relative z-20 w-full flex flex-col items-center justify-center">
               <motion.div {...fadeIn} data-framer-motion className="mt-16 w-full flex flex-col items-center">
                   {/* User Picture - moved above MyAnimeList */}
-                  <motion.div 
+              <motion.div 
                     className="mb-8 w-full flex items-center justify-center relative z-20"
-                    variants={staggerItem}
+                variants={staggerItem}
                     {...fadeIn}
                     data-framer-motion
-                  >
+              >
                     <div className="relative w-32 h-32 flex items-center justify-center flex-shrink-0 z-20">
-                      <motion.a
-                        href={username ? `https://myanimelist.net/profile/${encodeURIComponent(username)}` : '#'}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="relative z-20 w-full h-full rounded-xl overflow-hidden block"
-                        {...fadeSlideUp}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        <img 
-                          src={userImage} 
-                          alt={username || 'User'} 
-                          className="w-full h-full object-cover"
-                          crossOrigin="anonymous"
-                        />
-                      </motion.a>
-                    </div>
-                  </motion.div>
+                  <motion.a
+                    href={username ? `https://myanimelist.net/profile/${encodeURIComponent(username)}` : '#'}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                className="relative z-20 w-full h-full rounded-xl overflow-hidden block"
+                    {...fadeSlideUp}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <img 
+                      src={userImage} 
+                      alt={username || 'User'} 
+                      className="w-full h-full object-cover"
+                      crossOrigin="anonymous"
+                    />
+                  </motion.a>
+                </div>
+              </motion.div>
                   
                   <div className="relative inline-block text-center">
                     <h1 className="wrapped-brand text-white/70 relative z-10 text-center">
