@@ -6150,7 +6150,7 @@ export default function MALWrapped() {
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.8, delay: 0.2 }}
                   >
-                    {loadingProgress || ('Loading genres and openings...')}
+                    {loadingProgress || ('Loading...')}
                   </motion.h1>
 
                   {/* Progress bar */}
