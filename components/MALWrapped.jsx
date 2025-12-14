@@ -6173,7 +6173,7 @@ export default function MALWrapped() {
             </div>
           )}
 
-          {!isAuthenticated && !isLoading && !isLoadingSongs && (
+          {!isAuthenticated && (
             <div className="text-center p-4 relative w-full h-full flex flex-col items-center justify-center">
               {/* Colorful abstract shapes background */}
               <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
