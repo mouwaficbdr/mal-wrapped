@@ -6111,7 +6111,7 @@ export default function MALWrapped() {
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.8, delay: 0.2 }}
                   >
-                    {isLoadingSongs ? 'Generating your Wrapped...' : 'Loading genres and openings...'}
+                    {'Loading genres and openings...'}
                   </motion.h1>
 
                   {/* Progress bar */}
