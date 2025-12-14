@@ -2011,7 +2011,7 @@ export default function MALWrapped() {
       } else if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
         devError(`Network error fetching theme for MAL ID ${malId} (iOS network issue)`);
       } else {
-        devError(`Error fetching theme for MAL ID ${malId}:`, error);
+      devError(`Error fetching theme for MAL ID ${malId}:`, error);
       }
       return null;
     }
@@ -2324,7 +2324,7 @@ export default function MALWrapped() {
             // Remove any existing listeners first
             newMediaElement.removeEventListener('canplay', handleCanPlay);
             newMediaElement.removeEventListener('loadedmetadata', handleCanPlay);
-            newMediaElement.addEventListener('canplay', handleCanPlay, { once: true });
+    newMediaElement.addEventListener('canplay', handleCanPlay, { once: true });
             newMediaElement.load(); // Trigger load
           });
         }
@@ -2421,7 +2421,7 @@ export default function MALWrapped() {
   useEffect(() => {
     if (currentSlide === 0) {
       cleanupMediaElement(audioRef.current);
-      audioRef.current = null;
+        audioRef.current = null;
       cleanupAllMediaElements();
       setIsMusicPlaying(false);
       setPlaylist([]);
@@ -2603,6 +2603,15 @@ export default function MALWrapped() {
     // Use ref to check current track index to avoid re-running effect when track changes
     if (shouldForceChange && targetTrackIndex !== null && targetTrackIndex < playlist.length && 
         currentTrackIndexRef.current !== targetTrackIndex && audioRef.current) {
+      // Prevent concurrent track switches - if already switching, just skip to target
+      if (isSwitchingTrackRef.current) {
+        devLog(`Already switching tracks, skipping to ${targetTrackIndex} for slide ${slideNumber}`);
+        // Just update the index without calling playTrack
+        setCurrentTrackIndex(targetTrackIndex);
+        currentTrackIndexRef.current = targetTrackIndex;
+        return;
+      }
+      
       devLog(`Forcing track change from ${currentTrackIndexRef.current} to ${targetTrackIndex} for slide ${slideNumber}`);
       // Check if music is playing using audioRef instead of state
       const isPlaying = audioRef.current && !audioRef.current.paused && audioRef.current.currentTime > 0;
@@ -2618,7 +2627,8 @@ export default function MALWrapped() {
     if (audioRef.current) {
       audioRef.current.volume = 0.3;
     }
-  }, [currentSlide, stats, slides, playlist, playTrack]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentSlide, stats, slides, playlist.length]);
 
 
 
@@ -2626,7 +2636,7 @@ export default function MALWrapped() {
   useEffect(() => {
     return () => {
       cleanupMediaElement(audioRef.current);
-      audioRef.current = null;
+        audioRef.current = null;
     };
   }, []);
 
@@ -3921,7 +3931,7 @@ export default function MALWrapped() {
                             }
                           } else {
                             // If playlist not ready, use the flag (fallback for other platforms)
-                            setShouldStartMusic(true);
+                          setShouldStartMusic(true);
                           }
                           // Move to next slide
                           setCurrentSlide(1);
@@ -4513,18 +4523,18 @@ export default function MALWrapped() {
                                     </div>
                                     {malUrl ? (
                                       <a href={malUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="block">
-                                        <div className="w-20 h-20 rounded-lg overflow-hidden">
-                                          {item.coverImage && (
-                                            <motion.img 
-                                              src={item.coverImage} 
-                                              alt={item.title} 
-                                              crossOrigin="anonymous" 
-                                              className="w-full h-full object-cover"
-                                              whileHover={{ scale: 1.05 }}
-                                              transition={{ duration: 0.2 }}
-                                            />
-                                          )}
-                                        </div>
+                                    <div className="w-20 h-20 rounded-lg overflow-hidden">
+                                      {item.coverImage && (
+                                        <motion.img 
+                                          src={item.coverImage} 
+                                          alt={item.title} 
+                                          crossOrigin="anonymous" 
+                                          className="w-full h-full object-cover"
+                                          whileHover={{ scale: 1.05 }}
+                                          transition={{ duration: 0.2 }}
+                                        />
+                                      )}
+                                    </div>
                                       </a>
                                     ) : (
                                       <div className="w-20 h-20 rounded-lg overflow-hidden">
@@ -4538,7 +4548,7 @@ export default function MALWrapped() {
                                             transition={{ duration: 0.2 }}
                                           />
                                         )}
-                                      </div>
+                                  </div>
                                     )}
                                   </div>
                                   {/* Title and details - not clickable */}
@@ -4555,7 +4565,7 @@ export default function MALWrapped() {
                               );
                               return (
                                 <motion.div key={item.id} className="w-full">
-                                  {itemContent}
+                                      {itemContent}
                                 </motion.div>
                               );
                             })}
@@ -6205,37 +6215,37 @@ export default function MALWrapped() {
 
           {(isLoading || (isLoadingSongs && isAuthenticated)) && (
             <div className="absolute inset-0 flex flex-col items-center justify-center z-50 bg-black">
-              <div className="text-center w-full max-w-2xl mx-auto px-4">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, ease: smoothEase }}
+            <div className="text-center w-full max-w-2xl mx-auto px-4">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, ease: smoothEase }}
+              >
+                <motion.h1 
+                  className="body-lg font-medium text-white mb-4 tracking-tight"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.8, delay: 0.2 }}
                 >
-                  <motion.h1 
-                    className="body-lg font-medium text-white mb-4 tracking-tight"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.8, delay: 0.2 }}
-                  >
                     {loadingProgress || ('Loading...')}
-                  </motion.h1>
+                </motion.h1>
 
-                  {/* Progress bar */}
-                  <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden">
-                    <motion.div
-                      className="h-full"
-                      style={{
-                        background: 'linear-gradient(90deg, rgba(0, 255, 255, 0.8) 0%, rgba(0, 200, 255, 0.8) 100%)'
-                      }}
-                      initial={{ width: "0%" }}
-                      animate={{ width: `${loadingProgressPercent}%` }}
-                      transition={{
-                        duration: 0.3,
-                        ease: smoothEase
-                      }}
-                    />
-                  </div>
-                </motion.div>
+                {/* Progress bar */}
+                <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden">
+                  <motion.div
+                    className="h-full"
+                    style={{
+                      background: 'linear-gradient(90deg, rgba(0, 255, 255, 0.8) 0%, rgba(0, 200, 255, 0.8) 100%)'
+                    }}
+                    initial={{ width: "0%" }}
+                    animate={{ width: `${loadingProgressPercent}%` }}
+                    transition={{
+                      duration: 0.3,
+                      ease: smoothEase
+                    }}
+                  />
+                </div>
+              </motion.div>
               </div>
             </div>
           )}
