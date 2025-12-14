@@ -2125,65 +2125,16 @@ export default function MALWrapped() {
     const tracksToUse = tracks || playlist;
     if (!tracksToUse || tracksToUse.length === 0 || index < 0 || index >= tracksToUse.length) return;
     
-    // Don't play if playlist is for a different year (only check when using default playlist)
-    if (tracks === null && playlistYear !== null && playlistYear !== selectedYear) {
-      devLog('Playlist is for different year, not playing');
-      // Stop any currently playing audio
-      if (audioRef.current) {
-        try {
-          audioRef.current.pause();
-          audioRef.current.src = '';
-          audioRef.current.load();
-        } catch (e) {
-          devError('Error stopping audio:', e);
-        }
-      }
-      setIsMusicPlaying(false);
-      return;
-    }
-    
     // Prevent concurrent calls
     if (isSwitchingTrackRef.current) {
-      devLog('Already switching tracks, ignoring duplicate call');
       return;
     }
-    
-    // Prevent switching to the same track we're already playing
-    if (currentTrackIndexRef.current === index && audioRef.current && 
-        !audioRef.current.paused && audioRef.current.currentTime > 0) {
-      devLog(`Already playing track ${index}, ignoring duplicate call`);
-      return;
-    }
-    
     isSwitchingTrackRef.current = true;
     
     const track = tracksToUse[index];
     if (!track || !track.videoUrl) {
       isSwitchingTrackRef.current = false;
       return;
-    }
-    
-    // CRITICAL: Store reference to old element and clean up stray elements BEFORE creating new one
-    const oldMediaElement = audioRef.current;
-    
-    // Clean up any stray media elements in the DOM (but keep the current one for crossfade)
-    const allMediaElements = document.querySelectorAll('audio, video');
-    allMediaElements.forEach(el => {
-      // Keep the current audioRef element for crossfade, clean up everything else
-      if (el !== oldMediaElement) {
-        cleanupMediaElement(el);
-      }
-    });
-    
-    // Check how many media elements exist - Chrome limits this (should be 0-1 now)
-    const remainingElements = document.querySelectorAll('audio, video');
-    if (remainingElements.length > 2) {
-      devWarn(`Too many media elements (${remainingElements.length}), cleaning up all except current`);
-      remainingElements.forEach(el => {
-        if (el !== oldMediaElement) {
-          cleanupMediaElement(el);
-        }
-      });
     }
     
     // Use Audio element for audio files, Video element for video files
@@ -2196,7 +2147,6 @@ export default function MALWrapped() {
     const audioUrl = track.videoUrl;
     if (!audioUrl || audioUrl.trim() === '') {
       isSwitchingTrackRef.current = false;
-      cleanupMediaElement(newMediaElement);
       return;
     }
     newMediaElement.src = audioUrl;
@@ -2208,63 +2158,25 @@ export default function MALWrapped() {
     newMediaElement.setAttribute('webkit-playsinline', 'true'); // Older iOS
     newMediaElement.style.display = 'none';
     document.body.appendChild(newMediaElement);
+    
+    const oldMediaElement = audioRef.current;
     const targetVolume = 0.3;
     const fadeDuration = 1000; // 1 second crossfade
     const fadeSteps = 20;
     const fadeInterval = fadeDuration / fadeSteps;
     let currentStep = 0;
     
-    // Track if handleCanPlay has been called to prevent duplicate calls
-    let canPlayHandled = false;
-    
     const handleCanPlay = () => {
-      // Prevent duplicate calls
-      if (canPlayHandled) {
-        devLog('handleCanPlay already called, ignoring duplicate');
-        return;
-      }
-      
-      // Check if this element is still valid (might have been replaced)
-      if (audioRef.current && audioRef.current !== newMediaElement && audioRef.current !== oldMediaElement) {
-        devLog('New track started, cleaning up this one');
-        cleanupMediaElement(newMediaElement);
-        isSwitchingTrackRef.current = false;
-        return;
-      }
-      
-      canPlayHandled = true;
-      
-      // If there's an old track that's still valid and playing, crossfade. Otherwise, just start playing.
-      if (oldMediaElement && oldMediaElement.parentNode && !oldMediaElement.paused && oldMediaElement.currentTime > 0) {
+      // If there's an old track, crossfade. Otherwise, just start playing.
+      if (oldMediaElement && !oldMediaElement.paused && oldMediaElement.currentTime > 0) {
         // Crossfade: fade out old, fade in new
         newMediaElement.play().then(() => {
           const fadeIntervalId = setInterval(() => {
-            // Check if we should stop (new track started or element removed)
-            if (audioRef.current !== newMediaElement && audioRef.current !== oldMediaElement) {
-              clearInterval(fadeIntervalId);
-              cleanupMediaElement(newMediaElement);
-              cleanupMediaElement(oldMediaElement);
-              isSwitchingTrackRef.current = false;
-              return;
-            }
-            
-            // Check if old element still exists
-            if (!oldMediaElement || !oldMediaElement.parentNode) {
-              clearInterval(fadeIntervalId);
-              newMediaElement.volume = targetVolume;
-              audioRef.current = newMediaElement;
-              setCurrentTrackIndex(index);
-              currentTrackIndexRef.current = index;
-              setIsMusicPlaying(true);
-              isSwitchingTrackRef.current = false;
-              return;
-            }
-            
             currentStep++;
             const progress = currentStep / fadeSteps;
             
             // Clamp volume values between 0 and 1
-            if (oldMediaElement && oldMediaElement.parentNode) {
+            if (oldMediaElement) {
               const oldVolume = Math.max(0, Math.min(1, targetVolume * (1 - progress)));
               oldMediaElement.volume = oldVolume;
             }
@@ -2275,7 +2187,16 @@ export default function MALWrapped() {
               clearInterval(fadeIntervalId);
               
               // Clean up old element
-              cleanupMediaElement(oldMediaElement);
+              if (oldMediaElement) {
+                try {
+                  oldMediaElement.pause();
+                  if (oldMediaElement.parentNode) {
+                    oldMediaElement.parentNode.removeChild(oldMediaElement);
+                  }
+                } catch (e) {
+                  devError('Error cleaning up old media element:', e);
+                }
+              }
               
               newMediaElement.volume = targetVolume;
               audioRef.current = newMediaElement;
@@ -2287,22 +2208,23 @@ export default function MALWrapped() {
           }, fadeInterval);
         }).catch(err => {
           devError('Failed to start crossfade:', err);
-          cleanupMediaElement(newMediaElement);
           isSwitchingTrackRef.current = false;
         });
       } else {
         // No old track, just start playing
         newMediaElement.volume = targetVolume;
         newMediaElement.play().then(() => {
-          // Check if this element is still valid
-          if (audioRef.current && audioRef.current !== newMediaElement && audioRef.current !== oldMediaElement) {
-            cleanupMediaElement(newMediaElement);
-            isSwitchingTrackRef.current = false;
-            return;
-          }
-          
           // Clean up old element if it exists
-          cleanupMediaElement(oldMediaElement);
+          if (oldMediaElement) {
+            try {
+              oldMediaElement.pause();
+              if (oldMediaElement.parentNode) {
+                oldMediaElement.parentNode.removeChild(oldMediaElement);
+              }
+            } catch (e) {
+              devError('Error cleaning up old media element:', e);
+            }
+          }
           
           audioRef.current = newMediaElement;
           setCurrentTrackIndex(index);
@@ -2313,99 +2235,48 @@ export default function MALWrapped() {
           if (err.name === 'NotAllowedError') {
             devLog('Autoplay prevented - waiting for user interaction');
             setIsMusicPlaying(false);
-            cleanupMediaElement(newMediaElement);
             isSwitchingTrackRef.current = false;
           } else {
             devError('Failed to play media:', err, track);
             setIsMusicPlaying(false);
-            cleanupMediaElement(newMediaElement);
             isSwitchingTrackRef.current = false;
           }
         });
       }
     };
     
-    // Track if we've already started playing to prevent duplicate calls
-    let hasStartedPlaying = false;
+    // Use multiple events for better mobile compatibility
+    let hasStarted = false;
+    let timeoutId = null;
     
-    // For iOS, try to play immediately if possible (must be within user gesture)
-    // iOS requires play() to be called synchronously within user interaction
-    const tryImmediatePlay = () => {
-      if (hasStartedPlaying || canPlayHandled) {
-        devLog('Already started playing, ignoring duplicate call');
-        return;
-      }
-      
-      // Only try immediate play if we're on the first track and no old element exists
-      if (!oldMediaElement && newMediaElement.readyState >= 2) { // HAVE_CURRENT_DATA
-        hasStartedPlaying = true;
-        newMediaElement.volume = targetVolume;
-        const playPromise = newMediaElement.play();
-        if (playPromise !== undefined) {
-          playPromise.then(() => {
-            if (audioRef.current && audioRef.current !== newMediaElement && audioRef.current !== oldMediaElement) {
-              // Another track started, clean up this one
-              cleanupMediaElement(newMediaElement);
-              isSwitchingTrackRef.current = false;
-              return;
-            }
-            audioRef.current = newMediaElement;
-            setCurrentTrackIndex(index);
-            currentTrackIndexRef.current = index;
-            setIsMusicPlaying(true);
-            isSwitchingTrackRef.current = false;
-          }).catch(err => {
-            hasStartedPlaying = false;
-            // If immediate play fails, fall back to canplay handler
-            devLog('Immediate play failed, waiting for canplay:', err);
-            // Remove any existing listeners first
-            newMediaElement.removeEventListener('canplay', handleCanPlay);
-            newMediaElement.removeEventListener('loadedmetadata', handleCanPlay);
-            newMediaElement.addEventListener('canplay', handleCanPlay, { once: true });
-            newMediaElement.addEventListener('loadedmetadata', handleCanPlay, { once: true });
-            newMediaElement.load(); // Trigger load
-          });
-        }
-      } else {
-        // Use normal canplay handler - ensure we only add listeners once
-        newMediaElement.removeEventListener('canplay', handleCanPlay);
-        newMediaElement.removeEventListener('loadedmetadata', handleCanPlay);
-        newMediaElement.addEventListener('canplay', handleCanPlay, { once: true });
-        newMediaElement.addEventListener('loadedmetadata', handleCanPlay, { once: true });
-      }
+    const handleReady = () => {
+      if (hasStarted) return;
+      hasStarted = true;
+      if (timeoutId) clearTimeout(timeoutId);
+      handleCanPlay();
     };
     
-    // Try immediate play for iOS compatibility
-    if (newMediaElement.readyState >= 2) {
-      tryImmediatePlay();
-    } else {
-      // Wait for metadata to load - ensure we only add listener once
-      const metadataHandler = () => {
-        tryImmediatePlay();
-      };
-      newMediaElement.removeEventListener('loadedmetadata', metadataHandler);
-      newMediaElement.addEventListener('loadedmetadata', metadataHandler, { once: true });
-      // Also add canplay handler
-      newMediaElement.removeEventListener('canplay', handleCanPlay);
-      newMediaElement.addEventListener('canplay', handleCanPlay, { once: true });
-    }
+    newMediaElement.addEventListener('canplay', handleReady, { once: true });
+    newMediaElement.addEventListener('canplaythrough', handleReady, { once: true });
+    newMediaElement.addEventListener('loadeddata', handleReady, { once: true });
+    newMediaElement.addEventListener('loadedmetadata', handleReady, { once: true });
+    
+    // Fallback timeout for mobile devices that may not fire events properly
+    timeoutId = setTimeout(() => {
+      if (!hasStarted && newMediaElement.readyState >= 2) { // HAVE_CURRENT_DATA or higher
+        handleReady();
+      }
+    }, 3000);
     
     newMediaElement.addEventListener('ended', () => {
-      // Check if playlist is still valid for current year before playing next
-      if (tracks === null && playlistYear !== null && playlistYear !== selectedYear) {
-        setIsMusicPlaying(false);
-        return;
-      }
-      
       // Play next track in sequence (5th→4th→3rd→2nd→1st, backwards)
-      // Loop back to 5th song (index 4) when reaching the end (index 0)
+      // Don't loop - just stop if we reach the end
       if (index > 0) {
         const nextIndex = index - 1; // Go backwards: 4→3→2→1→0
         playTrack(nextIndex, tracksToUse);
       } else {
-        // Reached the end (index 0), loop back to 5th song (index 4)
-        const lastIndex = Math.min(4, tracksToUse.length - 1);
-        playTrack(lastIndex, tracksToUse);
+        // Reached the end (index 0), stop playback
+        setIsMusicPlaying(false);
       }
     });
     
@@ -2414,7 +2285,13 @@ export default function MALWrapped() {
       isSwitchingTrackRef.current = false;
       
       // Clean up
-      cleanupMediaElement(newMediaElement);
+      try {
+        if (newMediaElement.parentNode) {
+          newMediaElement.parentNode.removeChild(newMediaElement);
+        }
+      } catch (cleanupErr) {
+        devError('Error cleaning up error media element:', cleanupErr);
+      }
       
       // Skip to next track on error
       const nextIndex = (index + 1) % tracksToUse.length;
@@ -2429,7 +2306,10 @@ export default function MALWrapped() {
     
     // Start loading immediately
     newMediaElement.load();
-  }, [playlist, playlistYear, selectedYear]);
+    
+    // Start loading immediately
+    newMediaElement.load();
+  }, [playlist]);
 
   // Toggle music play/pause
   const toggleMusic = useCallback(() => {
@@ -2639,17 +2519,13 @@ export default function MALWrapped() {
     }
     
     // Only change track if we have a forced change and we're not already playing it
-    // Use ref to check current track index to avoid re-running effect when track changes
     if (shouldForceChange && targetTrackIndex !== null && targetTrackIndex < playlist.length && 
-        currentTrackIndexRef.current !== targetTrackIndex && audioRef.current) {
-      devLog(`Forcing track change from ${currentTrackIndexRef.current} to ${targetTrackIndex} for slide ${slideNumber}`);
-      // Check if music is playing using audioRef instead of state
-      const isPlaying = audioRef.current && !audioRef.current.paused && audioRef.current.currentTime > 0;
-      if (isPlaying) {
+        currentTrackIndex !== targetTrackIndex && audioRef.current) {
+      devLog(`Forcing track change from ${currentTrackIndex} to ${targetTrackIndex} for slide ${slideNumber}`);
+      if (isMusicPlaying) {
         playTrack(targetTrackIndex, playlist);
       } else {
         setCurrentTrackIndex(targetTrackIndex);
-        currentTrackIndexRef.current = targetTrackIndex;
       }
     }
     
@@ -2657,7 +2533,7 @@ export default function MALWrapped() {
     if (audioRef.current) {
       audioRef.current.volume = 0.3;
     }
-  }, [currentSlide, stats, slides, playlist, playTrack]);
+  }, [currentSlide, stats, slides, playlist, currentTrackIndex, isMusicPlaying, playTrack]);
 
 
 
