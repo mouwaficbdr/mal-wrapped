@@ -1859,24 +1859,11 @@ export default function MALWrapped() {
     }
   }
 
-  // Helper function to sort videos by quality and resolution
+  // Helper function to choose video ordering
+  // No longer prefers NCBD/1080p or higher resolutions – keeps original API order
   const sortVideosByQuality = (videos) => {
-    return [...videos].sort((a, b) => {
-      const aFilename = (a.filename || a.attributes?.filename || '').toLowerCase();
-      const bFilename = (b.filename || b.attributes?.filename || '').toLowerCase();
-      
-      // Prefer videos with quality tags (NCBD, BD, etc.)
-      const aHasQuality = aFilename.includes('-ncbd') || aFilename.includes('-bd') || aFilename.includes('-nc');
-      const bHasQuality = bFilename.includes('-ncbd') || bFilename.includes('-bd') || bFilename.includes('-nc');
-      
-      if (aHasQuality && !bHasQuality) return -1;
-      if (!aHasQuality && bHasQuality) return 1;
-      
-      // If both have or don't have quality tags, sort by resolution (higher is better)
-      const aRes = a.resolution || a.attributes?.resolution || 0;
-      const bRes = b.resolution || b.attributes?.resolution || 0;
-      return bRes - aRes;
-    });
+    // Return a shallow copy to avoid mutating the original array
+    return [...videos];
   };
 
   // Fetch a single anime theme (lazy loading to avoid rate limits)
@@ -5976,31 +5963,37 @@ export default function MALWrapped() {
 
               {/* Text Content Below - All sections in one flex container with consistent gap */}
               <div className="w-full max-w-3xl flex flex-col gap-6 md:gap-8 text-white relative z-20">
-                <motion.div 
-                  className="grid grid-cols-2 gap-4 md:gap-6 relative z-20"
-                  variants={staggerItem}
-                >
-                  <div>
-                    <p className="text-sm md:text-base text-white/70 font-regular mb-1">Top Anime</p>
-                    {stats.topRated.slice(0, 5).map((a, i) => (
-                        <p key={a.node.id} className="text-white truncate">
-                          <span className="title-sm text-white font-medium truncate mr-2">{String(i + 1)}</span>
-                          <span className="title-sm text-white font-medium truncate">{a.node.title}</span>
-                      </p>
-                    ))}
-                  </div>
-                  
-                  <div>
-                    <p className="text-sm md:text-base text-white/70 font-regular mb-1">Top Manga</p>
+                {/* Top Anime / Top Manga recap - only show if lists have items */}
+                {(stats.topRated?.length > 0 || stats.topManga?.length > 0) && (
+                  <motion.div 
+                    className="grid grid-cols-2 gap-4 md:gap-6 relative z-20"
+                    variants={staggerItem}
+                  >
+                    {stats.topRated?.length > 0 && (
+                      <div>
+                        <p className="text-sm md:text-base text-white/70 font-regular mb-1">Top Anime</p>
+                        {stats.topRated.slice(0, 5).map((a, i) => (
+                          <p key={a.node.id} className="text-white truncate">
+                            <span className="title-sm text-white font-medium truncate mr-2">{String(i + 1)}</span>
+                            <span className="title-sm text-white font-medium truncate">{a.node.title}</span>
+                          </p>
+                        ))}
+                      </div>
+                    )}
                     
-                    {stats.topManga.slice(0, 5).map((m, i) => (
-                        <p key={m.node.id} className="text-white truncate">
-                          <span className="title-sm text-white font-medium truncate mr-2">{String(i + 1)}</span>
-                          <span className="title-sm  text-white font-medium truncate">{m.node.title}</span>
-                      </p>
-                    ))}
-                  </div>
-                </motion.div>
+                    {stats.topManga?.length > 0 && (
+                      <div>
+                        <p className="text-sm md:text-base text-white/70 font-regular mb-1">Top Manga</p>
+                        {stats.topManga.slice(0, 5).map((m, i) => (
+                          <p key={m.node.id} className="text-white truncate">
+                            <span className="title-sm text-white font-medium truncate mr-2">{String(i + 1)}</span>
+                            <span className="title-sm text-white font-medium truncate">{m.node.title}</span>
+                          </p>
+                        ))}
+                      </div>
+                    )}
+                  </motion.div>
+                )}
 
                 <motion.div 
                   className="grid grid-cols-2 gap-4 md:gap-6 relative z-20"
@@ -6025,37 +6018,42 @@ export default function MALWrapped() {
                   </div>
                 </motion.div>
 
-                <motion.div 
-                  className="grid grid-cols-2 sm:grid-cols-3 gap-4 md:gap-6 relative z-20"
-                  variants={staggerItem}
-                >
-                  <div>
-                    <p className="text-sm md:text-base text-white/70 font-regular mb-1">Watched</p>
-                    <p className="title-lg text-white  font-bold">
-                    {stats.totalAnime || 0} Anime
-                  </p>
-                  </div>
-                  <div>
-                    <p className="text-sm md:text-base text-white/70 font-regular mb-1">Read</p>
-                    <p className="title-lg text-white font-bold">
-                    {stats.totalManga || 0} Manga
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm md:text-base text-white/70 font-regular mb-1">Time Spent</p>
-                  <p className="title-lg text-white font-bold">
-                  {totalDays > 0 ? (
-                    <>
-                      {totalDays} Days
-                    </>
-                  ) : (
-                    <>
-                      {totalTimeSpent} Hours
-                    </>
-                  )}
-                </p>
-                  </div>
-                </motion.div>
+                {/* Watched / Read / Time recap - hide headings when values are 0 */}
+                {(stats.totalAnime > 0 || stats.totalManga > 0 || totalTimeSpent > 0) && (
+                  <motion.div 
+                    className="grid grid-cols-2 sm:grid-cols-3 gap-4 md:gap-6 relative z-20"
+                    variants={staggerItem}
+                  >
+                    {stats.totalAnime > 0 && (
+                      <div>
+                        <p className="text-sm md:text-base text-white/70 font-regular mb-1">Watched</p>
+                        <p className="title-lg text-white font-bold">
+                          {stats.totalAnime} Anime
+                        </p>
+                      </div>
+                    )}
+                    {stats.totalManga > 0 && (
+                      <div>
+                        <p className="text-sm md:text-base text-white/70 font-regular mb-1">Read</p>
+                        <p className="title-lg text-white font-bold">
+                          {stats.totalManga} Manga
+                        </p>
+                      </div>
+                    )}
+                    {totalTimeSpent > 0 && (
+                      <div>
+                        <p className="text-sm md:text-base text-white/70 font-regular mb-1">Time Spent</p>
+                        <p className="title-lg text-white font-bold">
+                          {totalDays > 0 ? (
+                            <>{totalDays} Days</>
+                          ) : (
+                            <>{totalTimeSpent} Hours</>
+                          )}
+                        </p>
+                      </div>
+                    )}
+                  </motion.div>
+                )}
                 </div>
                 
             </motion.div>
