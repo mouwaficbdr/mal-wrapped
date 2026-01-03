@@ -2574,23 +2574,72 @@ export default function MALWrapped() {
       const data = await response.json();
       const characters = data.data || [];
       
-      // Find the matching character by name (case-insensitive, partial match)
-      const characterNameLower = characterName.toLowerCase();
-      let foundCharacter = characters.find(c => {
-        const firstName = (c.node?.first_name || '').toLowerCase();
-        const lastName = (c.node?.last_name || '').toLowerCase();
-        const altName = (c.node?.alternative_name || '').toLowerCase();
+      // Find the matching character by name (case-insensitive, improved matching)
+      const characterNameLower = characterName.toLowerCase().trim();
+      const characterNameParts = characterNameLower.split(/\s+/).filter(part => part.length > 0);
+      
+      let foundCharacter = null;
+      
+      // First, try exact match with full name
+      foundCharacter = characters.find(c => {
+        const firstName = (c.node?.first_name || '').toLowerCase().trim();
+        const lastName = (c.node?.last_name || '').toLowerCase().trim();
+        const altName = (c.node?.alternative_name || '').toLowerCase().trim();
         const fullName = `${firstName} ${lastName}`.trim();
         
-        return fullName.includes(characterNameLower) ||
-               characterNameLower.includes(fullName) ||
-               altName.includes(characterNameLower) ||
-               characterNameLower.includes(altName) ||
-               firstName.includes(characterNameLower) ||
-               characterNameLower.includes(firstName);
+        // Exact match (most reliable)
+        if (fullName === characterNameLower || altName === characterNameLower) {
+          return true;
+        }
+        
+        // Check if all parts of the character name match the API name parts
+        // e.g., "Eren Yeager" should match first_name="Eren" + last_name="Yeager"
+        if (characterNameParts.length >= 2) {
+          const firstPart = characterNameParts[0];
+          const lastPart = characterNameParts[characterNameParts.length - 1];
+          if ((firstName === firstPart && lastName === lastPart) ||
+              (firstName === lastPart && lastName === firstPart)) {
+            return true;
+          }
+        }
+        
+        // Check if character name contains all parts of the database name
+        // e.g., "Eren Yeager" should match if fullName contains both "eren" and "yeager"
+        const allPartsMatch = characterNameParts.every(part => 
+          fullName.includes(part) || firstName.includes(part) || lastName.includes(part)
+        );
+        if (allPartsMatch && characterNameParts.length > 0) {
+          return true;
+        }
+        
+        // Check alternative name
+        if (altName && (altName === characterNameLower || 
+            characterNameLower.includes(altName) || 
+            altName.includes(characterNameLower))) {
+          return true;
+        }
+        
+        return false;
       });
       
-      // If not found by name, try to find main character
+      // Only fall back to main character if we truly couldn't find a match by name
+      // This ensures we use the correct character photo, not just the first main character
+      if (!foundCharacter) {
+        // Try one more time with a more lenient match (in case of slight name variations)
+        foundCharacter = characters.find(c => {
+          const firstName = (c.node?.first_name || '').toLowerCase().trim();
+          const lastName = (c.node?.last_name || '').toLowerCase().trim();
+          const fullName = `${firstName} ${lastName}`.trim();
+          
+          // Check if at least one significant word matches
+          return characterNameParts.some(part => 
+            part.length > 2 && (fullName.includes(part) || firstName === part || lastName === part)
+          );
+        });
+      }
+      
+      // Last resort: only use main character if we still can't find a match
+      // This should rarely happen if the character database names are accurate
       if (!foundCharacter) {
         foundCharacter = characters.find(c => c.role === 'Main') || characters[0];
       }
