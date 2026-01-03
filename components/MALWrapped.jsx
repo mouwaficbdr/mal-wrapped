@@ -588,6 +588,8 @@ export default function MALWrapped() {
     };
     
     // Helper to get year from item's date fields
+    // Priority: finish_date > start_date > updated_at (only as last resort when neither exists)
+    // updated_at changes when score is updated, so we prefer finish/start dates when available
     const getItemYear = (item) => {
       const dateStr = item.list_status?.finish_date || item.list_status?.start_date || item.list_status?.updated_at;
       if (!dateStr) return null;
@@ -3786,6 +3788,9 @@ export default function MALWrapped() {
                           background: 'rgba(255, 255, 255, 0.1)'
                         }}
                       >
+                        <option value="2020" style={{ background: 'rgba(0, 0, 0, 0.85)', color: '#ffffff' }}>2020</option>
+                        <option value="2021" style={{ background: 'rgba(0, 0, 0, 0.85)', color: '#ffffff' }}>2021</option>
+                        <option value="2022" style={{ background: 'rgba(0, 0, 0, 0.85)', color: '#ffffff' }}>2022</option>
                         <option value="2023" style={{ background: 'rgba(0, 0, 0, 0.85)', color: '#ffffff' }}>2023</option>
                         <option value="2024" style={{ background: 'rgba(0, 0, 0, 0.85)', color: '#ffffff' }}>2024</option>
                         <option value="2025" style={{ background: 'rgba(0, 0, 0, 0.85)', color: '#ffffff' }}>2025</option>
