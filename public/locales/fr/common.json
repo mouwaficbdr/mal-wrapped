@@ -18,13 +18,17 @@
     "letsGo": "C'est parti"
   },
   "loading": {
-    "message1": "Activation de vos stats...",
-    "message2": "Analyse de votre goût anime...",
-    "message3": "Génération de votre wrapped...",
-    "message4": "Construction de votre profil...",
-    "loadedAnime": "{{count}} anime chargés...",
-    "loadedManga": "{{count}} manga chargés...",
-    "complete": "Terminé !"
+    "message1": "Invocation de vos statistiques",
+    "message2": "Analyse de votre niveau d'otaku",
+    "message3": "Chargement de votre arc narratif",
+    "message4": "Rassemblement de vos favoris",
+    "message5": "Déchiffrage de votre niveau weeb",
+    "message6": "Préparation de votre saga personnelle",
+    "message7": "Compilation de vos moments épiques",
+    "message8": "Activation du mode protagoniste",
+    "loadedAnime": "{{count}} anime chargés",
+    "loadedManga": "{{count}} manga chargés",
+    "complete": "YOROKOBE ! Votre wrapped est prêt !"
   },
   "errors": {
     "noUsername": "Veuillez entrer un pseudo",

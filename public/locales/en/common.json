@@ -18,13 +18,17 @@
     "letsGo": "Let's Go"
   },
   "loading": {
-    "message1": "Powering up your stats...",
-    "message2": "Analyzing your anime taste...",
-    "message3": "Generating your wrapped...",
-    "message4": "Building your profile...",
-    "loadedAnime": "Loaded {{count}} anime...",
-    "loadedManga": "Loaded {{count}} manga...",
-    "complete": "Complete!"
+    "message1": "Summoning your statistics",
+    "message2": "Analyzing your otaku power level",
+    "message3": "Loading your story arc",
+    "message4": "Gathering your favorites",
+    "message5": "Deciphering your weeb level",
+    "message6": "Preparing your personal saga",
+    "message7": "Compiling your epic moments",
+    "message8": "Activating protagonist mode",
+    "loadedAnime": "Loaded {{count}} anime",
+    "loadedManga": "Loaded {{count}} manga",
+    "complete": "YOROKOBE! Your wrapped is ready!"
   },
   "errors": {
     "noUsername": "Please enter a username",
