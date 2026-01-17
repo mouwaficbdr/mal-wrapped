@@ -3830,7 +3830,7 @@ export default function MALWrapped() {
                           // Stats will be recalculated by the useEffect that watches selectedYear
                           // The fetch will happen automatically when stats.topRated updates
                         }}
-                        className="w-full px-3 sm:px-4 py-1.5 sm:py-2 text-white rounded-full border-box-cyan transition-all rounded-lg text-xs sm:text-sm font-medium tracking-wider focus:outline-none appearance-none pr-8 sm:pr-10"
+                        className="w-full px-3 sm:px-4 py-1.5 sm:py-2 text-white rounded-full border-box-cyan transition-all text-xs sm:text-sm font-medium tracking-wider focus:outline-none appearance-none pr-8 sm:pr-10"
                         style={{ 
                           border: '1px solid rgba(255, 255, 255, 0.1)',
                           color: '#ffffff',
