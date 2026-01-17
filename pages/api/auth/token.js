@@ -23,16 +23,6 @@ export default async function handler(req, res) {
     });
   }
 
-  // IMPORTANT: It appears that the redirect_uri MUST match exactly what was sent in the authorize request
-  // MyAnimeList OAuth2 spec requires: "The value of this parameter must be identical to one
-  // that is included the previous authorization request."
-  //
-  // Previous code tried to normalize by removing trailing slashes, but this caused:
-  // - Production (https://mal-wrapped.vercel.app/) worked because https:// was hardcoded in condition
-  // - Local development (http://localhost:3000/) failed because http:// wasn't in condition
-  // Result: redirect_uri mismatch → 401 Unauthorized from MyAnimeList
-  //
-  // Fix: Don't modify redirect_uri, use it exactly as provided by the client
   const normalizedRedirectUri = redirect_uri;
 
   const CLIENT_ID = process.env.NEXT_PUBLIC_MAL_CLIENT_ID;
